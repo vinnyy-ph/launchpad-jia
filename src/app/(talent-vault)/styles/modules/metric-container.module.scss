@@ -1,0 +1,114 @@
+.metricContainer {
+  width: 100%;
+  min-height: 174px;
+  border: 1px solid #e9eaeb;
+  background-color: #fdfdfd;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-sizing: border-box;
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 68px;
+    padding: 10px 20px;
+    box-sizing: border-box;
+  }
+
+  .headerCopy {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .headerTitleRow {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    h3 {
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      color: #181d27;
+    }
+  }
+
+  .chartIcon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+
+  .tooltipTrigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    flex-shrink: 0;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #717680;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% + 1.2px);
+    flex: 1 1 auto;
+    padding: 10px 20px;
+    background-color: #ffffff;
+    border: 1px solid #e9eaeb;
+    border-radius: 10px;
+    margin-left: -0.6px;
+    margin-right: -0.6px;
+    margin-bottom: -1px;
+    box-sizing: border-box;
+    overflow: auto;
+
+    h3 {
+      margin: 0;
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+      color: #030217;
+    }
+  }
+
+  @media (max-width: 1000px) {
+    .header {
+      padding: 10px 16px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      word-break: break-word;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .content h3 {
+      font-size: 28px;
+    }
+  }
+}

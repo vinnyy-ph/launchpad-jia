@@ -1,0 +1,175 @@
+.dropdownContainer {
+    position: relative;
+    display: inline-block;
+    width: auto;
+}
+
+.dropdownButton {
+    width: auto;
+    max-width: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 14px;
+    background-color: #ffffff;
+    color: #414651;
+    border: 1px solid #D5D7DA;
+    border-radius: 9999px; 
+    min-width: 119px;
+    height: 36px;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    white-space: nowrap;
+    position: relative;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+        background-color: #f8f9fa;
+    }
+
+    &:active:not(:disabled) {
+        outline: none;
+        background-color: #f0f0f0;
+    }
+
+    &:focus:not(:disabled) {
+        outline: none;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.buttonIcon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.buttonText {
+    flex: 0 1 auto;
+    text-align: left;
+    white-space: nowrap;
+    color: #414651;
+}
+
+.chevron {
+    width: 16px;
+    height: 16px;
+    color: #535862;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    // min-width: 100%;
+    min-width: 188px;
+    max-height: 240px;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    overflow-y: auto;
+    overflow-x: hidden;
+    animation: fadeInDown 0.2s ease;
+    
+    // Custom scrollbar styling
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 8px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: #D5D7DA;
+        border-radius: 8px;
+        
+        &:hover {
+            background: #B8BCC2;
+        }
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdownOption {
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background-color: transparent;
+    color: #000000;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    outline: none;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    &:hover {
+        background-color: #f8f9fa;
+    }
+
+    &:active {
+        outline: none;
+        background-color: #f0f0f0;
+    }
+
+    &:focus {
+        outline: none;
+        background-color: #f8f9fa;
+    }
+}
+
+.optionLabel {
+    flex: 1;
+    text-align: left;
+}
+
+.checkmark {
+    width: 16px;
+    height: 16px;
+    color: #8098F9; // Light purple color
+    flex-shrink: 0;
+}
+
+.optionSelected {
+    font-weight: 500;
+    background-color: #f8f9fa;
+
+    &:hover {
+        background-color: #f0f0f0;
+    }
+}
+
+
+

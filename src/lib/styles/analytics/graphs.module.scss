@@ -1,0 +1,248 @@
+.tableHeaderCell {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #A4A7AE !important;
+  text-transform: none !important;
+  background-color: #F9F9FB !important;
+  border-bottom: 1px solid #E9EAEB !important;
+  
+
+  // First item should have border radius left
+  &:first-child {
+    border-top-left-radius: 12px !important;
+  }
+
+  // Last item should have border radius right
+  &:last-child {
+    border-top-right-radius: 12px !important;
+  }
+}
+
+.tableHeaderCellPinned {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #A4A7AE !important;
+  text-transform: none !important;
+  background-color: #F9F9FB !important;
+  border-bottom: 1px solid #E9EAEB !important;
+  position: sticky !important;
+  z-index: 2 !important;
+}
+
+.tableHeaderCellPinnedLast {
+  box-shadow: inset -2px 0 0 0 #E9EAEB !important;
+}
+
+.tableCellPinned {
+  position: sticky !important;
+  z-index: 1 !important;
+  background-color: #fff !important;
+}
+
+.tableCellPinnedLast {
+  box-shadow: inset -2px 0 0 0 #E9EAEB !important;
+}
+
+.hiddenColumnPlaceholder {
+  width: 24px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  padding: 8px 4px !important;
+  border-right: 1px dashed #E9EAEB !important;
+  background-color: #F9F9FB !important;
+  vertical-align: middle !important;
+}
+
+.hiddenColumnPlaceholderCell {
+  width: 24px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  padding: 8px 4px !important;
+  border-right: 1px dashed #E9EAEB !important;
+  background-color: #fff !important;
+  vertical-align: middle !important;
+}
+
+.unhideColumnButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  color: #717680;
+
+  &:hover {
+    background-color: #E9EAEB;
+    color: #414651;
+  }
+
+  img {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.tooltipTextStyle {
+    font-size: 12px;
+    font-weight: 500;
+    color: #717680;
+}
+
+.tooltipValueStyle {
+    font-size: 12px;
+    font-weight: 700;
+    color: #414651;
+}
+
+.tooltipHeaderStyle {
+    font-size: 12px;
+    font-weight: 700;
+    color: #181D27;
+}
+
+.dashboardTabContainer {
+    border-bottom: 1px solid #e9eaeb;
+    height: 48px;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    width: 100%;
+    gap: 24px;
+    margin-bottom: 24px;
+    
+    .dashboardTabItem {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      font-size: 16px;
+      font-weight: 700;
+      color: #717680;
+      border-bottom: none;
+      cursor: pointer;
+      gap: 8px;
+    }
+    .dashboardActiveTabItem {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      gap: 8px;
+      color: #252b37;
+      border-bottom: 2px solid transparent;
+      background-image: linear-gradient(
+        90deg,
+        #9fcaed 0%,
+        #ceb6da 33%,
+        #ebacc9 66%,
+        #fccec0 100%
+      );
+      background-repeat: no-repeat;
+      background-position: bottom left;
+      background-size: 100% 2px;
+      padding: 0 10px;
+    }
+}
+
+// Full screen modal screen
+.fullscreenTableMetricContainer {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+}
+
+.closeFullscreenButton {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  background: #FFFFFF;
+  border: 1px solid #E9EAEB;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.tableMetricContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+}
+
+.fullScreenReminder {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111322;
+  border: 1px solid #D5D7DA;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  align-items: flex-start;
+  justify-content: center;
+  width: 345px;
+  height: 76px;
+  z-index: 1000;
+  color: #FFFFFF;
+  box-sizing: border-box;
+
+  span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #FFFFFF;
+  }
+}
+
+.fullScreenReminderHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.fullScreenReminderCloseButton {
+  background: none;
+  border: none;
+  padding: 0px;
+  cursor: pointer;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+}

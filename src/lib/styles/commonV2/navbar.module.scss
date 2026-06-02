@@ -1,0 +1,281 @@
+.navbarContainer {
+  height: 80px;
+  width: 100%;
+  align-items: center;
+  background: var(--BG---gray, #f9fbfc);
+  border-bottom: 1px solid var(--Neutral-400, #ebebf5);
+  box-sizing: border-box;
+  display: flex;
+  gap: 24px;
+  padding: 0 40px;
+  position: relative;
+  z-index: 2;
+  &.home {
+    background: transparent;
+    border-bottom: unset;
+  }
+  .jia {
+    cursor: pointer;
+    flex-shrink: 0;
+    max-height: 55px;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+    &.defaultLogo {
+      border-radius: 0;
+      height: 28px;
+    }
+    &.orgLogo {
+      max-height: 56px;
+      height: 56px;
+      width: auto;
+    }
+  }
+  .logoSkeleton {
+    cursor: pointer;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 50%;
+    &.defaultLogo {
+      height: 28px;
+      width: 28px;
+    }
+    &.orgLogo {
+      max-height: 28px;
+      height: 28px;
+      width: 28px;
+    }
+  }
+  @keyframes skeleton-loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  .brandContainer {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+
+    .brandText {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      justify-content: center;
+      line-height: normal;
+      gap: 2px;
+      margin-left: -5px;
+      white-space: nowrap;
+
+      span {
+        font-weight: 700;
+        font-size: 9px;
+        letter-spacing: 0.4em;
+        color: var(--Text-text-primary, #474B69);
+        text-transform: uppercase;
+        line-height: 1;
+      }
+    }
+
+    .defaultLogo + .brandText {
+      margin-left: 0;
+      transform: translateY(4.5px);
+    }
+  }
+  span {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--Text-text-primary, #181d27);
+
+  }
+  .linkContainer,
+  .searchContainer,
+  .loginItems,
+  .userItems {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+  }
+  .linkContainer {
+    width: 100%;
+    max-width: 454px;
+    // justify-content: space-between;
+  }
+  .searchContainer {
+    width: 100%;
+    max-width: 725px;
+    gap: 24px;
+    .searchField {
+      min-width: 150px;
+      width: 100%;
+      :global(svg) {
+        $size: 16px;
+        height: $size;
+        width: $size;
+      }
+    }
+    button {
+      padding: 10px 27.5px;
+    }
+  }
+  .loginItems {
+    width: 100%;
+    max-width: 250px;
+    justify-content: space-between;
+    margin: 0 0 0 auto;
+    button {
+      background: transparent;
+      padding: 10px 27.5px;
+    }
+    span {
+      text-decoration: underline;
+      color: var(--Text-text-secondary, #414651);
+    }
+  }
+  .userItems {
+    gap: 30px;
+    margin: 0 0 0 auto;
+    img {
+      cursor: pointer;
+      &.user {
+        $size: 28px;
+        height: $size;
+        width: $size;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .navbarContainer {
+    height: 72px;
+    gap: 4px;
+    padding: 16px 23px;
+    &.home {
+      background: var(--BG---gray, #f9fbfc);
+      border-bottom: 1px solid var(--Neutral-400, #ebebf5);
+    }
+    .jia {
+      margin: 0;
+      max-width: 45px;
+      max-height: 45px;
+      object-fit: contain;
+      &.defaultLogo {
+        max-height: 28px;
+        max-width: unset;
+      }
+      &.orgLogo {
+        max-height: 46px;
+        height: 46px;
+        max-width: unset;
+      }
+    }
+    .logoSkeleton {
+      &.defaultLogo {
+        height: 28px;
+        width: 28px;
+      }
+      &.orgLogo {
+        max-height: 46px;
+        height: 46px;
+        width: 46px;
+      }
+    }
+    .brandContainer {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      min-width: 0; // Allow flex items to shrink below content size
+      
+      .brandText {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-left: 0;
+        flex-shrink: 0; // Prevent text from shrinking
+        
+        span {
+          font-weight: 700;
+          font-size: 8px;
+          letter-spacing: 0.3em;
+          white-space: nowrap;
+        }
+      }
+      
+      .defaultLogo + .brandText {
+        transform: translateY(3px);
+      }
+    }
+    .menu {
+      $size: 40px;
+      height: $size;
+      width: $size;
+      border-radius: 50%;
+      box-sizing: border-box;
+      cursor: pointer;
+      object-fit: cover;
+      padding: 8px;
+    }
+    .dropdownContainer {
+      width: 100%;
+      background: var(--BG---gray, #f9fbfc);
+      box-shadow: 0px 4px 6px -2px #0a0d1208, 0px 12px 16px -4px #0a0d1214,
+        0px 4px 20px 0px #0000001a;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      left: 0;
+      padding: 20px 0 0 0;
+      position: absolute;
+      top: 72px;
+      > span {
+        align-items: center;
+        box-sizing: border-box;
+        display: flex;
+        gap: 12px;
+        padding: 12px 16px;
+        &.employer {
+          text-decoration: underline;
+          color: var(--Text-text-secondary, #414651);
+        }
+      }
+      .buttonContainer {
+        border-top: 1px solid var(--Neutral-400, #ebebf5);
+        box-sizing: border-box;
+        margin: 10px 0 0 0;
+        padding: 16px;
+        button {
+          width: 100%;
+          padding: 10px 0;
+        }
+      }
+    }
+    .searchContainer {
+      max-width: unset;
+      background: var(--BG---gray, #f9fbfc);
+      box-shadow: 0px 4px 6px -2px #0a0d1208, 0px 12px 16px -4px #0a0d1214,
+        0px 4px 20px 0px #0000001a;
+      box-sizing: border-box;
+      gap: 12px;
+      flex-direction: column;
+      left: 0;
+      padding: 24px 35.5px;
+      position: absolute;
+      top: 72px;
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

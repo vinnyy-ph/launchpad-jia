@@ -1,0 +1,484 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  .label {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0%;
+    color: var(--Input-text-label, #414651);
+  }
+  .editorGroup {
+    background: var(--Input-bg-primary, #ffffff);
+    border: 1px solid var(--Input-border-primary, #e9eaeb);
+    border-radius: 8px;
+    box-shadow: 0px 1px 2px 0px #0a0d120d;
+    display: flex;
+    flex-direction: column;
+    .fieldGroup {
+      border-bottom: 1px solid var(--Input-border-primary, #e9eaeb);
+      position: relative;
+      .field {
+        box-sizing: border-box;
+        outline: none;
+        overflow-y: scroll;
+        padding: 10px 14px;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+        letter-spacing: 0%;
+        color: var(--Input-text-primary, #181d27);
+        &:focus-visible,
+        &:hover {
+        }
+        &:active {
+        }
+        a {
+          cursor: pointer;
+        }
+        span[data-token] {
+          background: var(--Colors-Secondary_Colors-Blue-25, #f5faff);
+          border: 1px solid var(--Colors-Secondary_Colors-Blue-100, #d1e9ff);
+          border-radius: 8px;
+          box-sizing: border-box;
+          padding: 4px 8px;
+          font-weight: 700;
+          font-size: 14px;
+          line-height: 20px;
+          letter-spacing: 0%;
+          color: var(--Colors-Secondary_Colors-Blue-700, #175cd3);
+        }
+      }
+      .placeholder {
+        left: 14px;
+        position: absolute;
+        top: 10px;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+        letter-spacing: 0%;
+        color: var(--Input-text-placeholder-or-disabled, #717680);
+      }
+    }
+    .toolbar {
+      display: flex;
+      .toolbarGroup {
+        align-items: center;
+        border-right: 1px solid var(--Input-border-primary, #e9eaeb);
+        box-sizing: border-box;
+        display: flex;
+        gap: 8px;
+        padding: 12px 8px;
+        &:last-of-type {
+          border: unset;
+        }
+        &.tokenGroup {
+          gap: 4px;
+          padding: 14px 12px;
+          position: relative;
+          .tokenText {
+            align-items: center;
+            border-radius: 8px;
+            box-sizing: border-box;
+            cursor: pointer;
+            display: flex;
+            padding: 4px 8px;
+            text-wrap: nowrap;
+            transition: 0.3s;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 20px;
+            letter-spacing: 0%;
+            color: #475569;
+            &:hover,
+            &.active {
+              background: var(--Colors-Primary_Colors-Neutrals-100, #f5f5f5);
+            }
+            &.active img {
+              transform: rotate(180deg);
+            }
+
+            &:active {
+              background: unset;
+            }
+            img {
+              height: 16px;
+              width: 16px;
+              transition: 0.3s;
+            }
+          }
+          .dropdownGroup {
+            width: 299px;
+            background: #ffffff;
+            border: 1px solid #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px -2px #0a0d1208, 0px 12px 16px -4px #0a0d1214;
+            opacity: 0;
+            position: absolute;
+            transition: 0.3s;
+            right: -15px;
+            visibility: hidden;
+            z-index: 1;
+            &.bottom {
+              top: 50px;
+              transform: translateY(-10px);
+              .arrow {
+                top: -21px;
+              }
+            }
+            &.top {
+              bottom: 60px;
+              transform: translateY(10px);
+              .arrow {
+                bottom: 3px;
+              }
+            }
+            &.active {
+              opacity: 1;
+              transform: translateY(0);
+              visibility: visible;
+            }
+            &.fixed {
+              position: fixed;
+              right: auto;
+              z-index: 10000;
+              transition: opacity 0.2s;
+              &.bottom {
+                transform: none;
+              }
+              &.top {
+                transform: none;
+              }
+            }
+            .inputGroup {
+              border-bottom: 1px solid var(--Input-border-primary, #e9eaeb);
+              box-sizing: border-box;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              padding: 12px 16px;
+              .labelToken {
+                font-weight: 700;
+                font-size: 16px;
+                line-height: 24px;
+                letter-spacing: 0%;
+                color: var(--Text-text-primary, #181d27);
+              }
+            }
+            .itemGroup {
+              height: 225px;
+              display: flex;
+              flex-direction: column;
+              overflow-y: scroll;
+              span {
+                box-sizing: border-box;
+                cursor: pointer;
+                padding: 10px 16px;
+                transition: 0.3s;
+                font-weight: 500;
+                font-size: 14px;
+                line-height: 20px;
+                letter-spacing: 0%;
+                color: var(--Input-text-label, #414651);
+                &:hover {
+                }
+                &:active {
+                }
+              }
+            }
+            .arrow {
+              height: 18px;
+              width: 18px;
+              background: var(--Colors-Primary_Colors-Neutrals-White, #ffffff);
+              border-radius: 1.5px;
+              left: 50%;
+              position: absolute;
+              transform: rotate(45deg) translate(50%, 50%);
+            }
+          }
+        }
+        &.fontGroup {
+          padding: 14px 12px;
+          span {
+            align-items: center;
+            cursor: pointer;
+            display: flex;
+            gap: 4px;
+            transition: 0.3x;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 20px;
+            letter-spacing: 0%;
+            color: var(--Colors-Primary_Colors-Neutrals-600, #535862);
+            &:hover,
+            &.active {
+            }
+            &.active {
+            }
+            img {
+              height: 16px;
+              width: 16px;
+            }
+          }
+        }
+        input[type="color"] {
+          position: absolute;
+          transform: scale(0);
+          visibility: hidden;
+        }
+        .icon {
+          box-sizing: border-box;
+          cursor: pointer;
+          display: flex;
+          padding: 4.5px;
+          transition: 0.3s;
+          position: relative;
+          &.hover {
+          }
+          &.active {
+          }
+          img {
+            height: 15px;
+            width: 15px;
+          }
+        }
+        .linkDropdown {
+          position: relative;
+          .linkDropdownPanel {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: auto;
+            margin-bottom: 8px;
+            min-width: 260px;
+            width: auto;
+            transform-origin: bottom left;
+            animation: linkDropdownIn 0.2s ease-out forwards;
+            .linkInputGroup {
+            background: #ffffff;
+            border: 1px solid var(--Input-border-primary, #e9eaeb);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px -4px rgba(10, 13, 18, 0.12);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+            .labelToken {
+              font-weight: 600;
+              font-size: 13px;
+              line-height: 18px;
+              letter-spacing: 0%;
+              color: var(--Text-text-secondary, #414651);
+            }
+            input {
+              padding: 10px 12px;
+              border: 1px solid var(--Input-border-primary, #e9eaeb);
+              border-radius: 8px;
+              font-size: 14px;
+              font-weight: 500;
+              color: var(--Text-text-primary, #181d27);
+              transition: border-color 0.2s ease, box-shadow 0.2s ease;
+              &::placeholder {
+                color: var(--Text-text-tertiary, #717680);
+              }
+              &:focus {
+                outline: none;
+                border-color: var(--Colors-Secondary_Colors-Blue-300, #84caff);
+                box-shadow: 0 0 0 3px rgba(23, 92, 211, 0.12);
+              }
+            }
+            .linkApplyBtn {
+              margin-top: 4px;
+              padding: 10px 16px;
+              background: var(--Colors-Secondary_Colors-Blue-700, #175cd3);
+              color: #fff;
+              border: none;
+              border-radius: 8px;
+              font-size: 14px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: background-color 0.2s ease, transform 0.15s ease;
+              &:hover {
+                background: var(--Colors-Secondary_Colors-Blue-800, #1550b8);
+              }
+              &:active {
+                transform: scale(0.98);
+              }
+            }
+          }
+          }
+        }
+        @keyframes linkDropdownIn {
+          from {
+            opacity: 0;
+            transform: translateY(6px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Standalone class for the portal-rendered token dropdown
+// (must be top-level so styles apply outside the .tokenGroup context)
+.tokenPortalDropdown {
+  background: #ffffff;
+  border: 1px solid #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px -2px #0a0d1208, 0px 12px 16px -4px #0a0d1214;
+  position: fixed;
+  width: 299px;
+  z-index: 99999;
+
+  .inputGroup {
+    border-bottom: 1px solid var(--Input-border-primary, #e9eaeb);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+
+    .labelToken {
+      color: var(--Text-text-primary, #181d27);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0%;
+      line-height: 24px;
+    }
+  }
+
+  .itemGroup {
+    display: flex;
+    flex-direction: column;
+    height: 225px;
+    overflow-y: scroll;
+
+    span {
+      box-sizing: border-box;
+      color: var(--Input-text-label, #414651);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0%;
+      line-height: 20px;
+      padding: 10px 16px;
+      transition: 0.3s;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+    }
+  }
+
+  .arrow {
+    background: #ffffff;
+    border-radius: 1.5px;
+    height: 18px;
+    left: 50%;
+    position: absolute;
+    transform: rotate(45deg) translate(50%, 50%);
+    width: 18px;
+  }
+
+  &.bottom .arrow {
+    border-left: 1px solid #f5f5f5;
+    border-top: 1px solid #f5f5f5;
+    top: -10px;
+    transform: rotate(45deg);
+  }
+
+  &.top .arrow {
+    border-bottom: 1px solid #f5f5f5;
+    border-right: 1px solid #f5f5f5;
+    bottom: -10px;
+    transform: rotate(45deg);
+  }
+}
+
+// Standalone class for the portal-rendered createLink dropdown panel
+// (must be top-level so styles apply outside the editor's overflow context)
+.linkPortalPanel {
+  animation: linkDropdownIn 0.2s ease-out forwards;
+  background: #ffffff;
+  border: 1px solid #e9eaeb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px -4px rgba(10, 13, 18, 0.12);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 260px;
+  padding: 16px;
+  position: fixed;
+  width: 280px;
+  z-index: 99999;
+
+  .labelToken {
+    color: #414651;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0%;
+    line-height: 18px;
+  }
+
+  input {
+    border: 1px solid #e9eaeb;
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: #181d27;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 12px;
+    width: 100%;
+
+    &::placeholder {
+      color: #717680;
+    }
+
+    &:focus {
+      border-color: #84caff;
+      box-shadow: 0 0 0 3px rgba(23, 92, 211, 0.12);
+      outline: none;
+    }
+  }
+
+  .linkApplyBtn {
+    background: #175cd3;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 4px;
+    padding: 10px 16px;
+    transition:
+      background-color 0.2s ease,
+      transform 0.15s ease;
+
+    &:hover {
+      background: #1550b8;
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+@keyframes linkDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

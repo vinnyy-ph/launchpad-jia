@@ -1,0 +1,153 @@
+.toasterContainer {
+  width: 100%;
+  max-width: 420px;
+  align-items: center;
+  background: var(--Colors-Primary_Colors-Neutrals-White, #ffffff);
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 12px;
+  left: 50%;
+  padding: 16px;
+  position: fixed;
+  top: 40px;
+  transform: translatex(-50%);
+  z-index: 3;
+  &.talentVaultExpired {
+    max-width: 760px;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px 28px;
+    .logo {
+      height: 44px;
+      width: 44px;
+      flex-shrink: 0;
+    }
+    .xIcon {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      margin: 0;
+      opacity: 0.6;
+    }
+    .textContainer {
+      gap: 4px;
+      padding-right: 28px;
+      .header {
+        font-size: 18px;
+        line-height: 28px;
+      }
+      .description {
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 24px;
+        color: #717680;
+      }
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-top: 10px;
+      }
+      .dismiss,
+      .update {
+        appearance: none;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 24px;
+      }
+      .dismiss {
+        color: #414651;
+      }
+      .update {
+        color: #3b37c9;
+      }
+    }
+  }
+  //   &.cancel,
+  //   &.reminder {
+  //     .xIcon {
+  //       margin: 0;
+  //       position: absolute;
+  //       right: 16px;
+  //       top: 16px;
+  //     }
+  //   }
+  //   &.cancel {
+  //     max-width: 570px;
+  //   }
+  //   &.reminder {
+  //     max-width: 562px;
+  //   }
+  .xIcon {
+    cursor: pointer;
+    margin: 0 0 0 auto;
+  }
+  .logo {
+    $size: 32px;
+    height: $size;
+    width: $size;
+  }
+  .textContainer {
+    display: flex;
+    flex-direction: column;
+    .header {
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--Text-text-primary, #181d27);
+    }
+    .description {
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--Text-text-tertiary, #717680);
+      margin-top: 4px;
+      .bold {
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .toasterContainer {
+    &.talentVaultExpired {
+      max-width: calc(100% - 32px);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .toasterContainer {
+    &.talentVaultExpired {
+      max-width: calc(100% - 24px);
+      padding: 16px;
+      .logo {
+        height: 44px;
+        width: 44px;
+      }
+      .xIcon {
+        right: 14px;
+        top: 14px;
+      }
+      .textContainer {
+        .header {
+          font-size: 16px;
+          line-height: 24px;
+        }
+        .description {
+          font-size: 13px;
+          line-height: 20px;
+        }
+      }
+    }
+  }
+}

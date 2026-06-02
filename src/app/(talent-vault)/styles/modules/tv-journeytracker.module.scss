@@ -1,0 +1,278 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  overflow: hidden;
+  background: rgba(10, 13, 18, 0.45);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 600px;
+  min-height: 100%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 24px rgba(10, 13, 18, 0.1);
+  animation: slideIn 0.25s ease-out;
+}
+
+.header {
+  padding: 24px 32px;
+  border-bottom: 1px solid #eaecf5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.3333333333333333em;
+  font-weight: 700;
+  color: #181d27;
+}
+
+.closeButton {
+  border: none;
+  background: transparent;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  .headerWrapper {
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    @media (max-width: 424px) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .tvHeader {
+      display: flex;
+      gap: 14px;
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
+
+
+      .title {
+        font-size: 16px;
+        line-height: 24px;
+        color: #414651;
+        margin-bottom: 4px;
+      }
+
+      .subtitle {
+        color: #717680;
+        font-size: 14px;
+        line-height: 20px;
+      }
+    }
+
+    .nextStepBtn {
+      height: fit-content;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 7.852262496948242px;
+      padding: 7.852262496948242px 13.741458892822266px;
+      border-radius: 980.55126953125px;
+      font-weight: 700;
+      font-size: 13.741458892822266px;
+      line-height: 1.4285715475449865em;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0px 0.9815328121185303px 1.9630656242370605px 0px rgba(10, 13, 18, 0.05);
+      background: #181d27;
+      border: 0.9815328121185303px solid #181d27;
+      color: #ffffff;
+      white-space: nowrap;
+      box-sizing: border-box;
+
+      img {
+        width: 19.63px;
+        height: 19.63px;
+        flex-shrink: 0;
+        filter: brightness(0) invert(1);
+      }
+
+      span {
+        font-weight: 700;
+        font-size: 13.741458892822266px;
+        line-height: 1.4285715475449865em;
+        color: #ffffff;
+      }
+
+      &:hover {
+        background: #2a2d35;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 424px) {
+        margin-left: auto;
+      }
+    }
+  }
+
+  .progressBarSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 32px 24px;
+
+    .progressBarContainer {
+      width: 100%;
+
+      .progressBarBackground {
+        width: 100%;
+        height: 8px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+
+        .progressBarFill {
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            rgba(252, 206, 192, 1) 0%,
+            rgba(235, 172, 201, 1) 33%,
+            rgba(206, 182, 218, 1) 66%,
+            rgba(159, 202, 237, 1) 100%
+          );
+          transition: width 0.3s ease;
+        }
+      }
+    }
+
+    .progressText {
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 1.5em;
+      color: #717680;
+    }
+  }
+
+  .stepsSection {
+    padding: 24px 32px;
+
+    .stepWrapper {
+      margin-bottom: 30px;
+
+      .step {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+
+        .stepInfo {
+          width: 100%;
+
+          .stepCount {
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 100%;
+            color: #717680;
+            margin-bottom: 4px;
+          }
+
+          .stepStatus {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .stepName {
+              color: #2A2A2A;
+              font-size: 14px;
+              font-weight: bold;
+              line-height: 20px;
+              margin-right: auto;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .content {
+    .progressBarSection {
+      padding: 0 20px 20px;
+    }
+  }
+}
+
+@media (max-width: 375px) {
+  .panel {
+    left: 0;
+    right: 0;
+    max-width: 100%;
+  }
+}

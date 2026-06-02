@@ -1,0 +1,48 @@
+image: node:20
+
+stages:
+  - test
+
+cache:
+  paths:
+    - node_modules/
+    - .yarn/cache/
+  key:
+    files:
+      - yarn.lock
+
+test:
+  stage: test
+  before_script:
+    - node --version
+    - yarn --version
+    - yarn install --frozen-lockfile
+  script:
+    - yarn test --passWithNoTests
+  only:
+    - merge_requests
+    - main
+
+# Trigger AI Interview smoke tests in jia-e2e-tests on commits to main.
+trigger-e2e-ai-smoke-main:
+  stage: test
+  trigger:
+    project: whitecloak/apex/jia/jia-testing-system
+    branch: main
+    strategy: depend
+  variables:
+    E2E_TRIGGER_PROFILE: "main-ai-smoke"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+
+# Trigger AI Interview regression tests in jia-e2e-tests from schedule on main.
+trigger-e2e-ai-regression-main-schedule:
+  stage: test
+  trigger:
+    project: whitecloak/apex/jia/jia-testing-system
+    branch: main
+    strategy: depend
+  variables:
+    E2E_TRIGGER_PROFILE: "main-ai-regression"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'

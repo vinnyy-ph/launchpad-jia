@@ -1,0 +1,139 @@
+.sectionTitle {
+  font-size: 16px;
+  color: #181D27;
+  font-weight: 700;
+  margin-left: 16px;
+}
+
+.avatarWrapper {
+  width: 48px;
+}
+
+.commentComposer {
+  position: relative;
+
+  &Wrapper {
+    flex: 1;
+  }
+
+  .postButton {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 60px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+
+    i {
+      margin-bottom: 2px;
+    }
+
+    span {
+      margin-top: 2px;
+    }
+  }
+}
+
+.commentThread {
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fallbackUserIcon {
+  width: 40px;
+  height: 40px;
+  background-color: #F8F9FC;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deletedComment {
+  &.title {
+    font-style: italic;
+    color: #6B7280;
+  }
+
+  &.date {
+    color: #717680;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0;
+    padding-bottom: 10px;
+  }
+}
+
+.editing {
+  &.info {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  &.actions {
+    position: absolute;
+    right: 16px;
+    bottom: 12px;
+    display: flex;
+    gap: 8px;
+  }
+
+  &.cancelBtn {
+    background: #fff;
+    border: 1px solid #D5D7DA;
+    padding: 8px 16px;
+    border-radius: 60px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  &.saveBtn {
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 60px;
+    font-size: 14px;
+  }
+}
+
+.comment {
+  &Wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  &Author {
+    margin-bottom: 0;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0;
+    vertical-align: middle;
+    color: #181D27;
+  }
+}
+
+.commentInfo {
+  color: #717680;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0;
+  text-align: right;
+  vertical-align: middle;
+}

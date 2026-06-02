@@ -1,0 +1,1240 @@
+// Global styles for Email Module component
+.badge {
+  max-width: fit-content;
+  padding: 2px 6px;
+  border: 1px solid #d5d7da;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #414651;
+  background: #fff;
+  box-shadow: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  &.transparent {
+    background: transparent;
+    box-shadow: none;
+  }
+  &.error {
+    background: #fef3f2;
+    color: #b42318;
+    border: 1px solid #fecdca;
+    &:hover {
+      cursor: pointer;
+      background: #fee4e2;
+    }
+  }
+  &.automated {
+    background: #eef4ff;
+    color: #3538cd;
+    border: 1px solid #c7d7fe;
+  }
+  &.direct {
+    background: #fffaeb;
+    color: #b54708;
+    border: 1px solid #fedf89;
+  }
+}
+.skeletonBox {
+  background: #e0e0e0;
+  border-radius: 4px;
+  display: inline-block;
+}
+.emailViewEmpty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  color: #787486;
+  font-size: 14px;
+  .iconWrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    border: 1px solid #d5d7da;
+  }
+}
+
+// Global Modal Styles
+.emailModalOverlay {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  transition:
+    background 0.3s ease,
+    width 0.3s ease;
+}
+
+.emailModalContainer {
+  background: #ffffff;
+  border-radius: 8px;
+  min-width: 400px;
+  box-shadow:
+    0px 20px 24px -4px rgba(10, 13, 18, 8%),
+    0px 8px 8px -4px rgba(10, 13, 18, 3%),
+    0px 3px 3px -1.5px rgba(10, 13, 18, 4%);
+  display: flex;
+  flex-direction: column;
+  .modalHeader {
+    width: 100%;
+    display: flex;
+    gap: 16px;
+    padding: 24px;
+    border-bottom: 1px solid var(--Border-primary, #e9eaeb);
+    .icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid #d5d7da;
+      border-radius: 10px;
+      box-shadow:
+        inset 0px 0px 0px 1px rgba(10, 13, 18, 18%),
+        inset 0px -2px 0px 0px rgba(10, 13, 18, 5%),
+        0px 1px 2px 0px rgba(10, 13, 18, 5%);
+      img {
+        width: 24px;
+        height: 24px;
+      }
+    }
+    .modalTitleWrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      .modalTitle {
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 24px;
+        color: #181d27;
+      }
+      .modalSubtitle {
+        font-size: 14px;
+        line-height: 20px;
+        color: #717680;
+      }
+    }
+  }
+  .modalContent {
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    &.template {
+      height: 554px;
+      overflow-y: auto;
+    }
+  }
+  .modalFooter {
+    padding: 16px 24px;
+    border-top: 1px solid var(--Border-primary, #e9eaeb);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  &.career {
+    width: 440px;
+  }
+  &.template {
+    width: 720px;
+  }
+  &.date {
+    width: 640px;
+  }
+}
+.gmailTokenExpiredBanner {
+  padding: 10px 14px;
+  margin: 12px 12px 0 12px;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #b42318;
+  display: flex;
+  align-items: center;
+  .gmailTokenExpiredLink {
+    color: #b42318;
+    font-weight: 600;
+    text-decoration: underline;
+    &:hover {
+      color: #912018;
+    }
+  }
+}
+
+// Email Module
+.emailModule {
+  width: 100%;
+  height: calc(100vh - 128px);
+  display: flex;
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 8px;
+  :global(.avatar) {
+    border: none !important;
+  }
+  .sidebar {
+    width: 56px;
+    height: 100%;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    .button {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      &.active {
+        background-color: #f9f9fb;
+      }
+      .unreadBadge {
+        position: absolute;
+        top: 9px;
+        right: 8px;
+        width: 8px;
+        height: 8px;
+        background-color: var(--Button-bg-destructive-primary, #d92d20);
+        border-radius: 50%;
+      }
+      .tooltip {
+        position: absolute;
+        bottom: 80%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 8px;
+        background-color: #111322;
+        color: #ffffff;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+          opacity 0.2s ease,
+          visibility 0.2s ease;
+        z-index: 10;
+      }
+      &:hover .tooltip {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+  .threadGroup {
+    width: 100%;
+    max-width: 480px;
+    border-left: 1px solid var(--Border-primary, #e9eaeb);
+    border-right: 1px solid var(--Border-primary, #e9eaeb);
+    display: flex;
+    flex-direction: column;
+    .threadList {
+      flex: 1;
+      width: 100%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      .threadColumn {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        flex: 1;
+      }
+      .threadPagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        color: #717680;
+        font-size: 14px;
+        border-top: 1px solid var(--Border-primary, #e9eaeb);
+      }
+      .emptyState {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+  .emailViewGroup {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    .emailViewHeader {
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--Border-primary, #e9eaeb);
+      .profileGroup {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        :global(.avatar) {
+          width: 40px !important;
+          height: 40px !important;
+        }
+        .profileInfo {
+          display: flex;
+          flex-direction: column;
+          .profileName {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            color: #414651;
+          }
+          .profileSync {
+            font-size: 12px;
+            line-height: 20px;
+            color: #717680;
+          }
+        }
+      }
+    }
+    .emailViewSubject {
+      padding: 16px;
+      border-bottom: 1px solid var(--Border-primary, #e9eaeb);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      .subjectText {
+        width: 100%;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 28px;
+        color: #414651;
+      }
+      .navButtons {
+        display: flex;
+        gap: 8px;
+        button {
+          width: 28px;
+          height: 28px;
+          background: #ffffff;
+          border: 1px solid #d5d7da;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+          &:hover {
+            background: #f9f9fb;
+          }
+        }
+      }
+    }
+    .emailViewTags {
+      padding: 12px 16px;
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--Border-primary, #e9eaeb);
+    }
+    .emailViewContent {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      .emailViewMessages {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 16px;
+      }
+      .emailViewActions {
+        padding: 16px;
+        display: flex;
+        gap: 12px;
+        border-top: 1px solid var(--Border-primary, #e9eaeb);
+      }
+    }
+  }
+}
+
+// Email Thread Header
+.threadHeader {
+  padding: 12px 12px 16px 12px;
+  border-bottom: 1px solid var(--Border-primary, #e9eaeb);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  .headerGroup {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .threadTitle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      .title {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+        color: var(--Text-primary, #181d27);
+      }
+    }
+    .threadCount {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      .countGroup {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        .icon {
+          width: 12px;
+          height: 12px;
+        }
+        .text {
+          font-size: 12px;
+          font-weight: 500;
+          color: #717680;
+        }
+      }
+    }
+  }
+  .searchGroup {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .searchInputWrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      .searchIcon {
+        position: absolute;
+        left: 12px;
+        width: 16px;
+        height: 16px;
+        pointer-events: none;
+      }
+    }
+    .searchInput {
+      width: 100%;
+      height: 40px;
+      padding: 8px 12px 8px 40px;
+      border: 1px solid #d5d7da;
+      border-radius: 6px;
+      font-size: 16px;
+      color: var(--Text-primary, #181d27);
+      box-shadow: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+      &::placeholder {
+        color: #a4a7ae;
+      }
+    }
+    .filterModal {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 8px;
+      background: white;
+      border: 1px solid #d5d7da;
+      border-radius: 8px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 20;
+      display: flex;
+      .filterCategories {
+        display: flex;
+        min-width: 200px;
+        flex-direction: column;
+        border-right: 1px solid #d5d7da;
+        > div {
+          position: relative;
+          &:last-child .filterCategory {
+            border-bottom: none;
+          }
+          &::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 100%;
+            width: 8px;
+            height: 100%;
+            pointer-events: auto;
+          }
+        }
+        .filterCategory {
+          position: relative;
+          padding: 4px;
+          cursor: pointer;
+          .categoryLabel {
+            font-size: 14px;
+            font-weight: 500;
+            color: #181d27;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            .categoryLabelInner {
+              width: 100%;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              border-radius: 6px;
+              padding: 8px 8px 8px 16px;
+              &:hover {
+                background: #f9f9fb;
+              }
+            }
+          }
+          .categoryCount {
+            font-size: 12px;
+            font-weight: 500;
+            color: #717680;
+          }
+          .filterOptions {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            margin-left: 8px;
+            background: white;
+            border: 1px solid #d5d7da;
+            border-radius: 8px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            width: 248px;
+            .optionsHeader {
+              padding: 12px 16px;
+              font-size: 14px;
+              font-weight: 500;
+              color: #181d27;
+              border-bottom: 1px solid #d5d7da;
+            }
+            .filterSearchWrapper {
+              position: relative;
+              padding: 12px;
+              border-bottom: 1px solid #d5d7da;
+              .filterSearchIcon {
+                position: absolute;
+                left: 24px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 16px;
+                height: 16px;
+                pointer-events: none;
+              }
+              .filterSearchInput {
+                width: 100%;
+                height: 36px;
+                padding: 8px 12px 8px 36px;
+                border: 1px solid #d5d7da;
+                border-radius: 6px;
+                font-size: 14px;
+                color: #414651;
+                &::placeholder {
+                  color: #a4a7ae;
+                }
+                &:focus {
+                  outline: none;
+                  border-color: #2970c2;
+                }
+              }
+            }
+            .selectedFilters {
+              padding: 12px;
+              display: flex;
+              flex-wrap: wrap;
+              gap: 8px;
+              border-bottom: 1px solid #d5d7da;
+              .selectedFilterTag {
+                max-width: 100%;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 8px;
+                border: 1px solid #d5d7da;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 500;
+                color: #414651;
+                span {
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                  overflow: hidden;
+                }
+                .removeFilterBtn {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: none;
+                  border: none;
+                  cursor: pointer;
+                  padding: 0;
+                  width: 14px;
+                  height: 14px;
+                  img {
+                    width: 10px;
+                    height: 10px;
+                  }
+                  &:hover {
+                    opacity: 0.7;
+                  }
+                }
+              }
+            }
+            .optionsList {
+              padding: 8px 0;
+              max-height: 240px;
+              overflow-y: auto;
+              .checkboxLabel {
+                display: flex;
+                align-items: center;
+                padding: 8px 16px;
+                cursor: pointer;
+                gap: 8px;
+                &:hover {
+                  background-color: #f9f9fb;
+                }
+                .checkbox {
+                  width: 16px;
+                  height: 16px;
+                  cursor: pointer;
+                  border: 1px solid #d5d7da;
+                  border-radius: 4px;
+                  accent-color: #111322;
+                  flex-shrink: 0;
+                }
+                span {
+                  font-size: 14px;
+                  font-weight: 500;
+                  color: #414651;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                  overflow: hidden;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  .activeFiltersGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    .filterBadge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid #d5d7da;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #414651;
+      .badgeText {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .badgeCloseBtn {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+    }
+    .clearAllBtn {
+      background: none;
+      border: none;
+      border-left: 1px solid #e9eaeb;
+      cursor: pointer;
+      padding: 6px 12px;
+      color: #717680;
+      font-size: 14px;
+      font-weight: 600;
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+  .draftActions {
+    :global(button) {
+      width: auto;
+      align-self: flex-start;
+    }
+  }
+}
+
+// Email Preview Card
+.previewCard {
+  width: 100%;
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  position: relative;
+  transition:
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+  :global(.avatar) {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .previewContent {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    .previewText {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      .previewHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        .senderGroup {
+          width: 100%;
+          min-width: 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          .senderName {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #414651;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+        .timestampGroup {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
+          color: #717680;
+          .unreadBadge {
+            width: 8px;
+            height: 8px;
+            background-color: #6172f3;
+            border-radius: 50%;
+          }
+        }
+      }
+      .previewSubject {
+        font-size: 14px;
+        line-height: 20px;
+        color: #414651;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .previewSnippet {
+        font-size: 14px;
+        line-height: 20px;
+        color: #717680;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    .previewBadges {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .left {
+        flex: 1;
+        display: flex;
+        gap: 8px;
+      }
+    }
+  }
+  &:hover {
+    background: #eef4ff;
+    border: 1px solid #c7d7fe;
+    cursor: pointer;
+  }
+  &.active {
+    background: #eef4ff;
+    border: 1px solid #c7d7fe;
+    z-index: 10;
+    box-shadow: none;
+  }
+  &:focus,
+  &:focus-visible {
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 4px #8098f9;
+  }
+}
+
+// Email Message Card
+.messageCard {
+  width: 100%;
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  &.inbound {
+    box-shadow: -4px 0 0 #fffaeb;
+  }
+  &.outbound {
+    box-shadow: -4px 0 0 #eef4ff;
+  }
+  .messageHeader {
+    display: flex;
+    gap: 16px;
+    :global(.avatar) {
+      width: 40px !important;
+      height: 40px !important;
+    }
+    .profileGroup {
+      flex: 1;
+      display: flex;
+      gap: 12px;
+      .participantsGroup {
+        display: flex;
+        flex-direction: column;
+        .senderWrapper {
+          display: flex;
+          gap: 4px;
+          .name {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            color: #414651;
+          }
+        }
+        .receiverWrapper {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          .moreDetailsWrapper {
+            position: relative;
+            .icon {
+              width: 14px;
+              height: 14px;
+              cursor: pointer;
+            }
+            .moreDetailsModal {
+              width: max-content;
+              max-width: 550px;
+              position: absolute;
+              background: #fff;
+              border: 1px solid #e9eaeb;
+              border-radius: 8px;
+              box-shadow: 0px 4px 12px rgba(10, 13, 18, 0.1);
+              z-index: 100;
+              left: 0;
+              top: 100%;
+              padding: 12px;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+              .detailRow {
+                display: flex;
+                gap: 8px;
+                .label {
+                  font-size: 12px;
+                  color: #717680;
+                  min-width: 44px;
+                }
+                .value {
+                  flex: 1;
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 4px;
+                  font-size: 12px;
+                  color: #414651;
+                  align-items: center;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    .timestampGroup {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .subtext {
+      font-size: 12px;
+      line-height: 20px;
+      color: #717680;
+    }
+  }
+  .scheduledGroup {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #eef4ff;
+    font-size: 14px;
+    color: #414651;
+    .cancelSend {
+      font-weight: 600;
+      cursor: pointer;
+      color: #444ce7;
+    }
+  }
+  .messageContent {
+    padding-left: 16px;
+    border-left: 1px solid #e9eaeb;
+    p {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+      color: #181d27;
+    }
+    a {
+      color: #6172f3;
+      text-decoration: underline;
+    }
+  }
+  .attachmentCount {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: #414651;
+  }
+  .attachmentContainer {
+    padding: 12px;
+    border: 1px solid var(--Border-primary, #e9eaeb);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .fileTypeIcon {
+      width: 28px;
+      height: 28px;
+    }
+    .attachmentInfo {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      .name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #181d27;
+      }
+      .size {
+        font-size: 12px;
+        color: #717680;
+      }
+    }
+  }
+}
+
+// Compose Email Modal
+.composeEmailModal {
+  width: 800px;
+  background: #f9f9fb;
+  padding: 8px 8px 20px 8px;
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 8px;
+  box-shadow:
+    0px 20px 24px -4px rgba(10, 13, 18, 8%),
+    0px 8px 8px -4px rgba(10, 13, 18, 3%),
+    0px 3px 3px -1.5px rgba(10, 13, 18, 4%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  .header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 8px;
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 500;
+      color: #414651;
+    }
+    .windowControls {
+      display: flex;
+      gap: 8px;
+      img {
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+// Reply Email Card
+.replyEmailCard {
+  width: 100%;
+  background: #f9f9fb;
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 8px;
+  padding-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.senderContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  .senderAvatar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    :global(.avatar) {
+      width: 40px !important;
+      height: 40px !important;
+    }
+  }
+}
+
+// General Email Editor
+.editorContainer {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 8px;
+  .richTextToolbarWrapper {
+    width: 100%;
+    border-top: 1px solid var(--Border-primary, #e9eaeb);
+    padding: 6px;
+  }
+}
+.inputGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  .inputRow {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    &:not(:first-child) {
+      padding-top: 12px;
+    }
+    &:not(:nth-last-child(-n + 2)) {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--Border-primary, #e9eaeb);
+    }
+    &.column {
+      flex-direction: column;
+    }
+    .inputRowInner {
+      display: flex;
+      gap: 8px;
+      .ccBccToggle {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 24px;
+        color: #717680;
+      }
+    }
+    .inputLabel {
+      flex: 0 0 auto;
+      width: max-content;
+      min-width: 32px;
+      white-space: nowrap;
+      font-size: 14px;
+      line-height: 24px;
+      font-weight: 500;
+      color: #a4a7ae;
+      margin: 0;
+    }
+    .inputField {
+      width: 100%;
+      height: 24px;
+      font-size: 14px;
+      line-height: 20px;
+      color: #414651;
+      border: none;
+      outline: none;
+      &:focus,
+      &:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
+    &:last-child .inputField {
+      height: 280px !important;
+      overflow-y: auto;
+      resize: none;
+    }
+    .attachmentGroup {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  }
+}
+
+// Insert Template Modal
+.templateTabGroup {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--Border-primary, #e9eaeb);
+  .templateTab {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #a4a7ae;
+    cursor: pointer;
+    hr {
+      width: 100%;
+      height: 2px;
+      border: none;
+      background: transparent;
+      margin: 0;
+    }
+    &.active {
+      color: #414651;
+      hr {
+        background: linear-gradient(
+          90deg,
+          #fccec0 0%,
+          #ebacc9 33%,
+          #ceb6da 66%,
+          #9fcaed 100%
+        );
+      }
+    }
+  }
+}
+.templateList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  .templateCard {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    &:not(:last-child) {
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--Byorder-primary, #e9eaeb);
+    }
+    .templateCardPreview {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      .templateCardHeader {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        .templateTitle {
+          font-size: 16px;
+          font-weight: 600;
+          line-height: 24px;
+          color: #414651;
+        }
+      }
+      .templateContent {
+        font-size: 14px;
+        line-height: 20px;
+        color: #717680;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        &.expanded {
+          text-overflow: unset;
+          white-space: normal;
+          overflow: visible;
+        }
+      }
+    }
+    .templateCardActions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+// Schedule Send Modal
+.scheduleOptionButton {
+  padding: 10px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  &.default,
+  &:hover {
+    background: #f9f9fb;
+  }
+  .label {
+    flex: 1;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    color: #252b37;
+  }
+  .dateTimeBadge {
+    padding: 1px 4px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #e9eaeb;
+    border-radius: 4px;
+    color: #717680;
+  }
+}
+.calendarWrapper {
+  flex: 1;
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  padding: 20px 24px;
+}
+.dateTimeFormGroup {
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

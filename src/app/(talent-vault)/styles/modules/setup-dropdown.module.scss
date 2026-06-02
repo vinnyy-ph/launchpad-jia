@@ -1,0 +1,213 @@
+.root {
+  width: 100%;
+}
+
+.anchor {
+  position: relative;
+  width: 100%;
+}
+
+.input {
+  all: unset;
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: #fff;
+  box-sizing: border-box;
+  border: 1px solid #d5d7da;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  line-height: inherit;
+  color: inherit;
+
+  &:focus-visible {
+    border-color: #a4a7ae;
+    box-shadow: 0 0 0 3px rgba(113, 118, 128, 0.14);
+  }
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
+  margin-right: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placeholder {
+  color: rgba(113, 118, 128, 0.68);
+}
+
+.selected {
+  color: #181d27;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 16px -4px rgba(10, 13, 18, 0.08);
+  z-index: 10;
+}
+
+.searchRow {
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.searchBox {
+  width: 100%;
+  padding: 8px 14px 8px 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d5d7da;
+  border-radius: 10px;
+
+  &:focus-within {
+    border-color: #a4a7ae;
+    box-shadow: 0 0 0 3px rgba(113, 118, 128, 0.14);
+  }
+}
+
+.searchIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  all: unset;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  font-size: 14px;
+  line-height: 20px;
+  color: #181d27;
+
+  &::placeholder {
+    color: rgba(113, 118, 128, 0.68) !important;
+    opacity: 1;
+  }
+}
+
+.searchInput[type="text"] {
+  padding: 0 !important;
+}
+
+.searchInput:focus,
+.searchInput:focus-visible,
+.searchInput[type="text"]:focus,
+.searchInput[type="text"]:focus-visible {
+  outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.option {
+  all: unset;
+  appearance: none;
+  box-sizing: border-box;
+  width: 100%;
+  background: #fff;
+  padding: 8px 14px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  line-height: inherit;
+  color: inherit;
+
+  &:hover {
+    background-color: #fafafa;
+  }
+}
+
+.optionLabel {
+  color: #181d27;
+  margin-right: auto;
+  font-weight: 400;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.optionSelected {
+  background-color: #fafafa;
+
+  .optionLabel {
+    font-weight: 700;
+  }
+}
+
+.checkSlot {
+  width: 20px;
+  height: 21px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.othersRow {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.othersLabel {
+  width: 200px;
+  color: #414651;
+  font-size: 14px;
+  text-align: right;
+}
+
+.othersInput {
+  all: unset;
+  box-sizing: border-box;
+  width: 100% !important;
+  border: 1px solid #d5d7da !important;
+  border-radius: 8px;
+  padding: 8px 14px !important;
+  margin: 0;
+  background: #fff !important;
+  color: #181d27;
+  box-shadow: none !important;
+
+  &::placeholder {
+    color: rgba(113, 118, 128, 0.68) !important;
+    opacity: 1;
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: none !important;
+    border-color: #a4a7ae !important;
+    box-shadow: 0 0 0 3px rgba(113, 118, 128, 0.14) !important;
+  }
+}
+
+.othersInput[type="text"]::placeholder {
+  color: rgba(113, 118, 128, 0.68) !important;
+  opacity: 1;
+}

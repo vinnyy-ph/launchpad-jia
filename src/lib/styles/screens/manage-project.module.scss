@@ -1,0 +1,975 @@
+// ============================================
+// Manage Project Page Styles
+// ============================================
+
+$border-color: #ddd;
+$text-color: #333;
+$secondary-text: #717680;
+$light-gray: #e5e7eb;
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.manageProjectContainer, .careersListContainer {
+  :global(.skeleton-bar) {
+    background: linear-gradient(90deg, #F9FAFB 0%, #F3F4F6 50%, #F9FAFB 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 16px;
+  }
+}
+
+.manageProjectContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px;
+  min-height: 100vh;
+  background: #fff;
+
+}
+
+.breadcrumbNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid $light-gray;
+  margin-bottom: 24px;
+}
+
+.navButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid $light-gray;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  i {
+    font-size: 14px;
+    color: $secondary-text;
+  }
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.breadcrumbPath {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+  font-size: 14px;
+  color: $secondary-text;
+
+  i {
+    font-size: 16px;
+
+    &.la-folder {
+      color: $secondary-text;
+    }
+
+    &.la-angle-right {
+      font-size: 12px;
+    }
+  }
+}
+
+.breadcrumbCurrent {
+  font-weight: 600;
+  color: $text-color;
+}
+
+.projectHeaderSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.projectHeaderLeft {
+  flex: 1;
+}
+
+.projectTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.projectMainTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #181D27;
+  margin: 0;
+}
+
+.moreOptionsButton {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 999px;
+  border: 1px solid #D5D7DA;
+  box-shadow:rgba(10, 13, 18, 0.05);
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  i {
+    font-size: 18px;
+    color: #535862;
+  }
+
+  &:hover {
+    outline: 3px solid #f5f5f5;  
+  }
+}
+
+.projectMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: $secondary-text;
+}
+
+.projectOwnerLabel {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.projectOwnerInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  span {
+    font-weight: 700;
+    font-size: 14px;
+    color: $text-color;
+  }
+}
+
+.membersSeparator {
+  color: #D5D9EB;
+  margin: 0 4px;
+}
+
+.membersCount {
+  font-weight: 500;
+}
+
+.memberAvatarsSmall {
+  display: flex;
+  align-items: center;
+}
+
+.avatarWrapperSmall {
+  position: relative;
+
+  &.overlappingSmall {
+    margin-left: -8px;
+  }
+}
+
+.avatarBorderSmall {
+  width: 32px !important;
+  height: 32px !important;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+.moreMembersSmall {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f8f9fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 500;
+  color: #3e4784;
+  margin-left: -8px;
+  border: 2px solid white;
+}
+
+.projectHeaderRight {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.addCareersButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #181d27;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  i {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: #2d3748;
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+
+    &:hover {
+      background: #181d27; // Prevent hover effect
+      opacity: 0.6;
+    }
+  }
+}
+
+.emptyStateRow {
+
+  &:hover {
+    background: none;
+  }
+}
+
+.emptyStateContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  cursor: default;
+}
+
+.emptyStateIllustration {
+  margin-bottom: 24px;
+
+  img {
+    width: 200px;
+    height: auto;
+  }
+}
+
+.emptyStateHeading {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.emptyStateDescription {
+  font-size: 14px;
+  color: $secondary-text;
+  margin: 0 0 24px 0;
+}
+
+.noResultsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.noResultsIllustration {
+  margin-bottom: 24px;
+
+  img {
+    width: 200px;
+    height: auto;
+  }
+}
+
+.noResultsHeading {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.noResultsDescription {
+  font-size: 14px;
+  color: $secondary-text;
+  margin: 0;
+}
+
+// ============================================
+// Common Modal Styles
+// ============================================
+
+.modalBackdrop {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  animation-duration: 0.25s;
+  width: 100%;
+  height: 100%;
+}
+
+// ============================================
+// Add Careers Modal Styles
+// ============================================
+
+.addCareersModal {
+  background: #fff;
+  border-radius: 12px;
+  min-width: 500px;
+  max-width: 560px;
+}
+
+.addCareersModalHeader {
+  border-bottom: 1px solid #E9EAEB;
+  padding: 24px;
+}
+
+.addCareersModalTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+
+  i {
+    font-size: 20px;
+    color: $secondary-text;
+  }
+
+  &:hover {
+    background: #f3f4f6;
+  }
+}
+
+.addCareersModalSubtitle {
+  font-size: 14px;
+  color: $secondary-text;
+  margin: 0;
+}
+
+.careerOptionsContainer {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+}
+
+.careerOptionCard {
+  flex: 1;
+  padding: 24px;
+  border: 1px dashed $light-gray;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.careerOptionIconContainer {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.iconOuterCircleGray {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconInnerCircleGray {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FAFAFA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 18px;
+    color: $secondary-text;
+  }
+}
+
+.iconOuterCircleGradient {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #FDF2FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconInnerCircleGradient {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(
+    45deg,
+    rgba(159, 202, 237, 1),
+    rgba(206, 182, 218, 1),
+    rgba(235, 172, 201, 1),
+    rgba(252, 206, 192, 1)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 32px;
+    color: #fff;
+  }
+}
+
+.careerOptionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.careerOptionDescription {
+  font-size: 13px;
+  color: $secondary-text;
+  margin: 0;
+  line-height: 1.4;
+}
+
+// ============================================
+// Show Careers Modal Styles
+// ============================================
+
+.careersModal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  width: 640px;
+  height: 531px;
+
+  :global(.search-input):focus {
+    border: 2px solid #e9eaeb !important;
+    box-shadow: 0 0 0 3px #0000000d !important;
+  }
+}
+
+.careersModalHeader {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #E9EAEB;
+
+  button {
+    background-color: #fff;
+    border: 1px solid #D5D7DA;
+    border-radius: 999px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  
+  button, button i {
+    color: #414651;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  h2 {
+    color: #181D27;
+    margin: 0;
+    flex: 1
+  }
+
+  i {
+    color: #535862;
+    cursor: pointer;
+  }
+}
+
+.careersModalContent {
+  padding: 24px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 136px);
+}
+
+.searchBar {
+  width: 100% !important;
+
+  input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+
+    &::placeholder {
+      color: #717680;
+      font-weight: 500;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      background: #f3f4f6;
+    }
+  }
+}
+
+.selectedCareersList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.selectedCareerItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #EFF8FF;
+  border: 1px solid #B2DDFF;
+  border-radius: 999px;
+  padding: 2px 8px 2px 10px;
+}
+
+.selectedCareerTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #175CD3;
+  margin: 0;
+}
+
+.removeCareerButton {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  i {
+    font-size: 14px;
+    color: #2E90FA;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.careersListContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.careersList {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.careerItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.careerItemTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #181D27;
+}
+
+.addCareerButton {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+
+  i {
+    font-size: 18px;
+    color: $secondary-text;
+  }
+
+  &:hover i {
+    color: $text-color;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    &:hover i {
+      color: $secondary-text;
+    }
+  }
+}
+
+.emptyCareersList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.emptyStateIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #F9FAFB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+
+  i {
+    font-size: 32px;
+    color: #9CA3AF;
+  }
+}
+
+.emptyStateTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.emptyStateText {
+  font-size: 14px;
+  color: $secondary-text;
+  margin: 0;
+}
+
+.careersModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 24px;
+  border-top: 1px solid #E9EAEB;
+  height: 64px;
+}
+
+.saveButton {
+  background: #181D27;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    background: #9CA3AF;
+    opacity: 0.7;
+  }
+}
+
+// ============================================
+// Success Modal Styles
+// ============================================
+
+.successModal {
+  background: #fff;
+  border-radius: 12px;
+  width: 400px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.successModalContent {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.successIconContainer {
+  margin-bottom: 16px;
+}
+
+.successIconOuter {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ECFDF3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.successIconInner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #D1FADF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 20px;
+    color: #039855;
+  }
+}
+
+.successModalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #181D27;
+  margin: 0 0 8px 0;
+}
+
+.successModalDescription {
+  font-size: 14px;
+  color: $secondary-text;
+  margin: 0;
+}
+
+.successModalFooter {
+  padding: 0 24px 24px 24px;
+}
+
+.successCloseButton {
+  width: 100%;
+  background: #fff;
+  color: #414651;
+  border: 1px solid #D5D7DA;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+
+// ============================================
+// Project Careers Table Styles
+// ============================================
+
+.projectCareersTableContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #E9EAEB;
+  border-radius: 16px;
+  box-shadow: rgba(10, 13, 18, 0.05);
+
+  :global(.table-responsive) {
+    flex: 1;
+  }
+}
+
+.tableHeader {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tableTitle {
+  font-weight: 700;
+  font-size: 18px;
+  color: #181D27;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.careerCount {
+  width: 23px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #D5D9EB;
+  border-radius: 16px;
+  background-color: #F8F9FC;
+  color: #363F72;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+.tableFilters {
+  display: flex;
+  gap: 8px;
+}
+
+.tableHeaderCell {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: capitalize !important;
+  color: #717680;
+}
+
+.jobTitleCell {
+  font-weight: 700;
+  font-size: 14px;
+  padding: 16px 24px;
+  color: #181D27;
+}
+
+.menuButton {
+  border: none;
+  background: none;
+  color: #A4A7AE;
+}
+
+// ============================================
+// Options Dropdown Menu Styles
+// ============================================
+
+.optionsMenuWrapper {
+  position: relative;
+}
+
+.optionsDropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  min-width: 200px;
+  padding: 8px 0;
+  z-index: 100;
+}
+
+.optionsMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #414651;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  text-align: left;
+
+  i {
+    font-size: 18px;
+    color: #535862;
+  }
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.dashboardTabContainer {
+  border-bottom: 1px solid #e9eaeb;
+  height: 48px;
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: row;
+  width: 100%;
+  gap: 24px;
+  margin-bottom: 24px;
+  
+  .dashboardTabItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 16px;
+    font-weight: 700;
+    color: #717680;
+    border-bottom: none;
+    cursor: pointer;
+    gap: 8px;
+  }
+  .dashboardActiveTabItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    gap: 8px;
+    color: #252b37;
+    border-bottom: 2px solid transparent;
+    background-image: linear-gradient(
+      90deg,
+      #9fcaed 0%,
+      #ceb6da 33%,
+      #ebacc9 66%,
+      #fccec0 100%
+    );
+    background-repeat: no-repeat;
+    background-position: bottom left;
+    background-size: 100% 2px;
+    padding: 0 10px;
+  }
+}

@@ -1,0 +1,22 @@
+.helpBanner {
+  background-color: #f5fbff;
+  border-radius: 12px;
+  border: 1px solid #1570ef;
+  padding: 16px 20px;
+  display: flex;
+  gap: 14px;
+}
+
+.helpIcon {
+  margin-top: 3px;
+}
+
+.title {
+  margin-bottom: 10px;
+}
+
+.message {
+  font-size: 14px;
+  font-weight: 400;
+  margin: 0;
+}

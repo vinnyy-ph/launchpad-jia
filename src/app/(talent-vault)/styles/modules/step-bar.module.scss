@@ -1,0 +1,51 @@
+.stepBarWrapper {
+  width: 100%;
+
+  .stepBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .progressBar {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      margin-bottom: 4px;
+      background-color: #d9d9d9;
+
+      &[data-status="done"] {
+        background: linear-gradient(to right, #fccec0 0%, #ebacc9 33%, #ceb6da 66%, #9fcaed 100%);
+      }
+
+      &[data-status="in_progress"] {
+        background-image: linear-gradient(to right, #fccec0 0%, #ebacc9 33%, #ceb6da 66%, #9fcaed 100%);
+        background-size: 50% 100%;
+        background-repeat: no-repeat;
+      }
+    }
+  }
+
+  .stepInfo {
+    p {
+      margin: 0 0 4px 0;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 100%;
+      color: #717680;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 24px;
+    }
+
+    &[data-status="pending"] {
+      p, h2 {
+        color: #A4A7AE;
+      }
+    }
+  }
+}

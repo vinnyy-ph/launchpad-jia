@@ -1,0 +1,1489 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #ffffff;
+}
+
+.teamEmailsBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background-color: #fff9e6;
+    border-bottom: 1px solid #FFFAEB;
+}
+
+.bannerText {
+    font-size: 14px;
+    color: #414651 ;
+    flex: 1;
+    font-weight: 500;
+}
+
+.bannerCloseButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #495057;
+    transition: color 0.2s ease;
+    margin-left: 16px;
+    flex-shrink: 0;
+
+    &:hover {
+        color: #212529;
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.mainContent {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    min-width: 0;
+    // margin: 10px;
+}
+
+.candidateHeader {
+    background-color: #ffffff;
+    // border-bottom: 1px solid #dee2e6;
+    padding: 10px 15px;
+}
+
+.candidateHeaderContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.candidateHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.candidateHeaderAvatar {
+    width: 56px !important;
+    height: 56px !important;
+}
+
+.candidateHeaderInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.candidateName {
+    font-size: 24px;
+    font-weight: 700;
+    color: #181D27;
+}
+
+.candidateApplications {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 14px;
+    color: #717680;
+}
+
+.applicationsLabel {
+    color: #414651;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.applicationLink {
+    color: #1570EF;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14pxpx;
+    font-weight: 700;
+    transition: color 0.2s ease;
+    border-bottom: #1570EF 1px solid !important;
+
+    &:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+}
+
+.externalLinkIcon {
+    width: 14px;
+    height: 14px;
+    color: currentColor;
+}
+
+.applicationSeparator {
+    color: #717680;
+}
+
+.noApplications {
+    color: #717680;
+    font-style: italic;
+}
+.sidebarContentheader{
+    width: 100%;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 7px;
+    padding: 0;
+    background-color: #ffffff;
+    flex-shrink: 0;
+}
+
+.composeButtonHeader {
+    background-color: #181D27;
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 9999px;
+    font-size: 14px;
+    width: 162px;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #343a40;
+    }
+}
+
+.composeIconHeader {
+    width: 16px;
+    height: 16px;
+}
+
+.sidebar {
+    // width: 40%;
+    width: 480px;
+    // min-width: 480px;
+    // width: 480px;
+    background-color: #ffffff;
+    border-right: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.tabContainer {
+    display: flex;
+    background-color: #F8F9FC;
+    border-radius: 9999px !important;
+    border: 2px solid #dee2e6;
+    margin: 0px 16px;
+
+}
+
+.tabButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 10px;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    background-color: transparent;
+    color: #717680;
+    border-bottom: none;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 5px 10px;
+    outline: none;
+
+    &:hover {
+        background-color: #f0f0f0;
+        border-radius: 100px;
+        color: #000;
+    }
+
+    &:active {
+        border: none;
+        outline: none;
+    }
+
+    &:focus {
+        outline: none;
+        border: none;
+    }
+
+    &:focus-visible {
+        outline: none;
+    }
+}
+
+.tabIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.tabButtonActive {
+    background-color: #ffffff;
+    color: black;
+    border-radius: 9999px;
+
+}
+
+.badge {
+    background-color: #F8F9FC;
+    color: #363F72;
+    font-size: 12px !important;
+    font-weight: 700;
+    border-radius: 10px;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    margin-left: 4px;
+    border: 1px solid #D5D9EB;
+    padding: 0 6px;
+    margin-left: 4px;
+}
+
+.summary {
+    padding: 8px 16px;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #ffffff;
+}
+
+.summaryContent {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: #717680;
+}
+
+.unreadBadge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.summaryIcon {
+    width: 12px;
+    height: 12px;
+}
+
+.summaryIconContainer {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.searchContainer {
+    padding: 16px 16px;
+    padding-bottom: 8px;
+    // border-bottom: 1px solid #dee2e6;
+    background-color: #ffffff;
+}
+
+.searchInputWrapper {
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #717680;
+}
+
+.searchInput {
+    width: 100%;
+    padding-left: 36px;
+    padding-right: 16px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 16px;
+    height: 44px;
+    color: #717680;
+    font-weight: 500;
+}
+
+.filterContainer {
+    padding: 8px 16px;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #ffffff;
+    overflow: visible;
+    position: relative;
+}
+
+.filterWrapper {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: nowrap;
+    // overflow-x: hidden;
+    // overflow-y: visible;
+    // width: 100%;
+    // position: relative;
+}
+
+.filterWrapperOpen {
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+.filterButtonWrapper {
+    position: relative;
+    flex: 0 0 auto;
+    min-width: 119px;
+    z-index: 1;
+    overflow: visible;
+    
+    &:hover {
+        z-index: 10;
+    }
+    
+    // Ensure dropdown is always visible
+    &:has(.dropdownMenu) {
+        z-index: 1000;
+        overflow: visible;
+    }
+}
+
+.filterButton {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #717680;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    white-space: nowrap;
+
+    &:hover {
+        background-color: #f8f9fa;
+        border-color: #d0d0d0;
+    }
+
+    &:active {
+        outline: none;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: #d0d0d0;
+    }
+}
+
+.filterButtonText {
+    flex: 1;
+    text-align: left;
+}
+
+.filterIcon {
+    width: 16px;
+    height: 16px;
+    color: #717680;
+    flex-shrink: 0;
+}
+
+.filterChevron {
+    width: 16px;
+    height: 16px;
+    color: #717680;
+    flex-shrink: 0;
+}
+
+.filterDropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.filterOption {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background-color: transparent;
+    color: #212529;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    outline: none;
+
+    &:hover {
+        background-color: #f8f9fa;
+    }
+
+    &:active {
+        outline: none;
+    }
+
+    &:focus {
+        outline: none;
+        background-color: #f8f9fa;
+    }
+}
+
+// Legacy select styles (keeping for backward compatibility if needed)
+.filterSelect {
+    flex: 3;
+    padding: 6px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 9999px;
+    margin-right: 8px;
+
+    &:last-child {
+        margin-right: 0;
+    }
+}
+
+.emailList {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 13px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    padding-top: 25px;
+    width: 100%;
+    height: 100%;
+}
+
+.emailItem {
+    padding: 3px 19px;
+    cursor: pointer;
+    background-color: #FFFFFF;
+    border-left: none;
+    height: 138px;
+    width: 100%;
+    // max-width: 440px;
+    box-sizing: border-box;
+}
+
+.emailContent {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background-color: white;
+    padding: 14px;
+    border-radius: 20px;
+    border: 2px solid #E9EAEB;
+    height: 138px;
+    max-width: 440px;
+
+    &:hover {
+        background-color: #e9eaeb80;
+    }
+
+    &.selected {
+        background-color: #F8F9FC;
+        border: 5px solid #E9EAEB;
+    }
+}
+
+.emailInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.emailHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    // margin-bottom: 4px;
+}
+
+.emailHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.emailName {
+    font-weight: 700 !important;
+    color: #181D27;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+
+}
+
+.newBadge {
+    background-color: #EEF4FF;
+    color: #3538CD;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 1000px;
+    border: 1px solid #C7D7FE;
+}
+
+.time {
+    font-size: 12px;
+    color: #717680;
+    flex-shrink: 0;
+    font-weight: 500;
+
+}
+
+.role {
+    font-size: 12px;
+    color: #717680;
+    margin-bottom: 4px;
+}
+
+.subject {
+    font-size: 16px;
+    font-weight: 500;
+    color: #007bff;
+    // margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.snippet {
+    font-size: 16px;
+    color: #717680;
+    // margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tagsContainer {
+    display: flex;
+    gap: 6px;
+    padding-top: 10px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tag {
+    background-color: #F5F5F5;
+    color: #414651;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 50px;
+    padding: 2px 8px;
+    border: 1px solid #E9EAEB;
+    
+}
+
+.contentArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    min-width: 0;
+}
+
+.header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 12px 24px;
+}
+
+.headerContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.headerButton {
+    padding: 6px;
+    color: #717680;
+    border: none;
+    background-color: transparent;
+}
+
+.headerIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+}
+
+.userText {
+    font-size: 12px;
+}
+
+.userEmail {
+    font-size: 14px;
+    font-weight: 700;
+    color: #212529;
+}
+
+.userStatus {
+    color: #717680;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.syncButton {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #dee2e6;
+    background-color: #ffffff;
+    color: #717680;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background-color: #f8f9fa;
+        border-color: #007bff;
+        color: #007bff;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.syncIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+.composeButton {
+    background-color: #000000;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.composeIcon {
+    width: 12px;
+    height: 12px;
+}
+
+.emailContentHeader {
+    background-color: #ffffff;
+    border-bottom: 1px solid #dee2e6;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.emailSubject {
+    font-size: 16px;
+    font-weight: 700;
+    color: #414651;
+}
+
+.emailActions {
+    display: flex;
+    gap: 8px;
+}
+
+.actionButton {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background-color: #FFFFFF;
+    color: #717680;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid #D5D7DA;
+}
+
+.actionIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.emailThread {
+    background: #ffffff;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 24px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.emailMessage {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid #E9EAEB;
+    border-left: 3px solid #E9EAEB;
+}
+
+.messageHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.messageInfo {
+    flex: 1;
+}
+
+.messageTopRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.timestampWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+    // min-width: 0;
+}
+
+.senderInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
+.senderName {
+    font-weight: 600;
+    color: #212529;
+    font-size: 16px;
+}
+
+.senderEmail {
+    color: #717680;
+    font-size: 12px;
+    overflow-wrap: break-word;
+    word-break: break-all;
+    max-width: 100%;
+}
+
+.recipientInfo {
+    font-size: 12px;
+    color: #717680;
+    margin-bottom: 8px;
+}
+
+.timestamp {
+    font-size: 12px;
+    color: #717680;
+    white-space: nowrap;
+    // text-align: right;
+    // min-width: max-content;
+}
+
+.messageTag {
+    font-size: 14px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    
+    &.automated {
+        background-color: #E0E7FF;
+        color: #6366F1;
+        border: 1px solid #8098F9;
+        font-weight: 700;
+    }
+    
+    &.direct {
+        border: 1px solid #FEDF89;
+        background-color: #FFFAEB;
+        color: #c76402;
+    }
+}
+
+.tagIcon {
+    width: 10px;
+    height: 10px;
+}
+
+.messageContent {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #212529;
+    // white-space: pre-wrap; 
+    padding: 0 10px;
+}
+
+.signature {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e9ecef;
+}
+
+.signatureName {
+    font-weight: 600;
+    color: #212529;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.signatureTitle {
+    color: #717680;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.signatureContact {
+    color: #717680;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.signatureLogo {
+    width: 32px;
+    height: 32px;
+    background-color: #000000;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.logo {
+    width: 24px;
+    height: 24px;
+    background-color: #000000;
+    color: #ffffff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.emptyState {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+
+.emptyStateContent {
+    text-align: center;
+}
+
+.emptyStateIcon {
+    color: #717680;
+    margin-bottom: 16px;
+    width: 10px;
+    height: 10px;
+    margin: 16px auto;
+    border-radius: 50%;
+    // background-color: #e9eaeb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 35px;
+}
+
+.emptyStateTitle {
+    font-size: 16px;
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 8px;
+}
+
+.emptyStateText {
+    font-size: 14px;
+    color: #717680;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #ffffff;
+}
+
+.loadingContent {
+    text-align: center;
+}
+
+.loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.gmailIntegration {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #ffffff;
+}
+
+.gmailIntegrationContent {
+    text-align: center;
+    max-width: 400px;
+    padding: 40px 20px;
+}
+
+.gmailIntegrationIcon {
+    font-size: 64px;
+    color: #ea4335;
+    margin-bottom: 24px;
+}
+
+.gmailIntegrationTitle {
+    font-size: 24px;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 16px;
+}
+
+.gmailIntegrationText {
+    font-size: 16px;
+    color: #717680;
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+.replyButton {
+    background-color: #FFFFFF;
+    text-align: center;
+    color: #414651;
+    border: 1px solid #D5D7DA;
+    border-radius: 9999px;
+    padding: 10px 26px;
+    font-size: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    // margin-top: 16px;
+}
+
+.loadingState {
+    padding: 20px;
+    text-align: center;
+    color: #717680;
+}
+
+.loadingSpinnerIcon {
+    margin-bottom: 8px;
+}
+
+.emptyStateInList {
+    padding: 20px;
+    text-align: center;
+    color: #717680;
+}
+
+.emptyStateIconInList {
+    margin-bottom: 8px;
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settingsButton {
+    border-radius: 50%;
+    background-color: white;
+    color: #717680;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 8px;
+    border: 3px solid #dee2e6;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #D5D7DA;
+
+    &:hover {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+}
+
+.settingsIcon {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.headerUserAvatar {
+    width: 32px;
+    height: 32px;
+}
+
+.emailAvatar {
+    width: 40px;
+    height: 40px;
+}
+
+.userAvatar {
+    width: 24px;
+    height: 24px;
+}
+
+.messageAvatar {
+    width: 40px;
+    height: 40px;
+}
+
+.enablingSpinner {
+    margin-right: 8px;
+}
+
+.replyButtonContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.loadingTitle {
+    color: #212529;
+    margin-bottom: 8px;
+}
+
+.loadingText {
+    color: #717680;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    border-top: 1px solid #dee2e6;
+    background-color: #ffffff;
+}
+
+.paginationButton {
+    padding: 6px 12px;
+    border: 1px solid #dee2e6;
+    background-color: #ffffff;
+    color: #212529;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 9999px;
+
+    &:hover:not(:disabled) {
+        background-color: #f8f9fa;
+        border-color: #007bff;
+        color: #007bff;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.paginationInfo {
+    font-size: 14px;
+    color: #717680;
+    font-weight: 500;
+}
+
+// Attachment styles
+.attachmentsContainer {
+    margin-top: 16px;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.attachmentsHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+    
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.attachmentsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.attachmentItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    // &:hover {
+    //     background-color: #f8f9fa;
+    //     border-color: #007bff;
+    //     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    // }
+
+    .attachmentIcon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #495057;
+        
+        svg {
+            width: 24px;
+            height: 24px;
+        }
+    }
+
+    .attachmentInfo {
+        flex: 1;
+        min-width: 0;
+        
+        .attachmentName {
+            font-size: 14px;
+            font-weight: 500;
+            color: #212529;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .attachmentSize {
+            font-size: 12px;
+            color: #717680;
+            margin-top: 2px;
+        }
+    }
+
+    .attachmentDownload {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #535862;
+        border-radius: 50%;
+        border: 1px solid #D5D7DA;
+        
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Responsive styles for small screens - maintaining same UI appearance
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 45%;
+        min-width: 380px;
+    }
+
+    .emailItem {
+        max-width: 100%;
+    }
+
+    .searchInput {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 50%;
+        min-width: 360px;
+    }
+
+    .emailItem {
+        max-width: 100%;
+    }
+
+    .searchInput {
+        font-size: 16px;
+    }
+
+    .filterWrapper {
+        flex-wrap: nowrap;
+        overflow-x: hidden;
+        overflow-y: visible;
+    }
+
+    .filterButtonWrapper {
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .mainContent {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .contentArea {
+        width: 100%;
+        flex: 1;
+        min-height: 40vh;
+    }
+
+    .emailList {
+        padding-top: 20px;
+        gap: 20px;
+    }
+
+    .emailItem {
+        width: 100%;
+        max-width: 100%;
+        padding: 6px 12px;
+    }
+
+    .emailContent {
+        padding: 14px;
+    }
+
+    .searchInput {
+        font-size: 16px;
+    }
+
+    .tabContainer {
+        margin: 10px;
+    }
+
+    .tabButton {
+        padding: 12px 14px;
+        font-size: 14px;
+        margin: 5px 8px;
+    }
+
+    .filterContainer {
+        padding: 8px 12px;
+    }
+
+    .filterWrapper {
+        gap: 6px;
+        flex-wrap: nowrap;
+        overflow-x: hidden;
+        overflow-y: visible;
+    }
+
+    .filterButtonWrapper {
+        min-width: 110px;
+        flex-shrink: 0;
+    }
+
+    .sidebarContentheader {
+        gap: 10px;
+    }
+
+    .searchContainer {
+        padding: 14px;
+        padding-bottom: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .candidateHeader {
+        padding: 12px 16px;
+    }
+
+    .candidateName {
+        font-size: 20px;
+    }
+
+    .tabButton {
+        padding: 10px 12px;
+        font-size: 13px;
+        gap: 6px;
+    }
+
+    .tabIcon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .filterButtonWrapper {
+        min-width: 100px;
+    }
+
+    .emailItem {
+        height: auto;
+        min-height: 120px;
+    }
+
+    .emailContent {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .subject {
+        font-size: 15px;
+    }
+
+    .snippet {
+        font-size: 14px;
+    }
+
+    .emailName {
+        font-size: 13px;
+    }
+
+    .time {
+        font-size: 11px;
+    }
+
+    .searchInput {
+        font-size: 14px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+}

@@ -1,0 +1,264 @@
+.root {
+  --field-input-padding-left-base: 14px;
+  --field-input-padding-right-base: 14px;
+  --field-left-section-width: 0px;
+  --field-right-section-width: 0px;
+  --field-radius: 8px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  color: var(--Input-text-label, #414651);
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.required {
+  color: #d92d20;
+}
+
+.description {
+  color: #717680;
+  font-weight: 400;
+  margin: 0;
+}
+
+.inputWrapper {
+  cursor: text;
+  position: relative;
+}
+
+.leftSection,
+.rightSection {
+  align-items: center;
+  bottom: 1px;
+  color: #717680;
+  cursor: text;
+  display: inline-flex;
+  justify-content: center;
+  position: absolute;
+  top: 1px;
+  z-index: 1;
+
+  :global(svg) {
+    display: block;
+    flex-shrink: 0;
+    height: 18px;
+    min-height: 18px;
+    min-width: 18px;
+    width: 18px;
+  }
+}
+
+.leftSection {
+  left: 1px;
+  padding-left: 12px;
+  padding-right: 8px;
+}
+
+.rightSection {
+  right: 1px;
+  padding-left: 8px;
+  padding-right: 12px;
+}
+
+.withSectionDivider {
+  &::after {
+    background: var(--Input-border-primary, #d5d7da);
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+  }
+}
+
+.leftSection.withSectionDivider {
+  padding-right: 12px;
+
+  &::after {
+    right: 0;
+  }
+}
+
+.rightSection.withSectionDivider {
+  padding-left: 12px;
+
+  &::after {
+    left: 0;
+  }
+}
+
+.input {
+  background: var(--Input-bg-primary, #ffffff);
+  border: 1px solid var(--Input-border-primary, #d5d7da);
+  border-radius: var(--field-radius);
+  box-shadow: 0 1px 2px 0 #0a0d120d;
+  box-sizing: border-box;
+  color: var(--Input-text-primary, #181d27);
+  cursor: text !important;
+  font-weight: 500;
+  outline: none;
+  padding-left: calc(
+    var(--field-input-padding-left-base) + var(--field-left-section-width)
+  );
+  padding-right: calc(
+    var(--field-input-padding-right-base) + var(--field-right-section-width)
+  );
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+
+  &::placeholder {
+    color: var(--Input-text-placeholder-or-disabled, #717680);
+  }
+
+  &:hover,
+  &:focus,
+  &:active {
+    cursor: text !important;
+  }
+}
+
+.error {
+  color: #d92d20;
+  margin: 0;
+}
+
+.hasError {
+  .input {
+    border-color: #d92d20;
+
+    &:focus-visible {
+      border-color: #d92d20;
+      box-shadow: 0 0 0 3px #fecdca;
+    }
+  }
+}
+
+.disabled {
+  .inputWrapper,
+  .leftSection,
+  .rightSection {
+    cursor: not-allowed;
+  }
+
+  .input {
+    background: #f9fafb;
+    color: #a4a7ae;
+    cursor: not-allowed !important;
+  }
+}
+
+.readOnly {
+  .input {
+    background: #f9fafb;
+  }
+}
+
+.size-xs {
+  .label {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .description,
+  .error {
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  .input {
+    font-size: 12px;
+    line-height: 18px;
+    min-height: 30px;
+    padding-bottom: 6px;
+    padding-top: 6px;
+  }
+}
+
+.size-sm {
+  .label {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .description,
+  .error {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .input {
+    font-size: 14px;
+    line-height: 20px;
+    min-height: 36px;
+    padding-bottom: 8px;
+    padding-top: 8px;
+  }
+}
+
+.size-md {
+  .label {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .description,
+  .error {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .input {
+    font-size: 16px;
+    line-height: 24px;
+    min-height: 44px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+  }
+}
+
+.size-lg {
+  .label {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .description,
+  .error {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .input {
+    font-size: 17px;
+    line-height: 24px;
+    min-height: 48px;
+    padding-bottom: 12px;
+    padding-top: 12px;
+  }
+}
+
+.size-xl {
+  .label {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .description,
+  .error {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .input {
+    font-size: 18px;
+    line-height: 26px;
+    min-height: 52px;
+    padding-bottom: 12px;
+    padding-top: 12px;
+  }
+}

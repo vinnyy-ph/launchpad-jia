@@ -1,0 +1,275 @@
+@use "@/lib/styles/variables" as *;
+
+.notificationsPage {
+  max-width: 720px;
+  border: 1px solid $border-primary;
+  border-radius: $radius-sm;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notificationsTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0;
+  }
+}
+
+.markAllReadButton {
+  background: $color-secondary-blue-gray-50;
+  border: 1px solid $border-primary;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: $border-primary;
+  }
+}
+
+.searchContainer {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 48px 12px 48px;
+  border: 1px solid $border-primary;
+  border-radius: 10px;
+  font-size: 14px;
+  color: $text-primary;
+  outline: none;
+  transition: all 0.2s;
+
+  &:focus {
+    border-color: $text-secondary;
+    box-shadow: 0 0 0 3px rgba(65, 70, 81, 0.1);
+  }
+
+  &::placeholder {
+    font-size: 16px;
+    font-weight: 500;
+    color: $input-text-placeholder-or-disabled;
+  }
+}
+
+.clearButton {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: $text-tertiary;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: $text-secondary;
+  }
+}
+
+.notificationsList {
+  background: $color-primary-neutral-white;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.todayNotifications,
+.earlierNotifications {
+  display: flex;
+  flex-direction: column;
+
+  hr {
+    margin: 0;
+    border: none;
+    border-top: 1px solid $border-primary;
+  }
+}
+
+.dateHeader {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text-secondary;
+}
+
+.emptyState {
+  padding: 60px 20px;
+  text-align: center;
+  color: $text-tertiary;
+
+  p {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  color: $text-tertiary;
+
+  span {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid $border-primary;
+  border-top-color: $text-secondary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadMoreButton {
+  width: 100%;
+  padding: 16px;
+  background: $color-secondary-blue-gray-50;
+  border: none;
+  border-top: 1px solid $border-primary;
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: $border-primary;
+  }
+}
+
+.seePreviousButton {
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  background: transparent;
+  border: 1px solid $button-border-primary;
+  border-radius: $radius-round;
+  font-size: 14px;
+  font-weight: 500;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bellIcon {
+  width: 24px;
+  height: 24px;
+  color: $text-secondary;
+}
+
+// Shimmer animation - matches projects page pattern
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// Skeleton loading styles - consistent with projects/careers pages
+.skeletonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  hr {
+    margin: 0;
+    border: none;
+    border-top: 1px solid $border-primary;
+  }
+}
+
+.skeletonItem {
+  display: flex;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.skeletonAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, $color-primary-neutral-50 0%, $color-secondary-blue-gray-100 50%, $color-primary-neutral-50 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.skeletonContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.skeletonTitle {
+  width: 70%;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, $color-primary-neutral-50 0%, $color-secondary-blue-gray-100 50%, $color-primary-neutral-50 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonText {
+  width: 90%;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, $color-primary-neutral-50 0%, $color-secondary-blue-gray-100 50%, $color-primary-neutral-50 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+

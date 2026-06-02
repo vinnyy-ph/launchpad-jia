@@ -1,0 +1,17 @@
+{
+  "user": {
+    "name": "Vince Amiel Carandang",
+    "email": "vince.carandang@whitecloak.com",
+    "picture": "https://lh3.googleusercontent.com/a/ACg8ocKyevkl1jbsEuJ_eGWlB5rZS1RbyuwEfgOSZ9B1GQq_IxQcFA=s288-c-mo-no"
+  },
+  "connected": true,
+  "dateSync": "2025-02-08",
+  "enableGmailSending": true,
+  "permission": [
+    "https://mail.google.com/",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "openid"
+  ],
+  "preferGmail": true,
+  "signature": "<p>Hello <span data-token={Full Name}>Full Name</span>,</p><p>We’re excited to welcome you to our platform. Your account has been successfully created and is now ready to use.</p><p>You can begin by exploring your dashboard, updating your profile information, and customizing your preferences to better suit your needs.</p><p>If you ever need help, our support team is always here for you.</p><p>Welcome aboard!</p>"
+}

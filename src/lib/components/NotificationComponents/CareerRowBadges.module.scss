@@ -1,0 +1,19 @@
+@use '@/lib/styles/variables' as *;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 2px 6px;
+  background: $color-primary-error-50;
+  color: $color-primary-error-700;
+  border: 1px solid $color-primary-error-200;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 8px;
+  flex-shrink: 0;
+}

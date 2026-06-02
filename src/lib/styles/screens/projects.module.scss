@@ -1,0 +1,851 @@
+// ============================================
+// Projects Page Styles
+// ============================================
+
+$brand-blue: #5e39d6;
+$border-color: #ddd;
+$text-color: #333;
+$secondary-text: #717680;
+$light-gray: #e5e7eb;
+
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// Projects Page Layout
+.projectsContainer {
+  padding-top: 6rem;
+
+  :global(.skeleton-bar) {
+    background: linear-gradient(90deg, #F9FAFB 0%, #F3F4F6 50%, #F9FAFB 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 16px;
+  }
+
+  :global(.search-input):focus {
+    border: 2px solid #e9eaeb !important;
+    box-shadow: 0 0 0 3px #0000000d !important;
+  }
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.headerContent {
+  h1 {
+    font-size: 24px;
+    font-weight: 550;
+    color: #111827;
+  }
+
+  span {
+    font-size: 16px;
+    color: $secondary-text;
+    font-weight: 500;
+  }
+}
+
+.headerActions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+
+  button {
+    display: flex;
+    align-items: center;
+    // gap: 8px;
+    border: none;
+  }
+}
+
+.searchBar {
+  min-width: 300px;
+}
+
+// ============================================
+// Projects Module Styles
+// ============================================
+
+.projectsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-top: 16px;
+  border-top: 1px solid $light-gray;
+}
+
+.projectsCount {
+  font-size: 16px;
+  color: $secondary-text;
+  font-weight: 500;
+  margin: 0;
+}
+
+
+.noSearchResults {
+  text-align: center;
+  padding: 48px 20px;
+  color: $secondary-text;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.emptyStateCard {
+  border: none !important;
+
+  :global(.card-body) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0 !important;
+    min-height: 400px;
+    text-align: center;
+  }
+}
+
+.emptyStateImage {
+  margin-bottom: 24px;
+}
+
+.emptyStateTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.emptyStateText {
+  font-size: 14px;
+  color: $secondary-text;
+  margin: 0;
+}
+
+// Project Card
+.projectCard {
+  height: 100%;
+  border-radius: 8px;
+  border: 1px solid $light-gray;
+  cursor: pointer;
+  box-shadow: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+}
+
+.projectCardHeader {
+  background-color: #fdfdfd;
+  padding: 16px 24px;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.projectTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.careersCount {
+  font-size: 14px;
+  font-weight: 500;
+  color: $secondary-text;
+  margin: 0;
+}
+
+.projectCardBody {
+  padding: 16px 24px;
+  border-top: 1px solid $light-gray;
+  border-radius: 8px 8px 0 0;
+}
+
+.projectSection {
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.membersClickable {
+  cursor: pointer;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+}
+
+.sectionLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: $secondary-text;
+  margin-bottom: 8px;
+}
+
+.ownerInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  img {
+    border: none;
+  }
+
+  .ownerName {
+    font-size: 14px;
+    font-weight: 600;
+    color: #414651;
+  }
+}
+
+.membersAvatars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.avatarWrapper {
+  position: relative;
+
+  &.overlapping {
+    margin-left: -12px;
+  }
+}
+
+.avatarBorder {
+  border: 3px solid white;
+  border-radius: 50%;
+}
+
+.moreMembers {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f8f9fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  color: #3e4784;
+  margin-left: -12px;
+  border: 3px solid white;
+}
+
+// Project Card Dropdown Menu
+.projectCardHeader {
+  .dropdownContainer {
+    position: relative;
+
+    > i {
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: #f3f4f6;
+      }
+    }
+
+    .dropdownOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 999;
+      cursor: default;
+    }
+
+    .dropdownMenu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      left: auto;
+      background: #fff;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 180px;
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 1000;
+      padding: 8px 0;
+    }
+
+    .dropdownItem {
+      padding: 10px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: $text-color;
+      transition: background 0.15s ease;
+
+      &:last-child {
+        border-top: 1px solid #f5f5f5;
+      }
+
+      i {
+        font-size: 18px;
+        color: $secondary-text;
+      }
+
+      &:hover {
+        background: #f9fafb;
+      }
+
+      &.deleteItem {
+        color: #b32318;
+
+        i {
+          color: #b32318;
+        }
+
+        &:hover {
+          background: #fef2f2;
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// Create Project Modal Styles
+// ============================================
+
+.modalBackdrop {
+  display: block !important;
+  background: rgba(0, 0, 0, 0.45);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  animation-duration: 0.25s;
+  width: 100%;
+  height: 100%;
+}
+
+.modalDialog {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalContent {
+  background: #fff;
+  border: 2px solid $border-color;
+  border-radius: 14px;
+  box-shadow: rgba(78, 76, 76, 0.439) 0px 3px 8px;
+  min-width: 340px;
+  max-width: 420px;
+  position: relative;
+  padding: 24px;
+  gap: 20px;
+}
+
+.iconContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.iconOuterCircle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #ecfdf3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconInnerCircle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #d1fadf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 32px;
+    color: #039855;
+  }
+}
+
+.iconOuterCircleGradient {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #FDF2FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconInnerCircleGradient {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(
+    45deg,
+    rgba(159, 202, 237, 1),
+    rgba(206, 182, 218, 1),
+    rgba(235, 172, 201, 1),
+    rgba(252, 206, 192, 1)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 32px;
+    color: #fff;
+  }
+}
+
+.iconOuterCircleDanger {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #fef3f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconInnerCircleDanger {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fee4e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 32px;
+    color: #d92d20;
+  }
+}
+
+.titleContainer {
+  text-align: center;
+
+  &.manageModal {
+    .modalTitle {
+      text-align: left;
+    }
+  }
+}
+
+.modalTitle {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: $text-color;
+  margin: 0;
+}
+
+.modalBody {
+  font-weight: 400;
+  font-size: 1rem;
+  color: $text-color;
+  padding: 0 !important;
+}
+
+.formLabel {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  font-size: 0.9rem;
+
+  .required {
+    color: red;
+  }
+}
+
+.newProjecTitle {
+  .helperText {
+    margin-bottom: 16px;
+  }
+}
+
+.labelTop {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: block;
+  font-size: 0.9rem;
+}
+
+.formInput {
+  font-size: 0.95rem;
+  border: 1px solid $border-color;
+  color: $text-color;
+  background: #fff;
+  border-radius: 6px;
+  padding: 10px 12px;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.charCounter {
+  text-align: right;
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 4px;
+}
+
+.helperText {
+  font-size: 0.85rem;
+  color: $secondary-text;
+  margin: 0;
+}
+
+.modalFooter {
+  background: #fff;
+  border-top: none;
+  padding: 16px 0 0 0 !important;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+
+  // button {
+  //   flex: 1;
+  //   font-weight: 600;
+  //   border-radius: 999px;
+  //   padding: 10px 24px;
+  //   transition: all 0.2s ease;
+  //   font-size: 0.95rem;
+  // }
+
+  .cancelButton {
+    background: #fff;
+    color: #414651;
+    border: 1px solid $border-color;
+    cursor: pointer;
+  }
+
+  .saveButton {
+    border: none;
+    transform: none !important;
+
+    &.enabled {
+      background: #181d27;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    &.disabled {
+      background: $light-gray;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+  }
+
+  .deleteButton {
+    background: #d92d20;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      background: #b42318;
+    }
+
+    &:disabled {
+      background: #fda29b;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ============================================
+// Member Dropdown Styles
+// ============================================
+
+.dropdownContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.triggerContainer {
+  position: relative;
+}
+
+.userIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #999;
+  z-index: 1;
+}
+
+.triggerButton {
+  font-size: 0.95rem;
+  border: 1px solid $border-color;
+  background: #fff;
+  border-radius: 6px;
+  padding: 10px 12px 10px 38px;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &.enabled {
+    color: $text-color;
+    cursor: pointer;
+  }
+
+  &.placeholder {
+    color: #717980;
+    cursor: pointer;
+  }
+
+  &.disabled {
+    color: #717980;
+    cursor: not-allowed;
+  }
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+
+  &.closed {
+    transform: rotate(0deg);
+  }
+}
+
+.validationWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  background-color: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #b42318;
+
+  i {
+    font-size: 18px;
+    color: #d92d20;
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
+    line-height: 1.4;
+  }
+}
+
+.clearOption {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid $border-color;
+  font-size: 0.9rem;
+  color: #717980;
+  font-style: italic;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.emptyState {
+  padding: 20px 12px;
+  text-align: center;
+  color: #717980;
+  font-size: 0.9rem;
+}
+
+// Dropdown menu for modals (MemberDropdown, TransferOwnershipModal)
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.memberItem {
+  padding: 4px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.15s ease;
+
+  &.selected {
+    background: #f3f4f6;
+  }
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  &.selected:hover {
+    background: #f9fafb;
+  }
+}
+
+.memberAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.memberName {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $text-color;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.memberEmail {
+  font-size: 0.8rem;
+  color: $secondary-text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.memberInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+// ============================================
+// Selected Members List Styles
+// ============================================
+
+.selectedMembersList {
+  min-height: auto;
+  max-height: 285px;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selectedMemberItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.removeButton {
+  font-size: 14px;
+  font-weight: 700;
+  color: #b32318;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+
+  &:active {
+    background: #fee2e2;
+  }
+}
+
+// ============================================
+// Toast Notification Styles
+// ============================================
+
+.toastContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toastIconWrapper {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.toastIconInner {
+  width: 28px;
+  height: 28px;
+
+  i {
+    font-size: 16px;
+  }
+}
+
+.toastTextContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.toastTitle {
+  font-weight: 600;
+  color: #181D27;
+}
+
+.toastDescription {
+  font-size: 14px;
+  color: $secondary-text;
+}

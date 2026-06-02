@@ -1,0 +1,36 @@
+.tooltip {
+  display: flex;
+  position: relative;
+  img {
+    height: 16px;
+    width: 16px;
+    cursor: pointer;
+    &:hover + span {
+      opacity: 1;
+      transform: translate(50%, 0);
+      visibility: visible;
+    }
+  }
+  span {
+    background: #111322;
+    border-radius: 8px;
+    bottom: calc(100% + 4px);
+    box-shadow:
+      0 12px 16px -4px #0a0d1214,
+      0 4px 6px -2px #0a0d1208,
+      0 2px 2px -1px #0a0d120a;
+    box-sizing: border-box;
+    opacity: 0;
+    padding: 8px 12px;
+    position: absolute;
+    right: 50%;
+    transform: translate(50%, 10px);
+    transition: 0.3s;
+    visibility: hidden;
+    z-index: 1;
+    color: var(--Colors-Text-text-white, #fff);
+    font-size: var(--Font-size-text-xs, 12px);
+    font-weight: 700;
+    line-height: var(--Line-height-text-xs, 18px);
+  }
+}

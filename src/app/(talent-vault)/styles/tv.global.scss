@@ -1,0 +1,187 @@
+:root {
+  --surface-gray: #FAFAFA;
+  --surface-dashboard-bg-light: #F8F9FC;
+
+  --text-primary: #181D27;
+  --text-secondary: #414651;
+  --text-tertiary: #717680;
+
+  --button-bg-primary: #181D27;
+  --button-border-primary: #181D27;
+  --button-bg-secondary: #FFFFFF;
+  --button-border-secondary: #D5D7DA;
+
+  --input-bg-primary: white;
+  --input-border-primary: #E9EAEB;
+
+  --dark-navy: #2A2F41;
+  --yellow: #C4FF3D;
+  --lime: #C3FF3D;
+  --indigo: #6372FF;
+  --bluey: #26C3CB;
+
+  --shadow-lg: 0px 12px 16px -4px rgba(10, 13, 18, 0.08);
+  --shadow-xs: 0px 1px 2px rgba(10, 13, 18, 0.05);
+}
+
+.tv-app {
+  --surface-gray: #FAFAFA;
+  --surface-dashboard-bg-light: #F8F9FC;
+  --text-primary: #181D27;
+  --text-secondary: #414651;
+  --text-tertiary: #717680;
+  --button-bg-primary: #181D27;
+  --button-border-primary: #181D27;
+  --button-bg-secondary: #FFFFFF;
+  --button-border-secondary: #D5D7DA;
+  --input-bg-primary: white;
+  --input-border-primary: #E9EAEB;
+  --dark-navy: #2A2F41;
+  --yellow: #C4FF3D;
+  --lime: #C3FF3D;
+  --indigo: #6372FF;
+  --bluey: #26C3CB;
+  --shadow-xs: 0px 1px 2px rgba(10, 13, 18, 0.05);
+
+  margin: 0;
+  font-family: inherit;
+  font-size: revert;
+  font-weight: revert;
+  line-height: revert;
+  color: var(--text-primary);
+  background-color: var(--surface-gray);
+  text-align: revert;
+}
+
+:where(.tv-app) h1,
+:where(.tv-app) h2,
+:where(.tv-app) h3,
+:where(.tv-app) h4,
+:where(.tv-app) h5,
+:where(.tv-app) h6 {
+  font-size: revert;
+  font-weight: revert;
+  line-height: revert;
+  color: inherit;
+  margin-top: revert;
+  margin-bottom: revert;
+}
+
+:where(.tv-app) p {
+  font-size: revert;
+  font-weight: revert;
+  line-height: revert;
+  margin-top: revert;
+  margin-bottom: revert;
+}
+
+:where(.tv-app) ul,
+:where(.tv-app) ol {
+  margin-top: revert;
+  margin-bottom: revert;
+  padding-left: revert;
+}
+
+:where(.tv-app) main {
+  overflow: visible;
+}
+:where(.tv-app) a {
+  color: var(--indigo);
+  text-decoration: none;
+  background-color: transparent;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+:where(.tv-app) hr {
+  margin-top: revert;
+  margin-bottom: revert;
+  border: revert;
+  border-top: revert;
+}
+
+:where(.tv-app) img {
+  vertical-align: revert;
+}
+
+body {
+  margin: 0;
+  background-color: var(--surface-gray);
+  color: var(--text-primary);
+}
+
+html,
+body {
+  scroll-behavior: smooth;
+}
+
+em {
+  &.no-italic { font-style: normal; }
+}
+
+a {
+  color: var(--indigo);
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+@mixin unstyled-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+@mixin hide-at($breakpoint) {
+  @media (max-width: $breakpoint) {
+    display: none !important;
+  }
+}
+
+@mixin text-md($weight: 400, $color: var(--text-primary)) {
+  font-size: 16px;
+  font-weight: $weight;
+  line-height: 24px;
+  color: $color;
+}
+
+.text-lime { color: var(--lime); }
+.text-indigo { color: var(--indigo); }
+.text-bluey { color: var(--bluey); }
+.text-white { color: #FFFFFF; }
+
+.tv-button {
+  &.as-link {
+    cursor: pointer;
+  }
+
+  // TODO: size variants
+  &.primary {
+    @include text-md(700, #FFFFFF);
+    background-color: var(--button-bg-primary);
+    padding: 12px 20px;
+    border: 1px solid var(--button-border-primary);
+    border-radius: 90px;
+    box-shadow: var(--shadow-xs);
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--button-bg-primary) 90%, white 10%);
+      border-color: color-mix(in srgb, var(--button-border-primary) 90%, white 10%);
+    }
+  }
+
+  // TODO: size variants
+  &.secondary {
+    @include text-md(700, var(--text-secondary));
+    background-color: var(--button-bg-secondary);
+    padding: 10px 18px;
+    border: 2px solid var(--button-border-secondary);
+    border-radius: 90px;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--text-secondary) 10%, white 90%);
+    }
+  }
+}

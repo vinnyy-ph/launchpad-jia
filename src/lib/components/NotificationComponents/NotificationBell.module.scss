@@ -1,0 +1,65 @@
+@use '@/lib/styles/variables' as *;
+
+.notificationBell {
+  position: relative;
+  background: transparent;
+  border: 1px solid $border-primary;
+  cursor: pointer;
+  padding: 8px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-round;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: $color-primary-neutral-50;
+  }
+
+  &:active {
+    background-color: $color-primary-neutral-300;
+  }
+
+  .bellIcon {
+    color: $text-secondary;
+    transition: color 0.2s ease;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover .bellIcon {
+    color: $text-primary;
+  }
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: 0px;
+  transform: translateX(50%);
+  background-color: $color-primary-error-500;
+  color: $text-primary-white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: $radius-sm;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(50%) scale(1);
+  }
+}
+

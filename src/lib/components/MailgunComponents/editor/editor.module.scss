@@ -1,0 +1,502 @@
+// Global Editor Styles
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  .toolbarButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    img {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+  }
+}
+.toolbarDivider {
+  width: 1px;
+  height: 24px;
+  background: #e9eaeb;
+  margin: 0 4px;
+}
+.insertBtn {
+  background: transparent;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #717680;
+  padding-left: 6px;
+  cursor: pointer;
+}
+.tagItem {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 7px;
+  border: 1px solid #d5d7da;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #414651;
+  :global(.avatar) {
+    width: 16px !important;
+    height: 16px !important;
+    border: none !important;
+    box-shadow: inset 0 0 0 10px #ff0000;
+  }
+}
+
+// Token Editor Field
+.tokenEditorField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  overflow-y: auto;
+  .fieldGroup {
+    background: var(--Input-bg-primary, #ffffff);
+    border-radius: 8px;
+    position: relative;
+    .field {
+      box-sizing: border-box;
+      outline: none;
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 24px;
+      letter-spacing: 0%;
+      color: var(--Input-text-primary, #181d27);
+      width: 100%;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      &.input {
+        overflow-y: hidden;
+        max-height: 44px;
+      }
+      &.textarea {
+        overflow-y: auto;
+        min-height: 124px;
+        max-height: 280px;
+      }
+      &:focus-visible {
+        border-color: var(--Input-border-focus, #175cd3);
+      }
+      &:hover {
+        border-color: var(--Input-border-hover, #b0b4ba);
+      }
+      .token,
+      span[data-token] {
+        background: var(--Colors-Secondary_Colors-Blue-25, #f5faff);
+        border: 1px solid var(--Colors-Secondary_Colors-Blue-100, #d1e9ff);
+        border-radius: 8px;
+        box-sizing: border-box;
+        padding: 4px 8px;
+        font-weight: 700;
+        font-size: 14px;
+        line-height: 20px;
+        letter-spacing: 0%;
+        color: var(--Colors-Secondary_Colors-Blue-700, #175cd3);
+        display: inline-block;
+        margin: 0 2px;
+        cursor: default;
+        user-select: none;
+        white-space: nowrap;
+      }
+    }
+    .placeholder {
+      position: absolute;
+      top: 10px;
+      left: 14px;
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 24px;
+      letter-spacing: 0%;
+      color: var(--Input-text-placeholder, #717680);
+      pointer-events: none;
+    }
+    .linkTooltip {
+      position: absolute;
+      max-width: fit-content;
+      padding: 2px 0 2px 6px;
+      border: 1px solid #d5d7da;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #414651;
+      background: #fff;
+      box-shadow: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+      display: flex;
+      align-items: center;
+      pointer-events: auto;
+      z-index: 1500;
+      white-space: nowrap;
+      transform: translate(0, 4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      .closeBtn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        img {
+          width: 12px;
+          height: 12px;
+        }
+      }
+    }
+  }
+}
+
+// Rich Text Toolbar
+.richTextToolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  .toolbarGroup {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .toolbarButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+    &:hover {
+      background: var(--Input-bg-hover, #f5f6f7);
+    }
+    img {
+      width: 16px;
+      height: 16px;
+    }
+  }
+  .toolbarDivider {
+    width: 1px;
+    height: 20px;
+    background: var(--Input-border-primary, #e9eaeb);
+    margin: 0 4px;
+  }
+  .fontSizeBtn {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding-left: 6px;
+    padding-right: 2px;
+    font-size: 14px;
+    color: #717680;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    &:hover {
+      background: var(--Input-bg-hover, #f5f6f7);
+      border-radius: 4px;
+    }
+    img {
+      width: 16px;
+      height: 16px;
+    }
+  }
+  .fontSizeDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: white;
+    border: 1px solid var(--Input-border-primary, #e9eaeb);
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px 0px #0a0d1214;
+    z-index: 1000;
+    min-width: 60px;
+    max-height: 200px;
+    overflow-y: auto;
+    .fontSizeOption {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--Input-text-primary, #181d27);
+      &:hover {
+        background: var(--Input-bg-hover, #f5f6f7);
+      }
+    }
+  }
+  .colorButton {
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .fontColorModal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateY(-105%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e9eaeb;
+    box-shadow:
+      0px 12px 16px -4px rgba(10, 13, 18, 8%),
+      0px 4px 6px -2px rgba(10, 13, 18, 3%),
+      0px 2px 2px -1px rgba(10, 13, 18, 4%);
+    .colorOptions {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+    }
+    .colorOption {
+      width: 16px;
+      height: 16px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        border-radius: inherit;
+        pointer-events: none;
+      }
+    }
+    .customGroup {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .customLabel {
+        font-size: 14px;
+        font-weight: 500;
+        color: #181d27;
+      }
+      .customInput {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        input {
+          width: 92px;
+          padding: 4px 8px;
+          border: 1px solid #d5d7da;
+          border-radius: 6px;
+          font-size: 14px;
+          outline: none;
+        }
+      }
+    }
+  }
+  .tokenDropdownWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .tokenDropdown {
+    display: none;
+    position: absolute;
+    background: var(--Input-bg-primary, #ffffff);
+    border: 1px solid var(--Input-border-primary, #e9eaeb);
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px 0px #0a0d1214;
+    padding: 16px;
+    z-index: 1000;
+    width: 320px;
+    right: 0;
+    left: auto;
+    &.top {
+      bottom: calc(100% + 8px);
+      .arrow {
+        bottom: -8px;
+        right: 20px;
+        left: auto;
+        border-top: 8px solid var(--Input-bg-primary, #ffffff);
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+      }
+    }
+    &.bottom {
+      top: calc(100% + 8px);
+      .arrow {
+        top: -8px;
+        right: 20px;
+        left: auto;
+        border-bottom: 8px solid var(--Input-bg-primary, #ffffff);
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+      }
+    }
+    &.active {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .inputGroup {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      .labelToken {
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 24px;
+        color: var(--Input-text-label, #414651);
+      }
+    }
+    .itemGroup {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      span {
+        padding: 8px 12px;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--Input-text-primary, #181d27);
+        cursor: pointer;
+        border-radius: 6px;
+        &:hover {
+          background: var(--Input-bg-hover, #f5f6f7);
+        }
+        &.noResults {
+          color: var(--Input-text-placeholder, #717680);
+          cursor: default;
+          text-align: center;
+          &:hover {
+            background: transparent;
+          }
+        }
+      }
+    }
+    .arrow {
+      position: absolute;
+      right: 20px;
+      left: auto;
+      width: 0;
+      height: 0;
+    }
+  }
+}
+
+// Email Toolbar
+.footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px;
+  gap: 8px;
+  .emailToolbar {
+    display: flex;
+    align-items: center;
+  }
+  .actionsGroup {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    .draftSaved {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #a4a7ae;
+    }
+    .sendBtn {
+      display: flex;
+      gap: 1px;
+    }
+  }
+}
+
+// Autocomplete Field
+.autocompleteField {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  .tagItemCount {
+    position: absolute;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    padding: 4px 8px;
+    white-space: nowrap;
+  }
+  .tagMeasureContainer {
+    position: absolute;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .tagsInput {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    .inputField {
+      flex: 1 1 0%;
+      min-width: 0;
+      width: 0;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: inherit;
+      background-color: transparent;
+      &:focus,
+      &:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
+  }
+  .dropdownContainer {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-height: 240px;
+    overflow-y: auto;
+    .optionItem {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      &:hover {
+        background-color: #f5f5f5;
+      }
+      .gmailIconContainer {
+        position: absolute;
+        margin-left: 6px;
+        background: #ffffff;
+        border: 1.5px solid #4169e1;
+        border-radius: 50%;
+        padding: 3px;
+        bottom: -4px;
+        right: -4px;
+        font-weight: 500;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+      }
+    }
+  }
+}

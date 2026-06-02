@@ -1,0 +1,392 @@
+[
+  {
+    "template_id": 1,
+    "template_name": "Welcome User",
+    "subject": "<h2>Welcome, <span data-token={First Name}>First Name</span>!</h2>",
+    "message": "<p>Hello <span data-token={Full Name}>Full Name</span>,</p><p>We’re excited to welcome you to our platform. Your account has been successfully created and is now ready to use.</p><p>You can begin by exploring your dashboard, updating your profile information, and customizing your preferences to better suit your needs.</p><p>If you ever need help, our support team is always here for you.</p><p>Welcome aboard!</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=John%20Doe",
+      "name": "John Doe",
+      "role": "Product Manager"
+    },
+    "date_updated": "2025-01-10",
+    "type": "user"
+  },
+  {
+    "template_id": 2,
+    "template_name": "Email Verification Reminder",
+    "subject": "<h2>Please Verify Your Email Address</h2>",
+    "message": "<p>Hi <span data-token={First Name}>First Name</span>,</p><p>To complete your registration, we just need you to verify your email address: <strong><span data-token={Email}>Email</span></strong>.</p><p>Verifying your email helps us keep your account secure and ensures you receive important updates.</p><p>Thank you for taking a moment to complete this step.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Emily%20Clark",
+      "name": "Emily Clark",
+      "role": "Customer Success Manager"
+    },
+    "date_updated": "2025-01-11",
+    "type": "user"
+  },
+  {
+    "template_id": 3,
+    "template_name": "Profile Completion Reminder",
+    "subject": "<h2>Complete Your Profile, <span data-token={First Name}>First Name</span></h2>",
+    "message": "<p>Hello <span data-token={Full Name}>Full Name</span>,</p><p>We noticed that your profile is not fully completed yet.</p><p>Completing your profile allows us to personalize your experience, provide better recommendations, and ensure smoother communication.</p><p>Please take a few minutes to review and update your profile information.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Michael%20Brown",
+      "name": "Michael Brown",
+      "role": "User Experience Lead"
+    },
+    "date_updated": "2025-01-12",
+    "type": "user"
+  },
+  {
+    "template_id": 4,
+    "template_name": "Password Change Confirmation",
+    "subject": "<h2>Your Password Was Updated</h2>",
+    "message": "<p>Hi <span data-token={First Name}>First Name</span>,</p><p>This email confirms that your password was successfully changed on <strong><span data-token={Date}>Date</span></strong>.</p><p>If you made this change, no further action is required. If not, please contact support immediately to secure your account.</p><p>Your security is important to us.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Sarah%20Wilson",
+      "name": "Sarah Wilson",
+      "role": "Security Manager"
+    },
+    "date_updated": "2025-01-13",
+    "type": "user"
+  },
+  {
+    "template_id": 5,
+    "template_name": "Subscription Activated",
+    "subject": "<h2>Your Subscription Is Active</h2>",
+    "message": "<p>Dear <span data-token={Full Name}>Full Name</span>,</p><p>Thank you for subscribing to the <strong><span data-token={Plan Name}>Plan Name</span></strong> plan.</p><p>Your subscription is now active, and you have full access to all included features.</p><p>You can manage billing details and view invoices anytime from your account settings.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Daniel%20Lee",
+      "name": "Daniel Lee",
+      "role": "Billing Operations"
+    },
+    "date_updated": "2025-01-14",
+    "type": "user"
+  },
+  {
+    "template_id": 6,
+    "template_name": "Trial Ending Reminder",
+    "subject": "<h2>Your Trial Ends Soon</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>Your free trial will end in <strong><span data-token={Days Left}>Days Left</span></strong> days.</p><p>To continue enjoying uninterrupted access, consider upgrading to one of our paid plans.</p><p>If you have questions, we’re happy to help.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Laura%20Martinez",
+      "name": "Laura Martinez",
+      "role": "Growth Manager"
+    },
+    "date_updated": "2025-01-15",
+    "type": "user"
+  },
+  {
+    "template_id": 7,
+    "template_name": "Account Inactivity Warning",
+    "subject": "<h2>Your Account Has Been Inactive</h2>",
+    "message": "<p>Hi <span data-token={Full Name}>Full Name</span>,</p><p>We noticed that your account has been inactive for some time.</p><p>Please log in within the next <span data-token={Days}>Days</span> days to keep your account active.</p><p>If no action is taken, your account may be temporarily deactivated.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Kevin%20Nguyen",
+      "name": "Kevin Nguyen",
+      "role": "Operations Manager"
+    },
+    "date_updated": "2025-01-16",
+    "type": "user"
+  },
+  {
+    "template_id": 8,
+    "template_name": "New Feature Available",
+    "subject": "<h2>New Feature Available for You</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>We’re excited to introduce a new feature designed to improve your experience.</p><p>Visit your dashboard to explore what’s new and see how it can help you work more efficiently.</p><p>Your feedback is always welcome.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Rachel%20Adams",
+      "name": "Rachel Adams",
+      "role": "Product Designer"
+    },
+    "date_updated": "2025-01-17",
+    "type": "user"
+  },
+  {
+    "template_id": 9,
+    "template_name": "Support Ticket Update",
+    "subject": "<h2>Update on Your Support Request</h2>",
+    "message": "<p>Hi <span data-token={First Name}>First Name</span>,</p><p>Your support ticket (<span data-token={Ticket ID}>Ticket ID</span>) has been updated.</p><p>Please log in to your account to review the latest response from our support team.</p><p>We appreciate your patience.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Oliver%20Smith",
+      "name": "Oliver Smith",
+      "role": "Support Team Lead"
+    },
+    "date_updated": "2025-01-18",
+    "type": "user"
+  },
+  {
+    "template_id": 10,
+    "template_name": "Account Reactivated",
+    "subject": "<h2>Your Account Has Been Reactivated</h2>",
+    "message": "<p>Welcome back <span data-token={Full Name}>Full Name</span>,</p><p>Your account has been successfully reactivated, and you now have full access to the platform again.</p><p>We’re glad to have you back and look forward to supporting you.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Anna%20Johnson",
+      "name": "Anna Johnson",
+      "role": "Account Manager"
+    },
+    "date_updated": "2025-01-19",
+    "type": "user"
+  },
+  {
+    "template_id": 11,
+    "template_name": "Global Maintenance Notice",
+    "subject": "<h2>Scheduled Maintenance Notification</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>We would like to inform you that a scheduled system maintenance will take place on <strong><span data-token={Maintenance Date}>Maintenance Date</span></strong>. During this period, some features may be temporarily unavailable.</p><p>This maintenance is part of our ongoing efforts to improve platform performance, security, and reliability for all users globally.</p><p>We appreciate your patience and understanding.</p><p>— Global Operations Team</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Alex%20Morgan",
+      "name": "Alex Morgan",
+      "role": "Global Operations Lead"
+    },
+    "date_updated": "2025-01-20",
+    "type": "global"
+  },
+  {
+    "template_id": 12,
+    "template_name": "Terms of Service Update",
+    "subject": "<h2>Updates to Our Terms of Service</h2>",
+    "message": "<p>Dear <span data-token={Full Name}>Full Name</span>,</p><p>We have updated our Terms of Service to better reflect recent changes in regulations and platform capabilities.</p><p>The updated terms will take effect on <strong><span data-token={Effective Date}>Effective Date</span></strong>. We encourage you to review these changes to stay informed.</p><p>By continuing to use our services, you agree to the updated terms.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Sarah%20Thompson",
+      "name": "Sarah Thompson",
+      "role": "Legal Counsel"
+    },
+    "date_updated": "2025-01-21",
+    "type": "global"
+  },
+  {
+    "template_id": 13,
+    "template_name": "Privacy Policy Announcement",
+    "subject": "<h2>Important Privacy Policy Changes</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>Your privacy is important to us. We’ve made improvements to our Privacy Policy to provide more transparency on how data is collected and used.</p><p>These updates apply globally and will be effective starting <span data-token={Effective Date}>Effective Date</span>.</p><p>No action is required from you at this time.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Daniel%20Klein",
+      "name": "Daniel Klein",
+      "role": "Privacy Officer"
+    },
+    "date_updated": "2025-01-22",
+    "type": "global"
+  },
+  {
+    "template_id": 14,
+    "template_name": "Global Feature Rollout",
+    "subject": "<h2>Introducing a New Global Feature</h2>",
+    "message": "<p>Hi <span data-token={Full Name}>Full Name</span>,</p><p>We’re excited to announce the rollout of a new feature now available to users worldwide.</p><p>This feature is designed to enhance usability, performance, and overall experience across the platform.</p><p>Log in to your account to explore what’s new.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Maria%20Gonzalez",
+      "name": "Maria Gonzalez",
+      "role": "Global Product Director"
+    },
+    "date_updated": "2025-01-23",
+    "type": "global"
+  },
+  {
+    "template_id": 15,
+    "template_name": "Security Awareness Notice",
+    "subject": "<h2>Staying Safe Online</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>As part of our commitment to security, we encourage all users to regularly review their account activity and update passwords.</p><p>Please ensure your contact details are up to date and avoid sharing sensitive information.</p><p>Your cooperation helps keep our global community safe.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Robert%20Chen",
+      "name": "Robert Chen",
+      "role": "Chief Security Officer"
+    },
+    "date_updated": "2025-01-24",
+    "type": "global"
+  },
+  {
+    "template_id": 16,
+    "template_name": "Service Availability Update",
+    "subject": "<h2>Platform Availability Update</h2>",
+    "message": "<p>Dear <span data-token={Full Name}>Full Name</span>,</p><p>We are currently monitoring platform performance across all regions.</p><p>Any service disruptions will be communicated promptly through official channels.</p><p>Thank you for your continued trust.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Emma%20Williams",
+      "name": "Emma Williams",
+      "role": "Service Reliability Manager"
+    },
+    "date_updated": "2025-01-25",
+    "type": "global"
+  },
+  {
+    "template_id": 17,
+    "template_name": "Global Compliance Notice",
+    "subject": "<h2>Regulatory Compliance Update</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>We continuously update our systems to comply with international regulations.</p><p>Recent changes ensure better alignment with regional compliance requirements.</p><p>No changes are required from your side.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Lucas%20Reed",
+      "name": "Lucas Reed",
+      "role": "Compliance Manager"
+    },
+    "date_updated": "2025-01-26",
+    "type": "global"
+  },
+  {
+    "template_id": 18,
+    "template_name": "Global Outage Resolution",
+    "subject": "<h2>Service Restored Successfully</h2>",
+    "message": "<p>Hi <span data-token={Full Name}>Full Name</span>,</p><p>We’re happy to inform you that the recent service disruption has been fully resolved.</p><p>All systems are now operating normally across all regions.</p><p>Thank you for your patience.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Nathan%20Scott",
+      "name": "Nathan Scott",
+      "role": "Incident Response Lead"
+    },
+    "date_updated": "2025-01-27",
+    "type": "global"
+  },
+  {
+    "template_id": 19,
+    "template_name": "Global User Survey",
+    "subject": "<h2>We Value Your Feedback</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>Your feedback helps us improve.</p><p>Please take a few minutes to complete our global user survey and share your experience.</p><p>Thank you for helping shape the future of our platform.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Olivia%20Parker",
+      "name": "Olivia Parker",
+      "role": "User Research Lead"
+    },
+    "date_updated": "2025-01-28",
+    "type": "global"
+  },
+  {
+    "template_id": 20,
+    "template_name": "Global Announcement",
+    "subject": "<h2>Important Global Announcement</h2>",
+    "message": "<p>Dear <span data-token={Full Name}>Full Name</span>,</p><p>This message is to inform all users of an important update affecting our global community.</p><p>We remain committed to transparency, reliability, and continuous improvement.</p><p>Thank you for being part of our journey.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Henry%20Adams",
+      "name": "Henry Adams",
+      "role": "Head of Communications"
+    },
+    "date_updated": "2025-01-29",
+    "type": "global"
+  },
+  {
+    "template_id": 21,
+    "template_name": "System Maintenance Alert",
+    "subject": "<h2>System Maintenance in Progress</h2>",
+    "message": "<p>Hello <span data-token={Full Name}>Full Name</span>,</p><p>This is an automated system notification to inform you that scheduled maintenance is currently in progress.</p><p>During this time, certain features may be temporarily unavailable or operate with limited functionality.</p><p>We are actively working to restore full service as quickly as possible.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=System%20Administrator",
+      "name": "System Administrator",
+      "role": "Automated System"
+    },
+    "date_updated": "2025-01-30",
+    "type": "system"
+  },
+  {
+    "template_id": 22,
+    "template_name": "System Maintenance Completed",
+    "subject": "<h2>Maintenance Completed Successfully</h2>",
+    "message": "<p>Hi <span data-token={First Name}>First Name</span>,</p><p>This is a confirmation that scheduled system maintenance has been successfully completed.</p><p>All services are now operating normally across the platform.</p><p>Thank you for your patience.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Platform%20System",
+      "name": "Platform System",
+      "role": "Automated System"
+    },
+    "date_updated": "2025-01-31",
+    "type": "system"
+  },
+  {
+    "template_id": 23,
+    "template_name": "System Security Alert",
+    "subject": "<h2>Security Alert Detected</h2>",
+    "message": "<p>Hello <span data-token={Full Name}>Full Name</span>,</p><p>Our system has detected unusual activity associated with your account.</p><p>As a precaution, some actions may be temporarily restricted until verification is completed.</p><p>Please review your recent activity and update your credentials if necessary.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Security%20System",
+      "name": "Security System",
+      "role": "Automated Security"
+    },
+    "date_updated": "2025-02-01",
+    "type": "system"
+  },
+  {
+    "template_id": 24,
+    "template_name": "Automatic Logout Notice",
+    "subject": "<h2>You Have Been Logged Out</h2>",
+    "message": "<p>Hi <span data-token={First Name}>First Name</span>,</p><p>For your security, your session was automatically logged out due to inactivity.</p><p>Please log in again to continue using the platform.</p><p>This action helps protect your account.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Session%20Manager",
+      "name": "Session Manager",
+      "role": "System Process"
+    },
+    "date_updated": "2025-02-02",
+    "type": "system"
+  },
+  {
+    "template_id": 25,
+    "template_name": "Data Export Ready",
+    "subject": "<h2>Your Data Export Is Ready</h2>",
+    "message": "<p>Hello <span data-token={Full Name}>Full Name</span>,</p><p>This is an automated message to inform you that your requested data export is now ready.</p><p>You can download the file securely from your account within the next <span data-token={Expiry Days}>Expiry Days</span> days.</p><p>Please ensure you store the file safely.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Data%20Processor",
+      "name": "Data Processor",
+      "role": "Automated System"
+    },
+    "date_updated": "2025-02-03",
+    "type": "system"
+  },
+  {
+    "template_id": 26,
+    "template_name": "System Configuration Change",
+    "subject": "<h2>System Configuration Updated</h2>",
+    "message": "<p>Dear <span data-token={Full Name}>Full Name</span>,</p><p>This notification confirms that a system configuration change was successfully applied to your account.</p><p>No action is required unless you notice unexpected behavior.</p><p>If you have concerns, please contact support.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Configuration%20Service",
+      "name": "Configuration Service",
+      "role": "System Automation"
+    },
+    "date_updated": "2025-02-04",
+    "type": "system"
+  },
+  {
+    "template_id": 27,
+    "template_name": "Scheduled Task Failure",
+    "subject": "<h2>Scheduled Task Failed</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>A scheduled background task associated with your account did not complete successfully.</p><p>Our system has logged the issue and will automatically retry the operation.</p><p>No immediate action is required from you.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Task%20Scheduler",
+      "name": "Task Scheduler",
+      "role": "Background System"
+    },
+    "date_updated": "2025-02-05",
+    "type": "system"
+  },
+  {
+    "template_id": 28,
+    "template_name": "API Key Rotated",
+    "subject": "<h2>API Key Rotation Completed</h2>",
+    "message": "<p>Hi <span data-token={Full Name}>Full Name</span>,</p><p>This automated notification confirms that your API key was successfully rotated.</p><p>Please ensure that all integrations are updated to use the new key.</p><p>Old keys have been invalidated for security reasons.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=API%20Gateway",
+      "name": "API Gateway",
+      "role": "System Security"
+    },
+    "date_updated": "2025-02-06",
+    "type": "system"
+  },
+  {
+    "template_id": 29,
+    "template_name": "System Rate Limit Warning",
+    "subject": "<h2>Rate Limit Approaching</h2>",
+    "message": "<p>Hello <span data-token={First Name}>First Name</span>,</p><p>Your account is approaching the configured system rate limit.</p><p>If usage continues at the current level, requests may be temporarily throttled.</p><p>Please review your usage patterns to avoid interruptions.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Rate%20Limiter",
+      "name": "Rate Limiter",
+      "role": "System Monitor"
+    },
+    "date_updated": "2025-02-07",
+    "type": "system"
+  },
+  {
+    "template_id": 30,
+    "template_name": "System Incident Report",
+    "subject": "<h2>System Incident Notification</h2>",
+    "message": "<p>Dear <span data-token={Full Name}>Full Name</span>,</p><p>An internal system incident was detected and automatically resolved.</p><p>There was no impact on your data or account security.</p><p>This notification is provided for transparency and record-keeping.</p>",
+    "creator": {
+      "picture": "https://api.dicebear.com/9.x/shapes/svg?seed=Incident%20Monitor",
+      "name": "Incident Monitor",
+      "role": "Automated Monitoring"
+    },
+    "date_updated": "2025-02-08",
+    "type": "system"
+  }
+]

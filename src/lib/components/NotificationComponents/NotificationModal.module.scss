@@ -1,0 +1,190 @@
+@use "@/lib/styles/variables" as *;
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 60px 20px 20px 20px;
+  pointer-events: none;
+
+  @media screen and (max-width: 1000px) {
+    padding: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+
+.modal {
+  background: $surface-white;
+  border: 1px solid $border-primary;
+  border-radius: 12px;
+  box-shadow: $shadow-2xl;
+  width: 100%;
+  pointer-events: auto;
+  max-width: 420px;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: 16px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: $text-primary;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  color: $color-primary-neutral-400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-size: 20px;
+
+  &:hover {
+    background-color: $color-primary-neutral-50;
+    color: $color-primary-neutral-400;
+  }
+
+  i {
+    font-size: 20px;
+  }
+}
+
+.notificationList {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $color-primary-neutral-300;
+    border-radius: 3px;
+
+    &:hover {
+      background: $color-primary-neutral-400;
+    }
+  }
+}
+
+.dateHeader {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-secondary;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: $text-tertiary;
+
+  svg {
+    margin-bottom: 16px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  color: $text-tertiary;
+
+  .loadingIcon {
+    margin-right: 12px;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.todayNotifications, .earlierNotifications {
+  display: flex;
+  flex-direction: column;
+
+  hr {
+    margin: 0;
+    background-color: $border-primary;
+  }
+}
+
+.seePreviousButton {
+  width: calc(100% - 48px);
+  margin: 16px 24px;
+  padding: 12px;
+  background: $surface-white;
+  border: 1px solid $border-primary;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: $input-text-label;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: $color-primary-neutral-50;
+    border-color: $color-primary-neutral-300;
+  }
+}
+

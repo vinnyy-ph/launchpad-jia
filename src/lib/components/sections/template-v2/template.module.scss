@@ -1,0 +1,92 @@
+.template {
+  border: 1px solid #e9eaeb;
+  border-radius: 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  :global(p) {
+    margin: 0;
+  }
+  .contentGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding: 16px;
+    .label {
+      color: var(--colors-text-text-tertiary-500, #717680);
+      font-size: var(--Font-size-text-sm, 14px);
+      font-weight: 500;
+      line-height: var(--Line-height-text-sm, 20px);
+    }
+    .contentValue {
+      font-size: var(--Font-size-text-sm, 14px);
+      line-height: var(--Line-height-text-sm, 20px);
+      overflow-wrap: anywhere;
+      min-height: 0;
+      padding-right: 4px;
+      white-space: pre-wrap;
+    }
+    .subjectValue {
+      color: var(--colors-text-text-secondary-700, #414651);
+      max-height: 72px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    .bodyValue {
+      color: var(--colors-text-text-primary-900, #181d27);
+      flex: 1;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  }
+  .bodyGroup {
+    flex: 1;
+  }
+  .divider {
+    width: 100%;
+    flex-shrink: 0;
+    height: 1px;
+    background: #e9eaeb;
+    border: 0;
+    margin: 0;
+  }
+}
+
+.placeholderState {
+  .contentValue {
+    :global(span[data-token]) {
+      align-items: center;
+      background: #eff8ff;
+      border: 1px solid #b2ddff;
+      border-radius: 6px;
+      box-sizing: border-box;
+      color: #175cd3;
+      display: inline-flex;
+      font-size: var(--Font-size-text-sm, 14px);
+      font-weight: 500;
+      line-height: var(--Line-height-text-sm, 20px);
+      margin: 0 2px;
+      padding: 2px 8px;
+      vertical-align: middle;
+    }
+  }
+}
+
+.previewState {
+  .contentValue {
+    :global(span[data-token]) {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      color: #175cd3;
+      font-size: inherit;
+      font-weight: 400;
+      line-height: inherit;
+      margin: 0;
+      padding: 0;
+    }
+  }
+}

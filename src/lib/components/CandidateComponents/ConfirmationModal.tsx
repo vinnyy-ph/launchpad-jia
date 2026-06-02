@@ -1,0 +1,51 @@
+export default function ConfirmationModal({ action, onAction }: { action: string, onAction: (action: string) => void }) {
+
+    const actions = {
+        "reject-retake": {
+            icon: "la-times-circle",
+            color: "#B32318",
+            title: "Reject Retake Request",
+            subtext: "Are you sure you want to reject this retake request?",
+            buttonText: "Reject",
+        },
+        "approve-retake": {
+            icon: "la-check-circle",
+            color: "#181D27",
+            title: "Approve Retake Request",
+            subtext: "Are you sure you want to approve this retake request?",
+            buttonText: "Approve",
+        }
+    }
+    
+    return (
+        <div className="modal-background fade-in-bottom">
+            <div className="modal-container">           
+            <div className="modal-content" style={{ overflowY: "auto", height: "fit-content", width: "fit-content", background: "#fff", border: `1.5px solid #E9EAEB`, borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: "24px" }}>
+                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, textAlign: "center" }}>
+                    <i className={`la ${actions[action]?.icon}`} style={{ fontSize: 48, color: actions[action]?.color }}></i>
+                    <h3 className="modal-title">{actions[action]?.title}</h3>
+                    <span style={{ fontSize: 14, color: "#717680", maxWidth: "352px" }} dangerouslySetInnerHTML={{ __html: actions[action]?.subtext }}></span>
+                    <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", gap: 16, width: "100%" }}>
+                        <button 
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onAction("");
+                        }}
+                        style={{ display: "flex", width: "50%", flexDirection: "row", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 8, backgroundColor: "#FFFFFF", borderRadius: "60px", border: "1px solid #D5D7DA", cursor: "pointer", padding: "10px 0px" }}>
+                            Cancel
+                        </button>
+                        <button 
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onAction(action);
+                        }}
+                        style={{ display: "flex", width: "50%", flexDirection: "row", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 8, backgroundColor: actions[action]?.color, color: "#FFFFFF", borderRadius: "60px", border: "1px solid #D5D7DA", cursor: "pointer", textTransform: "capitalize" }}>
+                            {actions[action]?.buttonText}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    )
+}

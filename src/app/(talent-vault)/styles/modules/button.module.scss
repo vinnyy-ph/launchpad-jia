@@ -1,0 +1,113 @@
+.button {
+  align-items: center;
+  border-radius: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  outline: none;
+  padding: 10px 16px;
+  transition: 0.3s;
+  user-select: none;
+  font-weight: 700;
+  letter-spacing: 0%;
+
+  &.disabled {
+    opacity: 50%;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+  &.default {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  &.large {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  &.primary {
+    background: var(--Button-bg-primary, #181d27);
+    border: 1px solid var(--Button-bg-primary, #181d27);
+    box-shadow: 0px 1px 2px 0px #0a0d120d;
+    color: var(--Button-text-primary, #ffffff);
+    &:focus-visible,
+    &:hover {
+      background: #404968;
+    }
+    &:active {
+    }
+  }
+  &.secondary {
+    background: var(--Button-bg-secondary, #ffffff);
+    border: 1px solid var(--Button-border-primary, #d5d7da);
+    color: var(--Button-text-secondary, #414651);
+    &:focus-visible,
+    &:hover {
+      background: #F9F9FB;
+    }
+    &:active {
+    }
+  }
+  &.secondary-filled-success {
+    background: #ECFDF3;
+    border: none;
+    color: #027948;
+    cursor: pointer;
+    opacity: 1;
+  }
+  &.tertiary {
+    background: var(--Button-bg-destructive-primary, #d92d20);
+    border: 1px solid var(--Button-bg-destructive-primary, #d92d20);
+    box-shadow: 0px 1px 2px 0px #0a0d120d;
+    color: var(--Button-text-primary, #ffffff);
+    &:focus-visible,
+    &:hover {
+      background: #B42318;
+    }
+    &:active {
+    }
+  }
+  &.tertiary-outline {
+    border: 1px solid #FDA29B;
+    background: #FFFFFF;
+    color: #D92D20;
+
+    &:hover {
+      background: #FEF3F2;
+    }
+  }
+  &.tertiary-outline-filled {
+    border: 1px solid #FDA29B;
+    background: #FEF3F2;
+    color: #D92D20;
+    &:hover {
+      background: #D5D7DA;
+    }
+  }
+  &.tertiary-filled-destructive {
+    background: #FEF3F2;
+    border: none;
+    color: #D92D20;
+    cursor: pointer;
+    opacity: 1;
+    &:hover {
+      background: #D5D7DA;
+    }
+  }
+  &.fullWidth {
+    width: 100%;
+  }
+  &.pill {
+    border-radius: 999px;
+  }
+}
+
+a.button {
+  text-decoration: none;
+  width: fit-content;
+  
+  &.fullWidth {
+    width: 100%;
+  }
+}

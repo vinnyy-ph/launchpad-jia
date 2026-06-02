@@ -1,0 +1,12 @@
+.root {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+.grow > * {
+  flex-grow: 1;
+}

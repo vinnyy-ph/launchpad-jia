@@ -1,0 +1,261 @@
+@use '@/lib/styles/variables' as *;
+
+.container {
+  padding: 24px;
+  background: $color-primary-neutral-white;
+  border-radius: 10px;
+  width: 100%;
+
+  > .section:not(:last-child) {
+    border-bottom: 1px solid $color-secondary-blue-gray-100;
+  }
+}
+
+.loadingPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 20px;
+
+  .loadingImage {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+  }
+  
+  .loadingText {
+    font-size: 14px;
+    font-weight: 700;
+    color: $text-secondary;
+  }
+}
+
+.header {
+  padding-bottom: $padding-xl;
+  border-bottom: 1px solid $color-secondary-blue-gray-100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  > * {
+    flex: 1;
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-tertiary;
+    margin: 0;
+  }
+}
+
+// Action Buttons
+.actions {
+  display: flex;
+  gap: $padding-sm;
+  justify-content: flex-end;
+}
+
+.revertButton,
+.saveButton {
+  box-sizing: content-box;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: $radius-round;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+
+  &:disabled {
+    color: $text-secondary-disabled;
+    border: 1px solid $border-primary-disabled;
+    cursor: not-allowed;
+  }
+}
+
+.revertButton {
+  background: $bg-secondary;
+  color: $text-secondary;
+  border: 1px solid $border-primary;
+
+  &:hover:not(:disabled) {
+    background: $color-secondary-blue-gray-100;
+  }
+}
+
+.saveButton {
+  width: 120px;
+  border: 1px solid $bg-primary;
+  background: $bg-primary;
+  color: white;
+  box-shadow: $shadow-xs;
+
+  &:disabled {
+    border-color: $border-primary-disabled;
+    background-color: $border-primary-disabled;
+    color: #FFF;
+  }
+
+  &:hover:not(:disabled) {
+    background: #2C2F36;
+  }
+}
+
+.loadingPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 20px;
+}
+
+.loadingImage {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.loadingText {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-secondary;
+}
+
+// Form Sections
+.section {
+  padding: $padding-xl 0;
+  display: flex;
+  gap: $spacing-md;
+
+  > * {
+    flex: 1;
+  }
+}
+
+.sectionTitle {
+  h4 {
+    font-size: $spacing-md;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-tertiary;
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+  }
+}
+
+// Checkbox Group Styles
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $padding-sm;
+}
+
+.checkboxOption {
+  display: flex;
+  align-items: flex-start;
+  gap: $padding-sm;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  input[type="checkbox"] {
+    margin-top: 2px;
+    cursor: pointer;
+    width: $spacing-md;
+    height: $spacing-md;
+    flex-shrink: 0;
+    accent-color: $color-primary-neutral-900;
+  }
+
+  &.checkboxDisabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.checkboxContent {
+  flex: 1;
+}
+
+.checkboxLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text-secondary;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkboxDescription {
+  font-size: 14px;
+  font-weight: 500;
+  color: $text-tertiary;
+  line-height: 1.5;
+}
+
+// Loading Spinner
+.loadingSpinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid $color-primary-neutral-900;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Error State
+.error {
+  padding: 60px 20px;
+  text-align: center;
+  color: $color-primary-error-500;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .actions {
+    width: 100%;
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .section {
+    flex-direction: column;
+  }
+}
+

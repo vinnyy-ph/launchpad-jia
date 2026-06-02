@@ -1,0 +1,51 @@
+.toastWrapper {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+.toaster {
+  align-items: center;
+  background: var(--Colors-Primary_Colors-Neutrals-White, #ffffff);
+  border: 1px solid var(--Border-primary, #e9eaeb);
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 12px;
+  min-height: 64px;
+  padding: 16px;
+  width: 100%;
+}
+
+.icon {
+  flex-shrink: 0;
+  height: 32px;
+  width: 32px;
+}
+
+.message {
+  color: var(--Text-text-primary, #181d27);
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 20px;
+}
+
+.closeButton {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  padding: 0;
+
+  img {
+    height: 16px;
+    width: 16px;
+  }
+}

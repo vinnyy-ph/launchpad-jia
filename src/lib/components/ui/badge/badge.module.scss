@@ -1,0 +1,70 @@
+.badge {
+  align-items: center;
+  background: var(--badge-bg, #f2f4f7);
+  border: 1px solid transparent;
+  border-radius: var(--badge-radius, 6px);
+  color: var(--badge-color, #414651);
+  display: inline-flex;
+  font-weight: 500;
+  gap: 4px;
+  line-height: 1.2;
+  max-width: 100%;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.fullWidth {
+  justify-content: center;
+  width: 100%;
+}
+
+.light {
+  border-color: transparent;
+}
+
+.filled {
+  background: var(--badge-bg, #181d27);
+  border-color: transparent;
+  color: var(--badge-color, #ffffff);
+}
+
+.outline {
+  background: var(--badge-bg, transparent);
+  border-color: var(--badge-border-color, #d5d7da);
+}
+
+.size-xs {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+.size-sm {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
+.size-md {
+  font-size: 12px;
+  padding: 3px 10px;
+}
+
+.size-lg {
+  font-size: 14px;
+  padding: 5px 12px;
+}
+
+.size-xl {
+  font-size: 16px;
+  padding: 7px 16px;
+}
+
+.label {
+  align-items: center;
+  display: inline-flex;
+}
+
+.section {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+}

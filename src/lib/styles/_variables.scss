@@ -1,0 +1,116 @@
+// JIA Design System - https://www.figma.com/design/RgCdt2P9iIeFWg6S06ADdN/-New--%E2%9C%A6-Jia-Design-System
+// Untitled UI - https://www.untitledui.com/resources/icons
+// Lucide Icons (Alternative to Untitled UI) - https://lucide.dev/icons/
+
+// Text Colors
+$text-primary: #181D27;
+$text-primary-white: #FFF;
+$text-secondary: #414651;
+$text-secondary-disabled: #D5D7DA;
+$text-tertiary: #717680;
+
+// Neutral Colors
+$color-primary-neutral-white: #FFF;
+$color-primary-neutral-50: #FAFAFA;
+$color-primary-neutral-300: #D5D7DA;
+$color-primary-neutral-400: #A4A7AE;
+$color-primary-neutral-600: #535862;
+$color-primary-neutral-900: #181D27;
+
+// JIA Gradient Colors 
+$color-primary-gradient-yellow: #FCCEC0;
+$color-primary-gradient-pink: #EBACC9;
+$color-primary-gradient-purple: #CEB6DA;
+$color-primary-gradient-blue: #9FCAED;
+
+// Error Colors
+$color-primary-error-600: #D92D20;
+$color-primary-error-500: #F04438;
+$color-primary-error-700: #B32318;
+$color-primary-error-200: #FECDCA;
+$color-primary-error-100: #FEE4E2;
+$color-primary-error-50: #FEF3F2;
+
+$color-warning-50: #FFFAEB;
+$color-warning-100: #FEF0C7;
+$color-warning-600: #DC6803;
+
+// Secondary Colors
+
+// Secondary Blue Colors
+$color-secondary-blue-50: #EFF8FF;
+$color-secondary-blue-200: #B2DDFF;
+$color-secondary-blue-500: #2E90FA;
+$color-secondary-blue-700: #175CD3;
+
+// Secondary Blue Gray Colors
+$color-secondary-blue-gray-50: #F8F9FC;
+$color-secondary-blue-gray-100: #EAECF5;
+$color-secondary-blue-gray-200: #D5D9EB;
+$color-secondary-blue-gray-600: #3E4784;
+$color-secondary-blue-gray-700: #363F72;
+
+// Secondary Purple Colors
+$color-secondary-purple-50: #F4F3FF;
+$color-secondary-purple-200: #D9D6FE;
+$color-secondary-purple-700: #5925DC;
+
+// Background Colors
+$bg-primary: #181D27;
+$bg-secondary: #FFF;
+$overlay-bg: rgba(0, 0, 0, 0.25);
+
+// Surface Colors
+$surface-white: #FFF;
+$surface-secondary: #F9F9FB;
+
+// Success Colors
+$utility-success-50: #ECFDF3;
+$utility-success-100: #D1FADF;
+$utility-success-200: #ABEFC6;
+$utility-success-500: #17B26A;
+$utility-success-600: #039855;
+$utility-success-700: #067647;
+
+$utility-gray-50: #FAFAFA;
+$utility-gray-100: #F5F5F5;
+$utility-gray-200: #E9EAEB;
+$utility-gray-500: #717680;
+$utility-gray-600: #535862;
+$utility-gray-700: #414651;
+
+$utility-blue-50: #EFF8FF;
+$utility-blue-100: #D1E9FF;
+$utility-blue-200: #B2DDFF;
+$utility-blue-700: #175CD3;
+
+// Input Colors
+$input-text-label: #414651;
+$input-text-placeholder-or-disabled: #717680;
+
+// Button Colors
+$button-text-primary: #FFF;
+$button-border-primary: #D5D7DA;
+
+// Borders
+$border-primary: #E9EAEB;
+$border-primary-disabled: #E9EAEB;
+
+// Paddings
+$padding-sm: 12px;
+$padding-xl: 32px;
+
+// Spacings
+$spacing-md: 16px;
+
+// Border Radius
+$radius-sm: 12px;
+$radius-xl: 24px;
+$radius-round: 999px;
+
+// Box Shadows
+$shadow-xs: 0px 1px 2px 0px rgba(10, 13, 18, 0.051);
+$shadow-xl: 0px 20px 24px -4px rgba(10, 13, 18, 0.08), 0px 8px 8px -4px rgba(10, 13, 18, 0.03);
+$shadow-2xl: 0px 24px 48px -12px rgba(10, 13, 18, 0.18);
+$shadow-3xl: 0px 32px 64px -12px rgba(10, 13, 18, 0.14);
+

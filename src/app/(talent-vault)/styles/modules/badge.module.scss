@@ -1,0 +1,44 @@
+.tvBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: fit-content;
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  padding: 2px 8px;
+  border-radius: 16px;
+  border-width: 2px;
+  border-style: solid;
+
+  &.default {
+    color: #5925DC;
+    background-color: #F4F3FF;
+    border-color: #D9D6FE;
+  }
+
+  &.neutral {
+    color: #363F72;
+    background-color: #F8F9FC;
+    border-color: #D5D9EB;
+  }
+
+  &.success {
+    color: #027948;
+    background-color: #ECFDF3;
+    border-color:#A6F4C5;
+  }
+
+  &.warning {
+    color: #B54708;
+    background-color: white;
+    border-color: #FEDF89;
+  }
+
+  &.error {
+    color: #B32318;
+    background-color: #FEF3F2;
+    border-color: #FECDCA;
+  }
+}

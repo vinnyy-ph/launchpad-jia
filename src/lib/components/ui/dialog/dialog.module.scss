@@ -1,0 +1,179 @@
+@use "@/lib/styles/variables" as *;
+
+.dialogWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-md;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $overlay-bg;
+  z-index: 1;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  background: $surface-white;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-xl;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: $padding-xl;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overflow-x: clip;
+  animation: scaleIn 0.3s ease;
+  outline: none;
+
+  &.sm {
+    max-width: 400px;
+    width: 100%;
+  }
+
+  &.md {
+    max-width: 512px;
+    width: 100%;
+  }
+
+  &.lg {
+    max-width: 768px;
+    width: 100%;
+  }
+}
+
+.closeButton {
+  position: absolute;
+  top: $spacing-md;
+  right: $spacing-md;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-tertiary;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  z-index: 10;
+
+  &:hover {
+    background: $color-primary-neutral-50;
+    color: $text-secondary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-secondary-purple-700;
+    outline-offset: 2px;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+}
+
+.iconWrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 8px solid transparent;
+  box-sizing: content-box;
+
+  &.warning {
+    background: $color-warning-100;
+    border-color: $color-warning-50;
+    color: $color-warning-600;
+  }
+
+  &.error {
+    background: $color-primary-error-100;
+    border-color: $color-primary-error-50;
+    color: $color-primary-error-600;
+  }
+
+  &.success {
+    background: $utility-success-100;
+    border-color: $utility-success-50;
+    color: $utility-success-600;
+  }
+
+  &.info {
+    background: $utility-blue-100;
+    border-color: $utility-blue-50;
+    color: $color-secondary-blue-500;
+  }
+}
+
+.textGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
+  color: $text-primary;
+  margin: 0;
+}
+
+.description {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: $text-tertiary;
+  margin: 0;
+}
+
+.footer {
+  display: flex;
+  gap: $padding-sm;
+  width: 100%;
+
+  button {
+    flex: 1;
+    min-width: 0;
+  }
+}

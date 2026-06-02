@@ -1,0 +1,151 @@
+.dropdownContainer {
+  position: relative;
+
+  &.fullWidth {
+    width: 100%;
+  }
+
+  &.fit {
+    width: fit-content;
+  }
+}
+
+.dropdownButton {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid #e9eaeb;
+  border-radius: 8px;
+  box-shadow: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+
+  &:hover {
+    border-color: #d5d7da;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &.open {
+    .chevron {
+      transform: rotate(180deg);
+    }
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  &.invalid {
+    border-color: #FDA29B;
+  }
+
+  &.invalid:focus {
+    border-color: #e9eaeb;
+  }
+}
+
+.value {
+  color: #181d27;
+  flex: 1;
+  text-align: left;
+  padding-right: 10px;
+}
+
+.placeholder {
+  color: #717680;
+  flex: 1;
+  text-align: left;
+}
+
+.chevron {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: max-content;
+  background: #ffffff;
+  border: 1px solid #e9eaeb;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px 0px rgba(10, 13, 18, 0.1);
+  z-index: 10000;
+  max-height: 280px;
+  overflow-y: auto;
+  animation: slideDown 0.2s ease-out;
+
+  &.openUpward {
+    animation: slideUp 0.2s ease-out;
+  }
+}
+
+.dropdownItem {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  color: #181d27;
+
+  &:hover {
+    background-color: #f9fbfc;
+  }
+
+  &.selected {
+    background-color: #eaecf5;
+    font-weight: 600;
+  }
+
+  &:first-child {
+    border-radius: 8px 8px 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 8px 8px;
+  }
+
+  &:only-child {
+    border-radius: 8px;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

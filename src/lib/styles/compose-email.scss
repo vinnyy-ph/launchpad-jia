@@ -1,0 +1,573 @@
+// Compose Email Modal Styles
+.compose-email-modal {
+  // Ensure modal appears above other content
+  z-index: 1050 !important;
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    .modal-content {
+      margin: 10px;
+      max-width: calc(100vw - 20px);
+      max-height: calc(100vh - 20px);
+    }
+  }
+
+  @media (max-width: 576px) {
+    .modal-content {
+      margin: 5px;
+      max-width: calc(100vw - 10px);
+      max-height: calc(100vh - 10px);
+    }
+
+    .toolbar {
+      flex-wrap: wrap;
+      gap: 4px;
+
+      button {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+// Rich text editor toolbar responsive adjustments
+.compose-email-toolbar {
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    padding: 8px 0;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 2px;
+    }
+  }
+}
+
+// Form field responsive adjustments
+.compose-email-form {
+  @media (max-width: 576px) {
+    .form-section {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .form-input,
+    .form-textarea {
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+  }
+}
+
+// Page Styles
+.compose-email-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 20px;
+
+  &.fullscreen {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal {
+    position: absolute;
+    top: auto;
+    left: auto;
+    bottom: 0;
+    right: 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 720px;
+    height: fit-content;
+    max-height: 100vh;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+
+    &.minimized {
+      max-width: 400px;
+    }
+
+    &.fullscreen {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      bottom: auto;
+      right: auto;
+      max-width: 900px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid #dee2e6;
+      background-color: #f8f9fc;
+      color: #212529;
+      cursor: pointer;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .header-title {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0;
+        }
+      }
+
+      .window-controls {
+        display: flex;
+        gap: 8px;
+
+        .window-control-button {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: none;
+          outline: none;
+          background-color: #f8f9fa;
+          color: #6c757d;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+.reply-dropdown {
+  position: relative;
+
+  .reply-options {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    min-width: 140px;
+    background: #ffffff;
+    color: #212529;
+    border: 1px solid #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    padding: 8px 0;
+    z-index: 2000;
+
+    button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 14px;
+      color: #414651;
+    }
+  }
+}
+
+// Email Editor Styles
+.compose-email-content {
+  flex: 1;
+
+  &.minimized {
+    display: none;
+  }
+
+  .email-form-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+
+    .from-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+
+      .from-dropdown-button {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        background: transparent;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .from-dropdown-options-container {
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto !important;
+        position: absolute;
+        top: 48px;
+        left: 0;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.075);
+        border: 1px solid #f5f5f5;
+        border-radius: 6px;
+        z-index: 1000;
+
+        button {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 14px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          white-space: nowrap;
+          font-size: 14px;
+          color: #414651;
+          outline: none;
+
+          &:hover,
+          &.active {
+            background-color: #fafafa;
+          }
+        }
+      }
+
+      .from-avatar {
+        width: 24px !important;
+        height: 24px !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .from-email {
+        font-size: 14px;
+        font-weight: 500;
+        color: #212529;
+        margin-bottom: 2px;
+      }
+    }
+  }
+
+  .form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #ffffff;
+    overflow: visible;
+  }
+
+  .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px 12px;
+    padding-right: 40px;
+    appearance: none;
+  }
+
+  .form-textarea {
+    min-height: 120px;
+    height: 180px !important;
+    font-family: inherit;
+    font-size: 16px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    overflow-y: auto;
+    overflow-x: visible;
+    position: relative;
+
+    // Display placeholder text when empty
+    &.is-empty::before {
+      content: attr(data-placeholder);
+      color: #6c757d;
+      pointer-events: none;
+      position: absolute;
+      top: 12px;
+      left: 16px;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    &.fullscreen {
+      height: 280px !important;
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ced4da;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    margin-bottom: 16px;
+
+    .toolbar-group {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #dee2e6;
+    }
+
+    .toolbar-button {
+      width: 32px;
+      height: 32px;
+      padding: 8px;
+      border: none;
+      background-color: #ffffff;
+      color: #495057;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+
+      &:focus {
+        outline: none;
+        background: #fafafa;
+      }
+    }
+
+    .toolbar-select {
+      height: 100%;
+      width: auto;
+      font-size: 12px;
+      padding: 8px;
+    }
+  }
+}
+
+.attachment-count {
+  color: #414651;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.attachment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .attachment-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    border: 1px solid #e9eaeb;
+    border-radius: 16px;
+
+    .attachment-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .attachment-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #181d27;
+      }
+
+      .attachment-size {
+        font-size: 12px;
+        color: #717680;
+      }
+    }
+
+    .remove-attachment-button {
+      width: 32px;
+      height: 32px;
+      background: none;
+      border: 1px solid #d5d7da;
+      border-radius: 50%;
+      color: #535862;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+.compose-email-button {
+  background-color: transparent;
+  color: #495057;
+  border: 1px solid #ced4da;
+  border-radius: 100px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+// Footer responsive adjustments
+.compose-email-footer {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid #dee2e6;
+  background-color: #ffffff;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 16px;
+
+    .footer-left,
+    .footer-right {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .footer-right {
+      gap: 8px;
+    }
+  }
+
+  &.minimized {
+    display: none;
+  }
+
+  .footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .discard-link {
+      color: #535862;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  }
+
+  .footer-right {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+// Loading spinner animation
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Reply Quote Styles
+.gmail_quote {
+  border-left: 1px solid #dcdcdc;
+  margin-left: 8px;
+  padding-left: 8px;
+  color: #6c757d;
+}
+.gmail_quote p {
+  margin: 0 0 8px 0;
+}
+
+// Global Editor component dropdown fixes
+// Ensure Editor dropdowns and token selectors are not clipped
+.compose-email-modal,
+.compose-email-modal-overlay {
+  // Allow dropdowns to escape modal boundaries
+  & * {
+    &[class*="dropdown"],
+    &[class*="token"],
+    &[class*="picker"],
+    &[class*="menu"],
+    &[class*="popover"] {
+      overflow: visible !important;
+    }
+  }
+
+  // Specific fixes for Editor component internals
+  .editor-root,
+  .editor-wrapper,
+  .editor-container,
+  [data-editor="true"],
+  [class*="Editor"]:not([class*="field"]) {
+    overflow: visible !important;
+
+    // Ensure dropdowns appear above modal content
+    & > div:not([class*="field"]),
+    & [class*="toolbar"],
+    & [class*="dropdown"],
+    & [class*="menu"] {
+      overflow: visible !important;
+      z-index: 1100;
+    }
+  }
+}
+
+// Ensure token dropdown specifically is positioned correctly
+.token-dropdown-wrapper,
+.token-selector,
+[class*="TokenDropdown"],
+[class*="token-dropdown"],
+[data-token-dropdown="true"] {
+  position: absolute !important;
+  z-index: 1100 !important;
+  overflow: visible !important;
+
+  // Ensure it's not hidden by parent overflow
+  & > * {
+    overflow: visible !important;
+  }
+}

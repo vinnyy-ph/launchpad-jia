@@ -1,0 +1,138 @@
+/* SweetAlert2 Modal Z-Index Overrides */
+
+/* Ensure SweetAlert modals appear above all other modals */
+.swal2-container {
+  z-index: 9999 !important;
+}
+
+.swal2-popup {
+  z-index: 10000 !important;
+}
+
+.swal2-backdrop {
+  z-index: 9998 !important;
+}
+
+/* Basic button styling - minimal and non-conflicting */
+.swal2-actions .swal2-confirm {
+  background-color: #000 !important;
+  border-color: #000 !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  padding: 8px 20px !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal2-actions .swal2-confirm:hover {
+  background-color: #333 !important;
+  border-color: #333 !important;
+}
+
+.swal2-actions .swal2-cancel {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  padding: 8px 20px !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal2-actions .swal2-cancel:hover {
+  background-color: #5a6268 !important;
+  border-color: #5a6268 !important;
+}
+
+/* Ensure buttons are clickable */
+.swal2-actions {
+  pointer-events: auto !important;
+}
+
+.swal2-actions button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Ensure proper modal positioning */
+.swal2-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Ensure backdrop is properly styled */
+.swal2-backdrop {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Ensure popup is properly positioned */
+.swal2-popup {
+  position: relative !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Ensure proper spacing */
+.swal2-title {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 1rem !important;
+  color: #333 !important;
+}
+
+.swal2-content {
+  font-size: 1rem !important;
+  color: #666 !important;
+  line-height: 1.5 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.swal2-actions {
+  gap: 0.75rem !important;
+  margin-top: 1.5rem !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .swal2-popup {
+    width: 90% !important;
+    margin: 0 auto !important;
+  }
+
+  .swal2-title {
+    font-size: 1.25rem !important;
+  }
+
+  .swal2-content {
+    font-size: 0.9rem !important;
+  }
+}
+
+.swal2-popup.disclaimer-popup {
+  max-height: calc(100dvh - 2rem) !important;
+  overflow: hidden !important;
+}
+
+.swal2-popup.disclaimer-popup
+  .swal2-html-container.disclaimer-html-container {
+  overflow-y: auto !important;
+  max-height: calc(100dvh - 14rem) !important;
+  padding-right: 0.5rem !important;
+}
+
+@supports not (height: 100dvh) {
+  .swal2-popup.disclaimer-popup {
+    max-height: calc(100vh - 2rem) !important;
+  }
+
+  .swal2-popup.disclaimer-popup
+    .swal2-html-container.disclaimer-html-container {
+    max-height: calc(100vh - 14rem) !important;
+  }
+}

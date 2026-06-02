@@ -1,0 +1,183 @@
+.root {
+  --textarea-radius: 8px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  color: var(--Input-text-label, #414651);
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.required {
+  color: #d92d20;
+}
+
+.description {
+  color: #717680;
+  font-weight: 400;
+  margin: 0;
+}
+
+.inputWrapper {
+  cursor: text;
+  position: relative;
+}
+
+.input {
+  background: var(--Input-bg-primary, #ffffff);
+  border: 1px solid var(--Input-border-primary, #d5d7da);
+  border-radius: var(--textarea-radius);
+  box-shadow: 0 1px 2px 0 #0a0d120d;
+  box-sizing: border-box;
+  color: var(--Input-text-primary, #181d27);
+  cursor: text !important;
+  font-weight: 500;
+  outline: none;
+  padding: 10px 14px;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+
+  &::placeholder {
+    color: var(--Input-text-placeholder-or-disabled, #717680);
+  }
+
+  &:hover,
+  &:focus,
+  &:active {
+    cursor: text !important;
+  }
+}
+
+.autosize {
+  overflow-y: hidden;
+  resize: none;
+}
+
+.error {
+  color: #d92d20;
+  margin: 0;
+}
+
+.hasError {
+  .input {
+    border-color: #d92d20;
+
+    &:focus-visible {
+      border-color: #d92d20;
+      box-shadow: 0 0 0 3px #fecdca;
+    }
+  }
+}
+
+.disabled {
+  .inputWrapper {
+    cursor: not-allowed;
+  }
+
+  .input {
+    background: #f9fafb;
+    color: #a4a7ae;
+    cursor: not-allowed !important;
+  }
+}
+
+.readOnly {
+  .input {
+    background: #f9fafb;
+  }
+}
+
+.size-xs {
+  .label {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .description,
+  .error {
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  .input {
+    font-size: 12px;
+    line-height: 18px;
+  }
+}
+
+.size-sm {
+  .label {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .description,
+  .error {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .input {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+.size-md {
+  .label {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .description,
+  .error {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .input {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+.size-lg {
+  .label {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .description,
+  .error {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .input {
+    font-size: 17px;
+    line-height: 24px;
+  }
+}
+
+.size-xl {
+  .label {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .description,
+  .error {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .input {
+    font-size: 18px;
+    line-height: 26px;
+  }
+}

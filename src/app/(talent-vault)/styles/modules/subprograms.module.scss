@@ -1,0 +1,190 @@
+/* Subprograms Candidates Table */
+
+.candidatesTableWrapper {
+  margin-top: 32px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.searchToolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tableHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 15px 20px;
+  width: 100%;
+}
+
+.tableTitle {
+  font-size: 18px;
+  font-weight: 550;
+  color: #111827;
+}
+
+.tableCounter {
+  border-radius: 20px;
+  border: 1px solid #C7D7FE;
+  background-color: #EEF4FF;
+  color: #3538CD;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 10px;
+}
+
+.toolbarActions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.toolbarButton {
+  min-width: 180px;
+  width: max-content;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.tableContainer {
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
+.pagination {
+  padding: 15px 20px;
+}
+
+/* Table Headers */
+
+.tableHeaderCell {
+  font-size: 12px;
+  font-weight: 700;
+  color: #717680;
+  text-transform: none !important;
+  white-space: normal;
+}
+
+.tableHeaderCellCenter {
+  font-size: 12px;
+  font-weight: 700;
+  color: #717680;
+  text-transform: none !important;
+  white-space: normal;
+  text-align: center;
+  width: 80px;
+}
+
+/* Row: Candidate */
+
+.candidateRow {
+  cursor: pointer;
+}
+
+.candidateInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.candidateAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.candidateDetails {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.candidateName {
+  font-size: 14px;
+  font-weight: 550;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candidateEmail {
+  font-size: 12px;
+  font-weight: 400;
+  color: #717680;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricCell {
+  text-align: center;
+  color: #717680;
+  font-weight: 500;
+  white-space: normal;
+}
+
+.dateCell {
+  color: #717680;
+  font-size: 14px;
+}
+
+.dateValue {
+  cursor: default;
+}
+
+/* Status Badge */
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.statusActive {
+  background-color: #ECFDF3;
+  color: #067647;
+  border: 1px solid #ABEFC6;
+}
+
+.statusActive .statusDot {
+  background-color: #067647;
+}
+
+.statusInactive {
+  background-color: #FEF3F2;
+  color: #B42318;
+  border: 1px solid #FECDCA;
+}
+
+.statusInactive .statusDot {
+  background-color: #B42318;
+}

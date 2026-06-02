@@ -1,0 +1,267 @@
+.cvAnalysisContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.evaluationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.evaluationTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cvHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+.cvHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.cvHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+  }
+}
+
+.newVersionButton {
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid #D0D5DD;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+}
+
+.downloadButtonWrapper {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #101828;
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+}
+
+.downloadButton {
+  height: 44px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #101828;
+  color: #FFFFFF;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+}
+
+.cvContentGrid {
+  display: grid;
+  grid-template-columns: 66% 34%;
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+.cvContentGridLoading {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  @media (max-width: 768px) {
+    order: 2;
+  }
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 18px;
+
+  @media (max-width: 768px) {
+    order: 1;
+  }
+}
+
+.sectionCard {
+  padding: 10px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  color: #181D27;
+  font-weight: 500;
+  margin: 6px 0 6px 16px;
+}
+
+.versionDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  width: 540px;
+  max-width: calc(100vw - 32px);
+  background: #FFFFFF;
+  border: 1px solid #D5D7DA;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.12);
+  z-index: 20;
+  overflow: hidden;
+
+  @media (max-width: 600px) {
+    width: calc(100vw - 32px);
+    max-width: 100%;
+  }
+}
+
+.versionItem {
+  background: transparent;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+
+  &.selected {
+    background: #F8F9FC;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.versionItemActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    align-self: flex-end;
+  }
+}
+
+.emptyState {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.preScreeningCard {
+  width: 100%;
+}
+
+.evaluationContent {
+  border: 1px solid #E4E7EC;
+  border-radius: 14px;
+  padding: 20px;
+
+  @media (max-width: 480px) {
+    padding: 16px;
+  }
+}
+
+.interviewItem {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.noCVBadge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  color: #414651;
+  border: 1px solid #E9EAEB;
+  background-color: #F5F5F5;
+  border-radius: 60px;
+  padding: 2px 10px;
+  font-size: 12px;
+}

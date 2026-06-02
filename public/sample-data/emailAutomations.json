@@ -1,0 +1,147 @@
+[
+  {
+    "automation_id": "1",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "1"
+    }
+  },
+
+  {
+    "automation_id": "2",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "2"
+    }
+  },
+  {
+    "automation_id": "3",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "3"
+    }
+  },
+  {
+    "automation_id": "4",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "4"
+    }
+  },
+  {
+    "automation_id": "5",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "5"
+    }
+  },
+  {
+    "automation_id": "6",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "6"
+    }
+  },
+  {
+    "automation_id": "7",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "7"
+    }
+  },
+  {
+    "automation_id": "8",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "8"
+    }
+  },
+  {
+    "automation_id": "9",
+    "stage_id": "1",
+    "stage_name": "CV Screening",
+    "substage_id": "1",
+    "substage_name": "Waiting Submission",
+    "automation": {
+      "active": false,
+      "automation_name": "Application Received",
+      "trigger_on_event": "Applied",
+      "from_stage": "N/A",
+      "to_stage": "CV Screening: Waiting Submission",
+      "sender": "System",
+      "template_id": "9"
+    }
+  }
+]

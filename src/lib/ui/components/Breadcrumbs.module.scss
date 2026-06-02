@@ -1,0 +1,15 @@
+.root {
+  width: 100%;
+  min-width: 0;
+}
+
+.staticItem {
+  display: flex;
+  align-items: center;
+}
+
+.activeLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}

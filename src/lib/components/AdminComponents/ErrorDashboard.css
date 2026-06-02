@@ -1,0 +1,116 @@
+/* Error Dashboard Custom Styles */
+
+.border-left-primary {
+  border-left: 4px solid #007bff !important;
+}
+
+.border-left-warning {
+  border-left: 4px solid #ffc107 !important;
+}
+
+.border-left-info {
+  border-left: 4px solid #17a2b8 !important;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.text-gray-800 {
+  color: #5a5c69 !important;
+}
+
+/* Enhanced table styling */
+.table th {
+  border-top: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #5a5c69;
+  background-color: #f8f9fc;
+}
+
+.table td {
+  vertical-align: middle;
+  border-top: 1px solid #e3e6f0;
+}
+
+/* Sidebar styling */
+.list-group-item-action:hover {
+  background-color: #f8f9fc;
+}
+
+.list-group-item.active {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+/* Card enhancements */
+.card {
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+  border: 1px solid #e3e6f0;
+}
+
+.card-header {
+  background-color: #f8f9fc;
+  border-bottom: 1px solid #e3e6f0;
+}
+
+/* Search bar enhancements */
+.input-group-text {
+  background-color: #f8f9fc;
+  border-color: #d1d3e2;
+}
+
+.form-control:focus {
+  border-color: #bac8f3;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+/* Button enhancements */
+.btn-default {
+  color: #5a5c69;
+  background-color: #f8f9fc;
+  border-color: #d1d3e2;
+}
+
+.btn-default:hover {
+  color: #5a5c69;
+  background-color: #e2e6ea;
+  border-color: #dae0e5;
+}
+
+.btn-default:focus {
+  box-shadow: 0 0 0 0.2rem rgba(248, 249, 252, 0.5);
+}
+
+/* Loading states */
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .col-md-3 {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Percentage validation styling */
+.percentage-total {
+  font-weight: 600;
+}
+
+.percentage-total.valid {
+  color: #28a745;
+}
+
+.percentage-total.invalid {
+  color: #dc3545;
+}
+
+/* Selected error type styling */
+.selected-error-type {
+  background-color: #e3f2fd !important;
+  border-left: 3px solid #2196f3 !important;
+}

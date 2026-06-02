@@ -1,0 +1,36 @@
+@baseUrl = https://staging.hirejia.ai
+@token = eyJhbGciOiJSUzI1NiIsImtpZCI6IjM4MTFiMDdmMjhiODQxZjRiNDllNDgyNTg1ZmQ2NmQ1NWUzOGRiNWQiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiQnJ5Y2UgTWVyY2luZXMiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSTJVQzZKZUFJdS10WGc5bkw5ZUtpcTB2SWRDR0htMEZYYWlUZEFwNE1TLUZ6U0R4VGM9czk2LWMiLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2MtcG9ydGFsLWE5NTE4IiwiYXVkIjoid2MtcG9ydGFsLWE5NTE4IiwiYXV0aF90aW1lIjoxNzY1ODQ3NDAyLCJ1c2VyX2lkIjoiT0RSbzlTdDFGZ05GYVlSWGVhc1JVdG9rMlpIMiIsInN1YiI6Ik9EUm85U3QxRmdORmFZUlhlYXNSVXRvazJaSDIiLCJpYXQiOjE3NjU4NDc0MDIsImV4cCI6MTc2NTg1MTAwMiwiZW1haWwiOiJicnljZS5tZXJjaW5lc0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJnb29nbGUuY29tIjpbIjEwMDQ0NjQ5NTUyNzI1NTM1NzUzMCJdLCJlbWFpbCI6WyJicnljZS5tZXJjaW5lc0BnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJnb29nbGUuY29tIn19.hpf-ocucVD573El_zPjxYnMYSuWyaRajfU5kEbk2joV1FFMFwAhIKZbxjJqn-tqisOitBmJBfj7qaGygig67QuUkMWmWQpJNlhXKt7m-35px7kWJhTPNsXCgoeYLZDh571AcfH7EqH8MFb-6geKrYKwuoj4bFucDotD5xGu6Ecu5XyrkYPPs5a4D6EU-hL10at7Fgxgaju_nGzjxtjbPxJBWq64lDSppqD8uZuz8lVSpGf4G13yzFf4XHpqyyFzLKbw8NoPdHrhEv_NiXIJQq4RON9KEcM9nIwZz3DkBd5UOXVBlbpwFEN8tkCDbRUwkxxv4ENbhblGC5YZTs02V2w
+@orgID = 6850d1f32eb27a8356bfe968
+
+### Add Member
+POST {{baseUrl}}/api/add-member
+Authorization: Bearer {{token}}
+Content-Type: "application/json"
+
+{
+    "orgID": "{{orgID}}",
+    "email": "nplixel@gmail.com",
+    "role": "hiring_manager"
+}
+
+### Update Member
+POST {{baseUrl}}/api/update-member
+Authorization: Bearer {{token}}
+Content-Type: "application/json"
+
+{
+    "orgID": "{{orgID}}",
+     "email": "nplixel@gmail.com",
+    "role": "super_admin"
+}
+
+### Delete Member
+POST {{baseUrl}}/api/delete-member
+Authorization: Bearer {{token}}
+Content-Type: "application/json"
+
+{
+     "email": "bryce.mercines@whitecloak.com",
+     "orgID": "{{orgID}}"
+}
+

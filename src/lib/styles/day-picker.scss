@@ -1,0 +1,49 @@
+// Override default styles for react-day-picker
+:root .rdp-root,
+.rdp-root.rdp-root {
+  --rdp-accent-color: #444ce7;
+}
+.rdp-day_button:hover {
+  background: rgba(68, 76, 231, 0.1);
+}
+.rdp-day.rdp-selected {
+  width: 100%;
+  background: var(--rdp-accent-color);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: white;
+  border-radius: 50%;
+  border: none;
+}
+
+// Custom styles
+tr:hover {
+  background: transparent;
+}
+.month {
+  color: #414651;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.weekdays {
+  color: #414651;
+  font-size: 24px !important;
+  line-height: 20px;
+  font-weight: 400;
+}
+.weeks {
+  color: #414651;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+.today {
+  background: #f9f9fb;
+  border-radius: 50%;
+  color: #414651;
+}
+.arrow {
+  fill: #a4a7ae;
+}

@@ -1,0 +1,288 @@
+.videoPlayerContainer {
+  width: 100%;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+
+  .videoPlayer {
+    width: 100%;
+    display: block;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  .videoPreview {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .videoPreviewCanvas {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+
+  .videoControlsOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, transparent 45%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+
+    &.videoControlsOverlayVisible {
+      opacity: 1;
+    }
+  }
+
+  /* Center play button - visible on mobile only when controls are shown */
+  .videoCenterPlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1.5;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+
+    @media (max-width: 767px) {
+      display: flex;
+    }
+
+    &.videoCenterPlayVisible {
+      opacity: 1;
+    }
+  }
+
+  .videoCenterPlayButton {
+    pointer-events: auto;
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+
+    &:focus,
+    &:focus-visible,
+    &:active {
+      outline: none !important;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    img {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .videoControls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 32px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+
+    @media (max-width: 767px) {
+      padding: 8px 12px;
+      gap: 4px;
+    }
+
+    &.videoControlsVisible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    // Remove browser default focus ring on all controls
+    button:focus,
+    button:focus-visible,
+    button:active,
+    [role="slider"]:focus,
+    [role="slider"]:focus-visible,
+    [role="slider"]:active {
+      outline: none !important;
+      outline-width: 0 !important;
+      box-shadow: none !important;
+    }
+
+    .playPauseButton {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+
+      @media (max-width: 767px) {
+        display: none; /* Center play used on mobile */
+      }
+    }
+
+    .volumeGroup {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      padding-right: 12px;
+
+      @media (max-width: 767px) {
+        display: none; /* Hide volume on mobile; use device volume */
+      }
+
+      .volumeButton {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+      }
+
+      .volumeSlider {
+        width: 72px;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+
+        .volumeSliderTrack {
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          border-radius: 3px;
+          background: #fff;
+        }
+      }
+    }
+
+    .progressBarGroup {
+      flex: 1;
+      min-width: 0;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      position: relative;
+
+      .progressBar {
+        width: 100%;
+        height: 8px;
+        border-radius: 50px;
+        background: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+
+        .progressBarFill {
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          border-radius: 50px;
+          background: #fff;
+          pointer-events: none;
+        }
+      }
+
+      .progressBarHoverPreview {
+        position: absolute;
+        bottom: 100%;
+        transform: translateX(-50%) translateY(-4px);
+        z-index: 10;
+
+        .progressBarHoverPreviewImage {
+          width: 160px;
+          border-radius: 8px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          border: 1px solid rgba(0, 0, 0, 0.08);
+
+          .progressBarHoverPreviewImageImg {
+            display: block;
+            width: 100%;
+            height: auto;
+          }
+        }
+
+        .progressBarHoverPreviewTime {
+          text-align: center;
+          margin-top: 4px;
+          font-size: 12px;
+          color: #fff;
+        }
+      }
+    }
+
+    .currentTimestamp {
+      flex-shrink: 0;
+      font-size: 12px;
+      color: #fff;
+      text-align: right;
+    }
+
+    .speedButton {
+      width: 32px;
+      flex-shrink: 0;
+      display: flex;
+      padding: 8px;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      border-radius: 6px;
+      background: transparent;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      box-shadow: none;
+    }
+
+    .fullscreenButton {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      padding: 8px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+    }
+  }
+}

@@ -15,6 +15,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
+import { getReportStages, getFormattedStages, getStageCounts } from "@/lib/utils/pipelineReport";
 
 export default function RecruiterPipelineReport({ projectId }: { projectId?: string }) {
     const searchParams = useSearchParams();
@@ -90,7 +91,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 });
                 setPipelineReport(response.data.careers)
                 setTotalCareers(response.data.totalCareers);
-                const { stages, offerStages } = getStages(response.data.careers);
+                const { stages, offerStages } = getReportStages(response.data.careers);
                 setColumnVisibility({
                     type: "Show per stage",
                     includeDroppedCandidates: false,
@@ -108,93 +109,6 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
             fetchPipelineReport()
         }
     }, [isViewStateReady, orgID, page, limit, filterStatus, projectId, sortBy]);
-
-    const getStages = (careers: any[]) => {
-        const stages = [];
-        const offerStages = [];
-        careers.forEach((item: any) => {
-            item.timelineStages.forEach((stage: any) => {
-                const existingStage = stages.find((s) => s.label === stage.name);
-                if (["1", "2", "3"].includes(stage.id) && !existingStage) {
-                    const parentStage = {
-                        label: stage.name,
-                        stageId: stage.id,
-                        enabled: true,
-                        substages: [],
-                    }
-                    stage.substages.forEach((substage: any) => {
-                        parentStage.substages.push({
-                            label: `${stage.name} - ${substage.name}`,
-                            stageId: stage.id,
-                            substageId: substage.id,
-                            candidates: substage.candidates,
-                            droppedCandidates: substage.droppedCandidates,
-                            enabled: true,
-                        });
-                    });
-                    stages.push(parentStage);
-                } else if (["4"].includes(stage.id) && !offerStages.find((s) => s.stageId === stage.id)) {
-                    const parentStage = {
-                        label: stage.name,
-                        stageId: stage.id,
-                        substages: [],
-                        enabled: true,
-                    }
-                    stage.substages.forEach((substage: any) => {
-                        parentStage.substages.push({
-                            label: `${stage.name} - ${substage.name}`,
-                            stageId: stage.id,
-                            substageId: substage.id,
-                            candidates: substage.candidates,
-                            droppedCandidates: substage.droppedCandidates,
-                            enabled: true,
-                        });
-                    });
-                    offerStages.push(parentStage);
-                } else if (!["1", "2", "3", "4"].includes(stage.id) && !existingStage) {
-                    const parentStage = {
-                        label: stage.name,
-                        stageId: stage.id,
-                        substages: [],
-                        enabled: true,
-                    }
-                    stage.substages.forEach((substage: any) => {
-                        parentStage.substages.push({
-                            label: `${stage.name} - ${substage.name}`,
-                            stageId: stage.id,
-                            substageId: substage.id,
-                            candidates: substage.candidates,
-                            droppedCandidates: substage.droppedCandidates,
-                            enabled: true,
-                        });
-                    });
-                    stages.push(parentStage);
-                } else if (!["4"].includes(stage.id) && existingStage) {
-                    // Add substages to the existing stage
-                    const existingStageIndex = stages.findIndex((s) => s.label === stage.name);
-                    if (existingStageIndex !== -1) {
-                        const existingParentStage = { ...stages[existingStageIndex] };
-                        for (const substage of stage.substages) {
-                            const existingSubstage = existingParentStage.substages.find((s: any) => s.label === `${stage.name} - ${substage.name}`);
-                            if (!existingSubstage) {
-                                existingParentStage.substages.push({
-                                    label: `${stage.name} - ${substage.name}`,
-                                    stageId: stage.id,
-                                    substageId: substage.id,
-                                    candidates: substage.candidates,
-                                    droppedCandidates: substage.droppedCandidates,
-                                    enabled: true,
-                                });
-                            }
-                        }
-                        // Replace the existing stage with the updated parent stage
-                        stages[existingStageIndex] = existingParentStage;
-                    }
-                }
-            });
-        });
-        return { stages, offerStages };
-    }
 
     const handleDownloadCSV = async () => {
         const formattedData = await getFullPipelineReport();
@@ -248,7 +162,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     hiringManagers: filterStatus.hiringManagers.map((h) => h.email).join(","),
                 } 
             });
-            const { stages, offerStages } = getStages(response.data.careers);
+            const { stages, offerStages } = getReportStages(response.data.careers);
             // Match enabled state with the stages and offerStages
             const updatedStages = stages.map((stage: any) => {
                 const existingStage = columnVisibility.stages.find((s: any) => s.label === stage.label);
@@ -293,51 +207,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
     }
 
     const getTableData = (columnVisibility: any, pipelineReport: any[]) => {
-        const formattedStages: { label: string, stageId: string, substageId?: string, isDropped?: boolean, parentStageLabel?: string }[] = [];
-        const allStages = [...columnVisibility.stages, ...columnVisibility.offerStages];
-        if (columnVisibility.type === "Show per stage") {
-            allStages.forEach((stage) => {
-                const existingStage = formattedStages.find((s) => s.label === stage.label);
-                if (existingStage || !stage.enabled) return;
-                formattedStages.push({
-                    label: stage.label,
-                    stageId: stage.stageId,
-                });
-
-                // Add dropped candidates if includeDroppedCandidates is true
-                if (columnVisibility.includeDroppedCandidates) {
-                    formattedStages.push({
-                        label: `Dropped from ${stage.label}`,
-                        stageId: stage.stageId,
-                        isDropped: true,
-                    });
-                }
-            });
-        } else {
-            allStages.forEach((stage) => {
-                stage.substages.forEach((substage) => {
-                    const existingSubstage = formattedStages.find((s) => s.label === substage.label);
-                    if (existingSubstage || !substage.enabled) return;
-                    formattedStages.push({
-                        label: substage.label,
-                        stageId: stage.stageId,
-                        substageId: substage.substageId,
-                        parentStageLabel: stage.label,
-                    });
-
-                    if (columnVisibility.includeDroppedCandidates) {
-                        formattedStages.push({
-                            label: `Dropped from ${substage.label}`,
-                            stageId: stage.stageId,
-                            substageId: substage.substageId,
-                            isDropped: true,
-                            parentStageLabel: stage.label,
-                        });
-                    }
-                });
-            });
-        }
-        console.log(formattedStages);
+        const formattedStages = getFormattedStages(columnVisibility);
         const headers = ["Project", "Job Title", "Job Owner", "Status", ...formattedStages.map((stage) => stage.label)];
         return {
             columnHeaders: headers,
@@ -347,7 +217,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     "Job Title": item.jobTitle || "-",
                     "Job Owner": <JobOwner career={item} />,
                     "Status": <CareerStatusBadges career={item} />,
-                    ...getStageData(formattedStages, item),
+                    ...getStageCounts(formattedStages, item, columnVisibility.type),
                     metadata: {
                         _id: item._id,
                         jobOwner: item.teamMembers?.find((member: any) => member.role === "Job Owner") || item.createdBy,
@@ -357,37 +227,6 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     }
                 }
             }),
-        }
-    }
-
-    const getStageData = (formattedStages: any, item: any) => {
-        if (columnVisibility.type === "Show per stage") {
-            return {
-                ...(Object.fromEntries(formattedStages.map((stage) => {
-                    const existingStage = item.timelineStages.find((s: any) => s.name === stage.label || `Dropped from ${s.name}` === stage.label);
-                    return [
-                        stage.label, 
-                        existingStage?.substages?.reduce((acc: number, substage: any) => acc + (stage.isDropped ? substage.droppedCandidates.length : substage.candidates.length), 0) || 0
-                    ]
-                }))),
-            }
-        } else {
-            // Per substage
-            return {
-                ...(Object.fromEntries(formattedStages.map((stage) => {
-                    let existingSubstage;
-                    item.timelineStages.forEach((s: any) => {
-                        if (s.name === stage.parentStageLabel) {
-                            existingSubstage = s.substages.find((sub: any) => `${s.name} - ${sub.name}` === stage.label || `Dropped from ${s.name} - ${sub.name}` === stage.label);
-                        }
-                    })
-
-                    return [
-                        stage.label, 
-                        existingSubstage?.[stage.isDropped ? "droppedCandidates" : "candidates"]?.length || 0
-                    ]
-                }))),
-            }
         }
     }
     return (

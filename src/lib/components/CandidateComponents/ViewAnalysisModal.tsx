@@ -74,7 +74,7 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
   const currentRows = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const selectTab = (key: AnalysisTab) => { setTab(key); setPage(0); };
 
-  const headerCell: React.CSSProperties = { background: "#F2F4F7", borderBottom: "1px solid #E9EAEB", padding: "12px 24px", fontSize: 12, fontWeight: 700, color: "#717680" };
+  const headerCell: React.CSSProperties = { background: "#F8F9FC", borderBottom: "1px solid #E9EAEB", padding: "12px 24px", fontSize: 12, fontWeight: 700, color: "#717680" };
   const bodyCell: React.CSSProperties = { padding: "16px 24px", display: "flex", alignItems: "center" };
 
   return (
@@ -123,7 +123,7 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
                     fontSize: 14,
                     fontWeight: 700,
                     color: active ? "#414651" : "#717680",
-                    borderBottom: active ? "2px solid #181D27" : "2px solid transparent",
+                    borderBottom: active ? "2px solid #9FCAED" : "2px solid transparent",
                   }}
                 >
                   {t.label}

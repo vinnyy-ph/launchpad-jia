@@ -26,6 +26,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       jobTitle,
       headcount,
       description,
+      structuredDescription,
       questions,
       lastEditedBy,
       createdBy,
@@ -113,6 +114,9 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     // Sanitize all text inputs
     const sanitizedJobTitle = sanitizeString(jobTitle, "strict");
     const sanitizedDescription = sanitizeString(description, "moderate"); // Allow basic formatting
+    const sanitizedStructuredDescription = structuredDescription
+      ? sanitizeObject(structuredDescription, "moderate")
+      : null;
     const sanitizedQuestions = sanitizeQuestions(questions);
     const sanitizedLocation = sanitizeString(location, "strict");
     const sanitizedPreScreeningQuestions = preScreeningQuestions
@@ -472,6 +476,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       jobTitle: sanitizedJobTitle,
       headcount,
       description: sanitizedDescription,
+      structuredDescription: sanitizedStructuredDescription,
       questions: sanitizedQuestions,
       location: sanitizedLocation,
       workSetup,
@@ -696,6 +701,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
         jobTitle: sanitizedJobTitle,
         headcount,
         description: sanitizedDescription,
+        structuredDescription: sanitizedStructuredDescription,
         questions: sanitizedQuestions,
         location: sanitizedLocation,
         workSetup,

@@ -21,15 +21,15 @@
     },
     {
       "path": "/api/cron/send-scheduled-emails",
-      "schedule": "*/1 * * * *"
+      "schedule": "0 1 * * *"
     },
     {
       "path": "/api/cron/send-email-reminder",
-      "schedule": "*/1 * * * *"
+      "schedule": "0 2 * * *"
     },
     {
       "path": "/api/cron/process-pre-screening",
-      "schedule": "0 */8 * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }

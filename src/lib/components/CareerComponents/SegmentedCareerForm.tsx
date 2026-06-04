@@ -8,6 +8,8 @@ import CurrencyDropdown from "@/lib/components/CareerComponents/CurrencyDropdown
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import philippineCitiesAndProvinces from "../../../../public/philippines-locations.json";
 import RichTextEditor from "./RichTextEditor";
+import StructuredDescriptionFields, { EMPTY_STRUCTURED_DESCRIPTION } from "./StructuredDescriptionFields";
+import { deriveLegacyDescription, StructuredCareerDescription } from "@/lib/utils/cvFitnessV2";
 import InterviewQuestionGeneratorV2 from "./InterviewQuestionGeneratorV2";
 import PipelineStageBuilder from "./PipelineStageBuilder";
 import { candidateActionToast, errorToast, guid, normalizePipeline } from "@/lib/Utils";
@@ -350,6 +352,7 @@ export default function SegmentedCareerForm({
     project: preselectedProject?.name || "",
     projectId: preselectedProject?.id || "",
     description: "",
+    structuredDescription: EMPTY_STRUCTURED_DESCRIPTION as StructuredCareerDescription,
     employmentType: "",
     workSetup: "",
     country: "Philippines",
@@ -689,6 +692,10 @@ export default function SegmentedCareerForm({
         project: career?.project || "",
         projectId: career?.projectId || "",
         description: career.description,
+        structuredDescription: career.structuredDescription || {
+          ...EMPTY_STRUCTURED_DESCRIPTION,
+          overview: career.description || "",
+        },
         employmentType: career.employmentType,
         workSetup: career.workSetup,
         country: career?.country || "",
@@ -1088,7 +1095,7 @@ export default function SegmentedCareerForm({
       )
         errors.maximumSalary = true;
       // Also validate Job Description in Career Details & Team Access step
-      const textContent = careerForm.description.replace(/<[^>]*>/g, "").trim();
+      const textContent = (careerForm.structuredDescription?.overview || careerForm.description || "").replace(/<[^>]*>/g, "").trim();
       if (!textContent) errors.description = true;
       // Validate that there is at least one Job Owner
       const hasJobOwner = teamMembers.some(
@@ -1106,7 +1113,7 @@ export default function SegmentedCareerForm({
 
     if (currentStepName === "CV Review & Pre-screening") {
       // Remove HTML tags and check if there's actual content
-      const textContent = careerForm.description.replace(/<[^>]*>/g, "").trim();
+      const textContent = (careerForm.structuredDescription?.overview || careerForm.description || "").replace(/<[^>]*>/g, "").trim();
       if (!textContent) errors.description = true;
     }
 
@@ -1337,6 +1344,7 @@ export default function SegmentedCareerForm({
           ? null
           : Number(careerForm.headcount),
         description: careerForm.description,
+        structuredDescription: careerForm.structuredDescription || null,
         workSetup: careerForm.workSetup,
         questions: careerForm.questions,
         preScreeningQuestions: careerForm.preScreeningQuestions,
@@ -3436,32 +3444,20 @@ function BasicInformationForm({
               </span>
             </div>
             <div className="layered-card-content">
-              <RichTextEditor
-                setText={(text) => {
-                  setCareerForm({ ...careerForm, description: text });
+              <StructuredDescriptionFields
+                value={careerForm.structuredDescription}
+                onChange={(next) => {
+                  setCareerForm((prev: any) => ({
+                    ...prev,
+                    structuredDescription: next,
+                    description: deriveLegacyDescription(next),
+                  }));
                   if (validationErrors?.description) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      description: false,
-                    });
+                    setValidationErrors({ ...validationErrors, description: false });
                   }
                 }}
-                text={careerForm.description}
                 error={validationErrors?.description || false}
               />
-              <div style={{ minHeight: "18px", marginTop: 4 }}>
-                {validationErrors?.description && (
-                  <span
-                    style={{
-                      fontSize: 12,
-                      color: "#EF4444",
-                      fontWeight: 400,
-                    }}
-                  >
-                    This is a required field.
-                  </span>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -5603,32 +5599,20 @@ function JobDescriptionForm({
           </div>
         </div>
         <div className="layered-card-content">
-          <RichTextEditor
-            setText={(text) => {
-              setCareerForm({ ...careerForm, description: text });
+          <StructuredDescriptionFields
+            value={careerForm.structuredDescription}
+            onChange={(next) => {
+              setCareerForm((prev: any) => ({
+                ...prev,
+                structuredDescription: next,
+                description: deriveLegacyDescription(next),
+              }));
               if (validationErrors?.description) {
-                setValidationErrors({
-                  ...validationErrors,
-                  description: false,
-                });
+                setValidationErrors({ ...validationErrors, description: false });
               }
             }}
-            text={careerForm.description}
             error={validationErrors?.description || false}
           />
-          <div style={{ minHeight: "18px", marginTop: 4 }}>
-            {validationErrors?.description && (
-              <span
-                style={{
-                  fontSize: 12,
-                  color: "#EF4444",
-                  fontWeight: 400,
-                }}
-              >
-                This is a required field.
-              </span>
-            )}
-          </div>
         </div>
       </div>
     </div>

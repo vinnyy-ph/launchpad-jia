@@ -10,6 +10,7 @@ import { decodeHtmlEntities } from "@/lib/utils/sanitizeInput";
 import { CandidateSkillsSection } from "./CandidateSkillsSection";
 import { Button, Field, Modal } from "../ui";
 import CareerFit from "../CareerComponents/CareerFit";
+import EvaluationByJiaV2 from "./EvaluationByJiaV2";
 import type { ExperienceItem } from "./ExperienceSection";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { EducationItem } from "../screens/EducationModal";
@@ -550,16 +551,29 @@ export default function CandidateCVAnalysis({
             let updatedInterviews = [...interviews];
             
             for (const interview of interviewsToProcess) {
-                const response = await api.post("/api/analyze-cv", {
+                let updatedInterview = { ...interview };
+
+                const v2 = await api.post("/api/analyze-cv-v2", {
                     interviewID: interview.interviewID,
                     userEmail: interview.email,
                 });
-                let updatedInterview = {...interview};
 
-                if (response?.data?.update) {
-                    updatedInterview = {...updatedInterview, ...response?.data?.update};
+                if (v2?.data?.cvAnalysisV2) {
+                    updatedInterview = { ...updatedInterview, cvAnalysisV2: v2.data.cvAnalysisV2 };
+                } else {
+                    // Legacy career (fallback:true) or V2 error -> use V1 screening.
+                    const v1 = await api.post("/api/analyze-cv", {
+                        interviewID: interview.interviewID,
+                        userEmail: interview.email,
+                    });
+                    if (v1?.data?.update) {
+                        updatedInterview = { ...updatedInterview, ...v1.data.update };
+                    }
+                    if (v2?.data?.error) {
+                        errorToast(v2.data.error, 1500);
+                    }
                 }
-                
+
                 updatedInterviews = updatedInterviews.map((i: any) => i._id === interview._id ? updatedInterview : i);
             }
             setInterviews(updatedInterviews);
@@ -764,6 +778,18 @@ export default function CandidateCVAnalysis({
     {(includeEvaluationCard || showPreScreeningAnswers) && (
         <div className={styles.cvAnalysisContainer}>
             {includeEvaluationCard && (
+                !regenerateLoading && activeInterviews?.length > 0 && activeInterviews.some((i: any) => i.cvAnalysisV2) ? (
+                    activeInterviews
+                        .filter((i: any) => i.cvAnalysisV2)
+                        .map((interview: any) => (
+                            <EvaluationByJiaV2
+                                key={interview._id || interview.id || interview.interviewID}
+                                analysis={interview.cvAnalysisV2}
+                                onRegenerate={regenerateCV}
+                                regenerating={regenerateLoading}
+                            />
+                        ))
+                ) : (
                 <div className="layered-card-outer">
                     <div className="layered-card-middle" style={{ padding: 10 }}>
                         <div className={styles.evaluationHeader}>
@@ -797,7 +823,7 @@ export default function CandidateCVAnalysis({
                                     {activeInterviews.map((interview: any) => (
                                         <div key={interview._id || interview.id || interview.interviewID}>
                                             <div className={styles.interviewItem}>
-                                                {interview.cvStatus && (
+                                                {interview.cvStatus && !interview.cvAnalysisV2 && (
                                                     <>
                                                         <CareerFit
                                                             fit={interview.cvStatus}
@@ -820,14 +846,18 @@ export default function CandidateCVAnalysis({
                                                     </div>
                                                 )}
                                             </div>
-                                            <div style={{ fontSize: 16, color: "#414651", fontWeight: 500 }}>
-                                                <p
-                                                    className="markdown-content"
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: interview.cvScreeningReason || "No CV Analysis available",
-                                                    }}
-                                                />
-                                            </div>
+                                            {interview.cvAnalysisV2 ? (
+                                                <EvaluationByJiaV2 analysis={interview.cvAnalysisV2} />
+                                            ) : (
+                                                <div style={{ fontSize: 16, color: "#414651", fontWeight: 500 }}>
+                                                    <p
+                                                        className="markdown-content"
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: interview.cvScreeningReason || "No CV Analysis available",
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                     <Tooltip className="career-fit-tooltip fade-in" id="career-fit-tooltip" clickable={true} />
@@ -840,6 +870,7 @@ export default function CandidateCVAnalysis({
                         </div>
                     </div>
                 </div>
+                )
             )}
 
             {showPreScreeningAnswers && (

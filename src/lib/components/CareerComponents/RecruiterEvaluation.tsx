@@ -128,6 +128,7 @@ export default function RecruiterEvaluation({ evaluation, enableEdit = false, on
             border: evaluation ? "1px solid #FEEFC7" : "1px solid #E9EAEB", 
             padding: "16px 10px 10px",
             width: "100%",
+            marginBottom: 16,
             }}
         >
             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
@@ -145,8 +146,8 @@ export default function RecruiterEvaluation({ evaluation, enableEdit = false, on
                         <button style={{ color: "#B42318", border: "1px solid #B42318", borderRadius: "50%", background: "#FFFFFF", padding: "5px", cursor: "pointer", width: "fit-content", display: "flex", alignItems: "center", gap: 8 }} onClick={() => handleModal("delete")} >
                             <i className="la la-trash" style={{ fontSize: 20, color: "#B42318" }}></i>
                         </button>
-                        <button style={{ color: "#414651", border: "1px solid #D5D7DA", borderRadius: "60px", background: "#FFFFFF", padding: "5px 15px", cursor: "pointer", width: "fit-content", display: "flex", alignItems: "center", gap: 8 }} onClick={() => handleModal("edit")} >
-                            <i className="la la-pencil" style={{ fontSize: 16, color: "#414651" }}></i>
+                        <button style={{ color: "#414651", border: "1px solid #D5D7DA", borderRadius: 8, background: "#FFFFFF", padding: "8px 12px", cursor: "pointer", width: "fit-content", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, fontWeight: 700, whiteSpace: "nowrap" }} onClick={() => handleModal("edit")} >
+                            <i className="la la-pencil" style={{ fontSize: 18, color: "#414651" }}></i>
                             Edit Evaluation
                         </button>
                     </div>) : (

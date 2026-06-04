@@ -20,6 +20,7 @@ import CircularProgress from "../CandidateComponents/CircularProgress";
 import LoadingAnimation from "../Loaders/LoadingAnimation";
 import { DEFAULT_JOB_PIPELINE } from "../../utils/constants";
 import RecruiterEvaluation from "./RecruiterEvaluation";
+import EvaluationByJiaV2 from "@/lib/components/CandidateComponents/EvaluationByJiaV2";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "../ui";
 import CustomMarkdown from "../ui/markdown/CustomMarkdown";
@@ -146,6 +147,7 @@ export default function CandidateMenu({
               cvStatus: interviewDetailsResponse.data.cvStatus,
               cvScreeningReason:
                 interviewDetailsResponse.data.cvScreeningReason,
+              cvAnalysisV2: interviewDetailsResponse.data.cvAnalysisV2 || null,
             });
           }
 
@@ -409,21 +411,36 @@ export default function CandidateMenu({
     setRegenerateCVLoading(true);
     setCvAnalysis(null);
     try {
-      const response = await api.post("/api/analyze-cv", {
+      // V2 structured screening first; fall back to V1 for legacy careers.
+      const v2 = await api.post("/api/analyze-cv-v2", {
         interviewID: interviewDetails.interviewID,
         userEmail: interviewDetails.email,
       });
 
-      if (response?.data?.update) {
-        setCvAnalysis({
-          cvStatus: response.data.update.cvStatus,
-          cvScreeningReason: response.data.update.cvScreeningReason,
-        });
+      if (v2?.data?.cvAnalysisV2) {
+        setCvAnalysis({ cvAnalysisV2: v2.data.cvAnalysisV2 });
         handleCandidateAnalysisComplete({
           ...candidate,
-          cvStatus: response.data.update.cvStatus,
-          cvScreeningReason: response.data.update.cvScreeningReason,
+          cvAnalysisV2: v2.data.cvAnalysisV2,
         });
+      } else {
+        if (v2?.data?.error) errorToast(v2.data.error, 1500);
+        const response = await api.post("/api/analyze-cv", {
+          interviewID: interviewDetails.interviewID,
+          userEmail: interviewDetails.email,
+        });
+
+        if (response?.data?.update) {
+          setCvAnalysis({
+            cvStatus: response.data.update.cvStatus,
+            cvScreeningReason: response.data.update.cvScreeningReason,
+          });
+          handleCandidateAnalysisComplete({
+            ...candidate,
+            cvStatus: response.data.update.cvStatus,
+            cvScreeningReason: response.data.update.cvScreeningReason,
+          });
+        }
       }
     } catch (error) {
 
@@ -752,7 +769,7 @@ export default function CandidateMenu({
                         </div>
                       </div>
                       {sectionsOpen.includes(section.id) &&
-                        (cvAnalysis?.cvStatus || getEvaluation(section.id) ? (
+                        (cvAnalysis?.cvStatus || cvAnalysis?.cvAnalysisV2 || getEvaluation(section.id) ? (
                           <div
                             style={{
                               display: "flex",
@@ -766,6 +783,13 @@ export default function CandidateMenu({
                                 interview={candidate}
                               />
                             )}
+                            {cvAnalysis?.cvAnalysisV2 ? (
+                              <EvaluationByJiaV2
+                                analysis={cvAnalysis.cvAnalysisV2}
+                                onRegenerate={regenerateCV}
+                                regenerating={regenerateCVLoading}
+                              />
+                            ) : (
                             <div
                               style={{
                                 border: "1px solid #E9EAEB",
@@ -858,6 +882,7 @@ export default function CandidateMenu({
                                 />
                               )}
                             </div>
+                            )}
                           </div>
                         ) : (
                           <div

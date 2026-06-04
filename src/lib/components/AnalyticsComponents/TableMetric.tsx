@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import React from "react";
+import { Tooltip as ReactTooltip } from "react-tooltip";
 
 const FALLBACK_PINNED_WIDTH = 140;
 const HIDDEN_COLUMN_PLACEHOLDER_WIDTH = 24;
@@ -16,8 +17,24 @@ interface TableMetricProps {
     }
     isFullscreenView?: boolean;
     onCloseFullscreenView?: () => void;
+    /** When true, non-fixed, non-pinned headers become draggable for column reorder. Default: false. */
+    enableColumnReorder?: boolean;
+    /** Called with the new header order after a drag-drop reorder. Only fired when enableColumnReorder is true. */
+    onColumnReorder?: (newOrder: string[]) => void;
+    /** Map of column name → React node shown in a portal tooltip on header hover. Only rendered when the column key exists. */
+    columnTooltips?: Record<string, React.ReactNode>;
+    /** Column names that may NOT be dragged (e.g. "#", "Project", "Job Title"). Default: []. */
+    fixedColumns?: string[];
 }
-export default function TableMetric({ data, isFullscreenView, onCloseFullscreenView }: TableMetricProps) {
+export default function TableMetric({
+    data,
+    isFullscreenView,
+    onCloseFullscreenView,
+    enableColumnReorder = false,
+    onColumnReorder,
+    columnTooltips,
+    fixedColumns = [],
+}: TableMetricProps) {
     const searchParams = useSearchParams();
     const orgID = searchParams.get("orgID");
     const router = useRouter();
@@ -115,6 +132,10 @@ export default function TableMetric({ data, isFullscreenView, onCloseFullscreenV
                                 cellStyle.zIndex = pinnedStyle.zIndex;
                                 cellStyle.position = pinnedStyle.position;
                             }
+                            // Drag-reorder: only active when explicitly enabled, column is not fixed, and not pinned.
+                            const isDraggable = enableColumnReorder && !fixedColumns.includes(column) && !pinned;
+                            const tooltipId = `table-metric-col-tooltip-${column.replace(/\s+/g, "-")}`;
+                            const hasTooltip = columnTooltips != null && column in columnTooltips;
                             return (
                             <th
                             key={index}
@@ -130,6 +151,38 @@ export default function TableMetric({ data, isFullscreenView, onCloseFullscreenV
                             style={cellStyle}
                             onMouseEnter={() => !hidden && setDisplayMenuButton(column)}
                             onMouseLeave={() => !hidden && setDisplayMenuButton("")}
+                            draggable={isDraggable || undefined}
+                            onDragStart={isDraggable ? (e) => {
+                                e.dataTransfer.setData("colName", column);
+                            } : undefined}
+                            onDragOver={isDraggable ? (e) => {
+                                e.preventDefault();
+                                const b = e.currentTarget.getBoundingClientRect();
+                                const after = e.clientX - (b.x + b.width / 2) > 0;
+                                e.currentTarget.style.borderRight = after ? "3px solid #4CAF50" : "";
+                                e.currentTarget.style.borderLeft = after ? "" : "3px solid #4CAF50";
+                            } : undefined}
+                            onDragLeave={isDraggable ? (e) => {
+                                e.currentTarget.style.borderLeft = "";
+                                e.currentTarget.style.borderRight = "";
+                            } : undefined}
+                            onDrop={isDraggable ? (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.currentTarget.style.borderLeft = "";
+                                e.currentTarget.style.borderRight = "";
+                                const dragged = e.dataTransfer.getData("colName");
+                                if (!dragged || dragged === column) return;
+                                const b = e.currentTarget.getBoundingClientRect();
+                                const after = e.clientX - (b.x + b.width / 2) > 0;
+                                const order = [...data.columnHeaders];
+                                const from = order.indexOf(dragged);
+                                order.splice(from, 1);
+                                let to = order.indexOf(column);
+                                to = after ? to + 1 : to;
+                                order.splice(to, 0, dragged);
+                                onColumnReorder?.(order);
+                            } : undefined}
                             >
                                 {hidden ? (
                                     <button
@@ -143,7 +196,27 @@ export default function TableMetric({ data, isFullscreenView, onCloseFullscreenV
                                     </button>
                                 ) : (
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", gap: "8px" }}>
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                                 {column}
+                                {hasTooltip && (
+                                    <>
+                                        <span
+                                            data-tooltip-id={tooltipId}
+                                            style={{ display: "inline-flex", alignItems: "center", cursor: "default" }}
+                                            aria-label={`Info for ${column}`}
+                                        >
+                                            <img src="/iconsV2/info-circle.svg" alt="" style={{ width: 14, height: 14, opacity: 0.6 }} />
+                                        </span>
+                                        <ReactTooltip
+                                            id={tooltipId}
+                                            place="bottom"
+                                            clickable
+                                        >
+                                            {columnTooltips![column]}
+                                        </ReactTooltip>
+                                    </>
+                                )}
+                                </span>
                                 {displayMenuButton === column && (
                                     <CustomDropdown
                                     value=""

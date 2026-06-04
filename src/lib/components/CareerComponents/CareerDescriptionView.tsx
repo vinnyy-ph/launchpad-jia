@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import PipelineStageBuilder from "./PipelineStageBuilder";
+import StructuredDescriptionDisplay from "./StructuredDescriptionDisplay";
 import { DEFAULT_JOB_PIPELINE } from "../../utils/constants";
 import { useAppContext } from "@/lib/context/AppContext";
 import { api } from "@/lib/utils/apiClient";
@@ -774,17 +775,14 @@ export default function CareerDescriptionView({
                 >
                   Job Description
                 </span>
-                <div
-                  style={{
-                    fontSize: 15,
-                    color: "#717680",
-                    lineHeight: 1.6,
-                    marginTop: 8,
-                  }}
-                  dangerouslySetInnerHTML={{
-                    __html: formData.description || "N/A",
-                  }}
-                />
+                {formData.structuredDescription ? (
+                  <StructuredDescriptionDisplay value={formData.structuredDescription} />
+                ) : (
+                  <div
+                    style={{ fontSize: 15, color: "#717680", lineHeight: 1.6, marginTop: 8 }}
+                    dangerouslySetInnerHTML={{ __html: formData.description || "N/A" }}
+                  />
+                )}
               </div>
             )}
           </div>

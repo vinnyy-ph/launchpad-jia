@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import TableMetric from "./TableMetric";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/utils/apiClient";
@@ -141,6 +142,28 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         document.body.removeChild(link);
     }
 
+    const handleDownloadXLSX = async () => {
+        const formattedData = await getFullPipelineReport();
+        if (!formattedData) return;
+        const headers = [...formattedData.columnHeaders];
+        headers.splice(3, 1, "Published Status", "Activity Status", "Job Post Type");
+        const aoa = [
+            headers,
+            ...formattedData.rows.map((row: any) => headers.map((header: string) => {
+                if (header === "Job Owner") return row.metadata.jobOwner?.name ?? "-";
+                if (header === "Published Status") return row.metadata.publishedStatus;
+                if (header === "Activity Status") return row.metadata.activityStatus;
+                if (header === "Job Post Type") return row.metadata.jobPostType;
+                if (header === "Job Title") return typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
+                return row[header];
+            })),
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Pipeline Report");
+        XLSX.writeFile(wb, `${activeOrg?.name ? `${activeOrg.name}-` : ""}Pipeline-Report-${new Date().toLocaleDateString()}.xlsx`);
+    };
+
     const getFullPipelineReport = async () => {
         // Fetch the full pipeline report from the API
         try {
@@ -264,7 +287,14 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     />
                     <Button variant="secondary" disabled={!pipelineReport || isLoading || totalCareers === 0} onClick={() => setIsCustomizeColumnModalOpen(true)} label="Customize Columns" icon="/icons/pipeline-report-column.svg" />
                     <Button variant="secondary" disabled={!pipelineReport || isLoading || totalCareers === 0} onClick={() => setIsFullscreenView(true)} label="View fullscreen" icon="/iconsV3/fullscreen.svg" />
-                    <Button variant="primary" disabled={!pipelineReport || isLoading || totalCareers === 0} onClick={handleDownloadCSV} label="Export" icon="/icons/download-cloud.svg" />
+                    <CustomDropdown
+                        value="Export"
+                        setValue={(v) => { if (v === "Export as CSV") handleDownloadCSV(); if (v === "Export as XLSX") handleDownloadXLSX(); }}
+                        options={["Export as CSV", "Export as XLSX"]}
+                        iconJsx={<img src="/icons/download-cloud.svg" alt="Export" style={{ width: 16, height: 16 }} />}
+                        suffixIconJsx={<img src="/iconsV3/chevron-down.svg" alt="" style={{ width: 12, height: 7 }} />}
+                        disabled={!pipelineReport || isLoading || totalCareers === 0}
+                    />
                 {/* Pagination */}
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
                     <span>{limit * (page - 1) + 1} - {limit * page > totalCareers ? totalCareers : limit * page} of {totalCareers}</span>

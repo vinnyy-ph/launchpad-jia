@@ -25,6 +25,8 @@ interface TableMetricProps {
     columnTooltips?: Record<string, React.ReactNode>;
     /** Column names that may NOT be dragged (e.g. "#", "Project", "Job Title"). Default: []. */
     fixedColumns?: string[];
+    /** Per-instance id prefix for tooltip ids so inline and fullscreen instances don't collide. Default: "main". */
+    instanceId?: string;
 }
 export default function TableMetric({
     data,
@@ -34,6 +36,7 @@ export default function TableMetric({
     onColumnReorder,
     columnTooltips,
     fixedColumns = [],
+    instanceId = "main",
 }: TableMetricProps) {
     const searchParams = useSearchParams();
     const orgID = searchParams.get("orgID");
@@ -134,7 +137,7 @@ export default function TableMetric({
                             }
                             // Drag-reorder: only active when explicitly enabled, column is not fixed, and not pinned.
                             const isDraggable = enableColumnReorder && !fixedColumns.includes(column) && !pinned;
-                            const tooltipId = `table-metric-col-tooltip-${column.replace(/\s+/g, "-")}`;
+                            const tooltipId = `table-metric-col-tooltip-${instanceId}-${column.replace(/\s+/g, "-")}`;
                             const hasTooltip = columnTooltips != null && column in columnTooltips;
                             return (
                             <th
@@ -177,6 +180,7 @@ export default function TableMetric({
                                 const after = e.clientX - (b.x + b.width / 2) > 0;
                                 const order = [...data.columnHeaders];
                                 const from = order.indexOf(dragged);
+                                if (from === -1) return;
                                 order.splice(from, 1);
                                 let to = order.indexOf(column);
                                 to = after ? to + 1 : to;

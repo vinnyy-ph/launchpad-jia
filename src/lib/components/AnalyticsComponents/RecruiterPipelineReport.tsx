@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import TableMetric from "./TableMetric";
 import { useSearchParams } from "next/navigation";
@@ -51,6 +51,9 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
     const [isLoadingFullReport, setIsLoadingFullReport] = useState(false);
     const [isFullscreenView, setIsFullscreenView] = useState(false);
     const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>({});
+
+    const columnsKey = `pipelineReport:columns:${projectId ? `project:${projectId}` : "dashboard"}`;
+    const [columnOrder, setColumnOrder] = useLocalStorage<string[]>(columnsKey, []);
 
     const {
         isViewStateReady,
@@ -297,6 +300,45 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
             }),
         };
     }
+    const buildHeaderTooltips = (cv: typeof columnVisibility): Record<string, React.ReactNode> => {
+        if (cv.type !== "Show per stage") return {};
+        const allStages = [...cv.stages, ...cv.offerStages];
+        const tooltips: Record<string, React.ReactNode> = {};
+        for (const stage of allStages) {
+            if (!stage.enabled) continue;
+            // Sum total candidates across all substages (across all careers already aggregated in substage.candidates arrays)
+            const substageLines = stage.substages
+                .filter((sub: any) => sub.enabled !== false)
+                .map((sub: any) => {
+                    const subLabel = sub.label?.split(" - ")?.[1] ?? sub.label;
+                    const total = (pipelineReport ?? []).reduce((acc: number, career: any) => {
+                        const ts = career.timelineStages?.find((s: any) => s.id === stage.stageId || s.name === stage.label);
+                        if (!ts) return acc;
+                        const found = ts.substages?.find((s: any) => `${ts.name} - ${s.name}` === sub.label || s.name === subLabel);
+                        return acc + (found?.candidates?.length ?? 0);
+                    }, 0);
+                    return `${subLabel}: ${total}`;
+                });
+            if (substageLines.length === 0) continue;
+            tooltips[stage.label] = (
+                <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+                    {substageLines.map((line: string, i: number) => <div key={i}>{line}</div>)}
+                </div>
+            );
+        }
+        return tooltips;
+    };
+
+    const tableData = pipelineReport ? getTableData(columnVisibility, pipelineReport) : { columnHeaders: [], rows: [] };
+    const orderedHeaders = columnOrder.length
+        ? [...tableData.columnHeaders].sort((a, b) => {
+            const ia = columnOrder.indexOf(a);
+            const ib = columnOrder.indexOf(b);
+            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+        })
+        : tableData.columnHeaders;
+    const orderedData = { ...tableData, columnHeaders: orderedHeaders };
+
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%" }}>
             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 24 }}>
@@ -372,11 +414,27 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                   <TableLoader type="careers-v2" />
                 </tbody>
               </table>
-              </div> : pipelineReport ? <TableMetric data={getTableData(columnVisibility, pipelineReport)} /> : <NoDataAvailable />
+              </div> : pipelineReport ? <TableMetric
+                    data={orderedData}
+                    enableColumnReorder
+                    onColumnReorder={(o) => setColumnOrder(o)}
+                    fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
+                    columnTooltips={buildHeaderTooltips(columnVisibility)}
+                    instanceId="main"
+                /> : <NoDataAvailable />
             }
             {isCustomizeColumnModalOpen && <CustomizeColumnModal columnVisibility={columnVisibility} setColumnVisibility={setColumnVisibility} setIsCustomizeColumnModalOpen={setIsCustomizeColumnModalOpen} />}
             {isLoadingFullReport && <FullScreenLoadingAnimation title="Exporting Full Pipeline Report" subtext="Please wait while we export the full pipeline report" />}
-            {isFullscreenView && <TableMetric data={getTableData(columnVisibility, pipelineReport)} isFullscreenView={true} onCloseFullscreenView={() => setIsFullscreenView(false)} />}
+            {isFullscreenView && <TableMetric
+                data={orderedData}
+                isFullscreenView={true}
+                onCloseFullscreenView={() => setIsFullscreenView(false)}
+                enableColumnReorder
+                onColumnReorder={(o) => setColumnOrder(o)}
+                fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
+                columnTooltips={buildHeaderTooltips(columnVisibility)}
+                instanceId="fullscreen"
+            />}
         </div>
     )
 }

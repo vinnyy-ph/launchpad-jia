@@ -26,6 +26,7 @@ const TABS: { key: AnalysisTab; label: string }[] = [
 
 const PAGE_SIZE = 5;
 const RANKING_W = 200;
+const STATUS_ORDER: Record<QualificationStatus, number> = { matched: 0, partial: 1, missing: 2 };
 
 // 1-based page list with ellipses, matching the Figma pattern (1 2 3 … 8 9 10).
 function getPages(total: number, cur: number): (number | "…")[] {
@@ -65,7 +66,10 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
     }),
     [quals]
   );
-  const filtered = useMemo(() => filterQualificationsByTab(quals, tab), [quals, tab]);
+  const filtered = useMemo(
+    () => filterQualificationsByTab(quals, tab).slice().sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]),
+    [quals, tab]
+  );
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentRows = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const selectTab = (key: AnalysisTab) => { setTab(key); setPage(0); };

@@ -398,11 +398,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 <table className="table align-items-center table-flush">
                 <thead>
                   <tr>
-                    <th scope="col" className={styles.tableHeaderCell}>
-                      Job Title
-                    </th>
-                    <th scope="col" className={styles.tableHeaderCell}>Job Owner</th>
+                    <th scope="col" className={styles.tableHeaderCell}>#</th>
                     <th scope="col" className={styles.tableHeaderCell}>Project</th>
+                    <th scope="col" className={styles.tableHeaderCell}>Job Title</th>
+                    <th scope="col" className={styles.tableHeaderCell}>Job Owner</th>
                     <th scope="col" className={styles.tableHeaderCell}>Status</th>
                     <th scope="col" className={styles.tableHeaderCell}>CV Screening</th>
                     <th scope="col" className={styles.tableHeaderCell}>AI Interview</th>

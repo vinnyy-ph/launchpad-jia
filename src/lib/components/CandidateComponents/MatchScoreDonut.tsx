@@ -16,10 +16,12 @@ export default function MatchScoreDonut({ score, size = 120 }: Props) {
     <div style={{ position: "relative", width: size, height: size }}>
       <svg width={size} height={size}>
         <defs>
-          <linearGradient id="matchScoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#7F56D9" />
-            <stop offset="50%" stopColor="#F670C7" />
-            <stop offset="100%" stopColor="#FDB022" />
+          {/* Figma "Primary/Blue -> Yellow" ring — pastel blue -> lavender -> pink -> peach */}
+          <linearGradient id="matchScoreGradient" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#84CAFF" />
+            <stop offset="35%" stopColor="#B6A6F2" />
+            <stop offset="70%" stopColor="#F7A3C4" />
+            <stop offset="100%" stopColor="#FDC9A6" />
           </linearGradient>
         </defs>
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#F2F4F7" strokeWidth={stroke} />
@@ -37,7 +39,7 @@ export default function MatchScoreDonut({ score, size = 120 }: Props) {
         />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 12, color: "#717680" }}>Match Score</span>
+        <span style={{ fontSize: 12, color: "#535862" }}>Match Score</span>
         <span style={{ fontSize: 24, fontWeight: 700, color: "#181D27" }}>{clamped}%</span>
       </div>
     </div>

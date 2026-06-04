@@ -11,10 +11,10 @@ import {
 import MatchScoreDonut from "./MatchScoreDonut";
 import QualificationBadges from "./QualificationBadges";
 
-const STATUS_STYLE: Record<QualificationStatus, { bg: string; stroke: string; color: string; label: string }> = {
-  matched: { bg: "#ECFDF3", stroke: "#ABEFC6", color: "#067647", label: "Matched" },
-  partial: { bg: "#FFFAEB", stroke: "#FEDF89", color: "#B54708", label: "Partially Matched" },
-  missing: { bg: "#FEF3F2", stroke: "#FECDCA", color: "#B42318", label: "Missing" },
+const STATUS_META: Record<QualificationStatus, { bg: string; border: string; color: string; icon: string; label: string }> = {
+  matched: { bg: "#ECFDF3", border: "#ABEFC6", color: "#067647", icon: "la la-star", label: "Matched" },
+  partial: { bg: "#FFFAEB", border: "#FEDF89", color: "#A15C07", icon: "la la-thumbs-up", label: "Partially Matched" },
+  missing: { bg: "#FEF3F2", border: "#FECDCA", color: "#B42318", icon: "la la-question-circle", label: "Missing" },
 };
 
 const TABS: { key: AnalysisTab; label: string }[] = [
@@ -25,89 +25,172 @@ const TABS: { key: AnalysisTab; label: string }[] = [
 ];
 
 const PAGE_SIZE = 5;
+const RANKING_W = 200;
+
+// 1-based page list with ellipses, matching the Figma pattern (1 2 3 … 8 9 10).
+function getPages(total: number, cur: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const wanted = [1, 2, 3, total - 2, total - 1, total, cur - 1, cur, cur + 1].filter((p) => p >= 1 && p <= total);
+  const sorted = Array.from(new Set(wanted)).sort((a, b) => a - b);
+  const out: (number | "…")[] = [];
+  sorted.forEach((p, i) => {
+    if (i > 0 && p - (sorted[i - 1] as number) > 1) out.push("…");
+    out.push(p);
+  });
+  return out;
+}
+
+function StatusPill({ status }: { status: QualificationStatus }) {
+  const m = STATUS_META[status];
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: m.bg, border: `1px solid ${m.border}`, color: m.color, borderRadius: 8, padding: "4px 10px 4px 8px", fontSize: 14, fontWeight: 500, whiteSpace: "nowrap" }}>
+      <i className={m.icon} style={{ fontSize: 16 }} />
+      {m.label}
+    </span>
+  );
+}
 
 export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvAnalysisV2; onClose: () => void }) {
   const [tab, setTab] = useState<AnalysisTab>("all");
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(0); // 0-based
 
-  const summary = useMemo(() => summarizeBuckets(analysis.qualifications), [analysis.qualifications]);
-  const filtered = useMemo(() => filterQualificationsByTab(analysis.qualifications, tab), [analysis.qualifications, tab]);
+  const quals = analysis.qualifications;
+  const summary = useMemo(() => summarizeBuckets(quals), [quals]);
+  const counts = useMemo(
+    () => ({
+      all: quals.length,
+      matched: quals.filter((q) => q.status === "matched").length,
+      partial: quals.filter((q) => q.status === "partial").length,
+      missing: quals.filter((q) => q.status === "missing").length,
+    }),
+    [quals]
+  );
+  const filtered = useMemo(() => filterQualificationsByTab(quals, tab), [quals, tab]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const current = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
-
+  const currentRows = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const selectTab = (key: AnalysisTab) => { setTab(key); setPage(0); };
+
+  const headerCell: React.CSSProperties = { background: "#F8F9FC", borderBottom: "1px solid #E9EAEB", padding: "12px 24px", fontSize: 12, fontWeight: 700, color: "#717680" };
+  const bodyCell: React.CSSProperties = { padding: "16px 24px", display: "flex", alignItems: "center" };
 
   return (
     <div className="modal-background fade-in-bottom">
       <div className="modal-container">
-        <div className="modal-content" style={{ background: "#fff", borderRadius: 14, padding: 24, maxWidth: 900, width: "90vw", maxHeight: "85vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div className="modal-content" style={{ background: "#fff", borderRadius: 14, padding: 24, maxWidth: 900, width: "92vw", maxHeight: "88vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: "#181D27" }}>View Analysis</h3>
             <button aria-label="Close" onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer" }}>
               <i className="la la-times" style={{ fontSize: 20, color: "#717680" }} />
             </button>
           </div>
 
-          <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <MatchScoreDonut score={analysis.matchScore} />
-              <QualificationBadges summary={summary} />
-            </div>
+          {/* Top summary: ring + badges + overall summary */}
+          <div style={{ display: "flex", gap: 40, alignItems: "center", flexWrap: "wrap" }}>
+            <MatchScoreDonut score={analysis.matchScore} size={140} />
+            <QualificationBadges summary={summary} />
             <div style={{ flex: 1, minWidth: 240 }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: "#181D27" }}>Overall Summary</span>
-              <p style={{ fontSize: 14, color: "#475467", lineHeight: 1.6, marginTop: 8 }}>{analysis.summary}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 500, color: "#181D27" }}>Overall Summary</span>
+                {analysis.overallFit && (
+                  <span style={{ background: "#ECFDF3", border: "1px solid #ABEFC6", color: "#067647", borderRadius: 8, padding: "4px 10px", fontSize: 14, fontWeight: 500 }}>{analysis.overallFit}</span>
+                )}
+              </div>
+              <p style={{ fontSize: 16, color: "#414651", lineHeight: "24px", marginTop: 8 }}>{analysis.summary}</p>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 8, borderBottom: "1px solid #EAECF0", flexWrap: "wrap" }}>
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => selectTab(t.key)}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  padding: "8px 12px",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: tab === t.key ? "#6941C6" : "#717680",
-                  borderBottom: tab === t.key ? "2px solid #6941C6" : "2px solid transparent",
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
+          {/* Tabs with count chips */}
+          <div style={{ display: "flex", borderBottom: "1px solid #E9EAEB", flexWrap: "wrap" }}>
+            {TABS.map((t) => {
+              const active = tab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => selectTab(t.key)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    padding: 12,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: active ? "#414651" : "#717680",
+                    borderBottom: active ? "2px solid #181D27" : "2px solid transparent",
+                  }}
+                >
+                  {t.label}
+                  <span style={{ background: "#fff", border: "1px solid #D5D7DA", borderRadius: 6, padding: "2px 6px", fontSize: 12, fontWeight: 500, color: "#414651", boxShadow: "0px 1px 1px rgba(10,13,18,0.05)", lineHeight: "18px" }}>
+                    {counts[t.key]}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          {current.length === 0 ? (
-            <div style={{ padding: 32, textAlign: "center", color: "#667085", fontSize: 14 }}>No qualifications in this category.</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {current.map((q, i) => {
-                const s = STATUS_STYLE[q.status];
-                return (
-                  <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderBottom: "1px solid #F2F4F7" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: s.bg, border: `1px solid ${s.stroke}`, color: s.color, borderRadius: 6, padding: "2px 10px", fontSize: 12, fontWeight: 600, height: "fit-content", whiteSpace: "nowrap" }}>
-                      {s.label}
-                    </span>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#181D27" }}>{q.text}</div>
-                      <div style={{ fontSize: 13, color: "#475467", marginTop: 2 }}>{q.evidence}</div>
-                    </div>
+          {/* Table */}
+          <div style={{ border: "1px solid #E9EAEB", borderRadius: 16, overflow: "hidden", boxShadow: "0px 1px 2px rgba(10,13,18,0.05)" }}>
+            {/* Header row */}
+            <div style={{ display: "flex" }}>
+              <div style={{ ...headerCell, width: RANKING_W, flexShrink: 0 }}>Ranking</div>
+              <div style={{ ...headerCell, flex: 1 }}>Qualification Assessment</div>
+            </div>
+            {/* Body rows */}
+            {currentRows.length === 0 ? (
+              <div style={{ padding: 32, textAlign: "center", color: "#717680", fontSize: 14 }}>No qualifications in this category.</div>
+            ) : (
+              currentRows.map((q, i) => (
+                <div key={i} style={{ display: "flex", borderBottom: "1px solid #E9EAEB" }}>
+                  <div style={{ ...bodyCell, width: RANKING_W, flexShrink: 0 }}>
+                    <StatusPill status={q.status} />
                   </div>
-                );
-              })}
+                  <div style={{ ...bodyCell, flex: 1, flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "#181D27" }}>{q.text}</span>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "#717680" }}>{q.evidence}</span>
+                  </div>
+                </div>
+              ))
+            )}
+            {/* Pagination */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #E9EAEB", padding: "12px 24px" }}>
+              <button
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: `1px solid ${page === 0 ? "#E9EAEB" : "#D5D7DA"}`, borderRadius: 8, padding: "8px 14px", cursor: page === 0 ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700, color: page === 0 ? "#D5D7DA" : "#414651" }}
+              >
+                <i className="la la-arrow-left" style={{ fontSize: 18 }} /> Previous
+              </button>
+              <div style={{ display: "flex", gap: 2 }}>
+                {getPages(pageCount, page + 1).map((p, i) =>
+                  p === "…" ? (
+                    <span key={`e${i}`} style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", color: "#717680", fontSize: 14 }}>…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p - 1)}
+                      style={{ width: 40, height: 40, borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, background: page + 1 === p ? "#F8F9FC" : "transparent", color: page + 1 === p ? "#535862" : "#717680" }}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+              </div>
+              <button
+                disabled={page >= pageCount - 1}
+                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: `1px solid ${page >= pageCount - 1 ? "#E9EAEB" : "#D5D7DA"}`, borderRadius: 8, padding: "8px 14px", cursor: page >= pageCount - 1 ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700, color: page >= pageCount - 1 ? "#D5D7DA" : "#414651" }}
+              >
+                Next <i className="la la-arrow-right" style={{ fontSize: 18 }} />
+              </button>
             </div>
-          )}
+          </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))} style={{ border: "1px solid #D5D7DA", borderRadius: 8, background: "#fff", padding: "6px 12px", cursor: page === 0 ? "not-allowed" : "pointer", opacity: page === 0 ? 0.5 : 1 }}>Prev</button>
-              <span style={{ fontSize: 13, color: "#717680", alignSelf: "center" }}>{page + 1} / {pageCount}</span>
-              <button disabled={page >= pageCount - 1} onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} style={{ border: "1px solid #D5D7DA", borderRadius: 8, background: "#fff", padding: "6px 12px", cursor: page >= pageCount - 1 ? "not-allowed" : "pointer", opacity: page >= pageCount - 1 ? 0.5 : 1 }}>Next</button>
-            </div>
-            <button onClick={onClose} style={{ background: "#181D27", color: "#fff", borderRadius: 60, border: "none", padding: "10px 24px", cursor: "pointer", fontWeight: 600 }}>Done</button>
+          {/* Footer */}
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button onClick={onClose} style={{ background: "#181D27", color: "#fff", borderRadius: 60, border: "none", padding: "10px 28px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Done</button>
           </div>
         </div>
       </div>

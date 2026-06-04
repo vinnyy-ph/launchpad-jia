@@ -16,7 +16,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild } from "@/lib/utils/pipelineReport";
 
 export default function RecruiterPipelineReport({ projectId }: { projectId?: string }) {
     const searchParams = useSearchParams();
@@ -50,6 +50,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
     const sortByOptions = ["Position Name (A-Z)", "Position Name (Z-A)", "Project Name (A-Z)", "Project Name (Z-A)"];
     const [isLoadingFullReport, setIsLoadingFullReport] = useState(false);
     const [isFullscreenView, setIsFullscreenView] = useState(false);
+    const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>({});
 
     const {
         isViewStateReady,
@@ -115,6 +116,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
 
     const handleDownloadCSV = async () => {
         const formattedData = await getFullPipelineReport();
+        if (!formattedData) return;
         const newHeaders = [...formattedData.columnHeaders];
         const statusIdx = newHeaders.indexOf("Status");
         if (statusIdx !== -1) newHeaders.splice(statusIdx, 1, "Published Status", "Activity Status", "Job Post Type");
@@ -132,7 +134,8 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 return row.metadata.jobPostType;
             }
             if (header === "Job Title") {
-                return row[header]?.replace(/,/g, "");
+                const t = typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
+                return t.replace(/,/g, "");
             }
             return row[header];
         }).join(",")).join("\n");
@@ -223,7 +226,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 ...columnVisibility,
                 stages: updatedStages,
                 offerStages: updatedOfferStages,
-            }, response.data.careers);
+            }, response.data.careers, { allRows: true });
             return formattedData;
         } catch (error) {
             console.error(error);
@@ -233,19 +236,51 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         }
     }
 
-    const getTableData = (columnVisibility: any, pipelineReport: any[]) => {
+    const getTableData = (columnVisibility: any, pipelineReport: any[], opts?: { allRows?: boolean }) => {
         const formattedStages = getFormattedStages(columnVisibility);
         const enabledOthers = (Object.keys(columnVisibility.otherColumns || {}) as string[])
             .filter((k) => columnVisibility.otherColumns[k]);
         const headers = ["#", "Project", "Job Title", "Job Owner", "Status",
             ...formattedStages.map((stage) => stage.label), ...enabledOthers];
+        const grouped = groupByParentChild(pipelineReport);
+        const visible = opts?.allRows ? grouped : grouped.filter((r) => r.depth === 0 || expandedParents[r.parentId!]);
         return {
             columnHeaders: headers,
-            rows: pipelineReport.map((item: any, i: number) => {
+            rows: visible.map((r, i) => {
+                const item = r.career;
+                const isParent = r.depth === 0 && r.childCount > 0;
+                const titleCell = (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, paddingLeft: r.depth === 1 ? 24 : 0 }}>
+                        {isParent && (
+                            <img
+                                src="/iconsV3/chevron-down.svg"
+                                alt=""
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setExpandedParents((p) => ({ ...p, [String(item.id)]: !p[String(item.id)] }));
+                                }}
+                                style={{
+                                    width: 12,
+                                    height: 7,
+                                    cursor: "pointer",
+                                    transform: expandedParents[String(item.id)] ? "none" : "rotate(-90deg)",
+                                    transition: "transform 0.2s ease",
+                                }}
+                            />
+                        )}
+                        <span>{item.jobTitle || "-"}</span>
+                        {isParent && (
+                            <span style={{ fontSize: 12, color: "#717680" }}>
+                                {r.childCount} child post{r.childCount > 1 ? "s" : ""}
+                            </span>
+                        )}
+                    </span>
+                );
                 return {
                     "#": i + 1,
                     "Project": item.projectName || "-",
-                    "Job Title": item.jobTitle || "-",
+                    "Job Title": titleCell,
                     "Job Owner": <JobOwner career={item} />,
                     "Status": <CareerStatusBadges career={item} />,
                     ...getStageCounts(formattedStages, item, columnVisibility.type),
@@ -257,10 +292,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                         publishedStatus: item.status === "active" ? "Published" : "Unpublished",
                         activityStatus: item.activityStatus,
                         jobPostType: item.jobPostType ? item.jobPostType?.charAt(0)?.toUpperCase() + item.jobPostType?.slice(1) : "-",
-                    }
-                }
+                    },
+                };
             }),
-        }
+        };
     }
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%" }}>

@@ -835,7 +835,7 @@ export default function CandidateCVAnalysis({
                                                 )}
                                             </div>
                                             {interview.cvAnalysisV2 ? (
-                                                <EvaluationByJiaV2 analysis={interview.cvAnalysisV2} jobTitle={interview.jobTitle} />
+                                                <EvaluationByJiaV2 analysis={interview.cvAnalysisV2} />
                                             ) : (
                                                 <div style={{ fontSize: 16, color: "#414651", fontWeight: 500 }}>
                                                     <p

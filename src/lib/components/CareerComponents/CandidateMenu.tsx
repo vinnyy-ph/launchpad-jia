@@ -783,6 +783,13 @@ export default function CandidateMenu({
                                 interview={candidate}
                               />
                             )}
+                            {cvAnalysis?.cvAnalysisV2 ? (
+                              <EvaluationByJiaV2
+                                analysis={cvAnalysis.cvAnalysisV2}
+                                onRegenerate={regenerateCV}
+                                regenerating={regenerateCVLoading}
+                              />
+                            ) : (
                             <div
                               style={{
                                 border: "1px solid #E9EAEB",
@@ -839,7 +846,7 @@ export default function CandidateMenu({
                                   >
                                     Evaluation by JIA
                                   </span>
-                                  {!cvAnalysis?.cvAnalysisV2 && cvAnalysis?.cvStatus && (
+                                  {cvAnalysis?.cvStatus && (
                                     <CareerFit
                                       fit={cvAnalysis?.cvStatus}
                                       assessment={cvAnalysis?.cvScreeningReason}
@@ -866,8 +873,6 @@ export default function CandidateMenu({
                                   text="Regenerating CV Analysis..."
                                   subtext="Jia is regenerating the CV Analysis..."
                                 />
-                              ) : cvAnalysis?.cvAnalysisV2 ? (
-                                <EvaluationByJiaV2 analysis={cvAnalysis.cvAnalysisV2} />
                               ) : (
                                 <p
                                 className="markdown-content"
@@ -877,6 +882,7 @@ export default function CandidateMenu({
                                 />
                               )}
                             </div>
+                            )}
                           </div>
                         ) : (
                           <div

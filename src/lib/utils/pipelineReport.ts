@@ -1,6 +1,6 @@
 import { isChildCareer } from "./careerHierarchy";
 
-export type ColumnMode = "Show per stage" | "Show per substage";
+export type ColumnMode = "Show per stage" | "Show per sub-stage";
 
 export interface FormattedStage {
   label: string;

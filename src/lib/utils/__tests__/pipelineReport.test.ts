@@ -70,7 +70,7 @@ describe("getFormattedStages + getStageCounts", () => {
   });
 
   it("per-sub-stage: one column per substage with correct counts", () => {
-    const cv = colVis({ type: "Show per substage" });
+    const cv = colVis({ type: "Show per sub-stage" });
     const fs = getFormattedStages(cv);
     expect(fs.map((s) => s.label)).toEqual([
       "CV Screening - Waiting Submission", "CV Screening - For Review", "Job Offer - For Final Review",

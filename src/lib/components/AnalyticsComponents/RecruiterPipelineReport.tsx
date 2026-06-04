@@ -16,7 +16,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue } from "@/lib/utils/pipelineReport";
 
 export default function RecruiterPipelineReport({ projectId }: { projectId?: string }) {
     const searchParams = useSearchParams();
@@ -44,6 +44,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         includeDroppedCandidates: false,
         stages: [],
         offerStages: [],
+        otherColumns: { "Created Date": false, "Headcount": false, "Notes": false } as Record<string, boolean>,
     });
     const [sortBy, setSortBy] = useState<string>("Position Name (A-Z)");
     const sortByOptions = ["Position Name (A-Z)", "Position Name (Z-A)", "Project Name (A-Z)", "Project Name (Z-A)"];
@@ -98,6 +99,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     includeDroppedCandidates: false,
                     stages: stages,
                     offerStages: offerStages,
+                    otherColumns: { "Created Date": false, "Headcount": false, "Notes": false },
                 });
             } catch (error) {
                 console.error(error);
@@ -113,8 +115,9 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
 
     const handleDownloadCSV = async () => {
         const formattedData = await getFullPipelineReport();
-        let newHeaders = formattedData.columnHeaders;
-        newHeaders.splice(3, 1, "Published Status", "Activity Status", "Job Post Type");
+        const newHeaders = [...formattedData.columnHeaders];
+        const statusIdx = newHeaders.indexOf("Status");
+        if (statusIdx !== -1) newHeaders.splice(statusIdx, 1, "Published Status", "Activity Status", "Job Post Type");
         const csvContent = `${newHeaders.join(",")}` + "\n" + formattedData.rows.map((row: any) => newHeaders.map((header: any) => {
             if (header === "Job Owner") {
                 return row.metadata.jobOwner.name;
@@ -146,7 +149,8 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         const formattedData = await getFullPipelineReport();
         if (!formattedData) return;
         const headers = [...formattedData.columnHeaders];
-        headers.splice(3, 1, "Published Status", "Activity Status", "Job Post Type");
+        const statusIdx = headers.indexOf("Status");
+        if (statusIdx !== -1) headers.splice(statusIdx, 1, "Published Status", "Activity Status", "Job Post Type");
         const aoa = [
             headers,
             ...formattedData.rows.map((row: any) => headers.map((header: string) => {
@@ -231,18 +235,24 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
 
     const getTableData = (columnVisibility: any, pipelineReport: any[]) => {
         const formattedStages = getFormattedStages(columnVisibility);
-        const headers = ["Project", "Job Title", "Job Owner", "Status", ...formattedStages.map((stage) => stage.label)];
+        const enabledOthers = (Object.keys(columnVisibility.otherColumns || {}) as string[])
+            .filter((k) => columnVisibility.otherColumns[k]);
+        const headers = ["#", "Project", "Job Title", "Job Owner", "Status",
+            ...formattedStages.map((stage) => stage.label), ...enabledOthers];
         return {
             columnHeaders: headers,
-            rows: pipelineReport.map((item: any) => {
+            rows: pipelineReport.map((item: any, i: number) => {
                 return {
+                    "#": i + 1,
                     "Project": item.projectName || "-",
                     "Job Title": item.jobTitle || "-",
                     "Job Owner": <JobOwner career={item} />,
                     "Status": <CareerStatusBadges career={item} />,
                     ...getStageCounts(formattedStages, item, columnVisibility.type),
+                    ...Object.fromEntries(enabledOthers.map((k) => [k, getExtraColumnValue(item, k as any)])),
                     metadata: {
                         _id: item._id,
+                        jobTitle: item.jobTitle || "-",
                         jobOwner: item.teamMembers?.find((member: any) => member.role === "Job Owner") || item.createdBy,
                         publishedStatus: item.status === "active" ? "Published" : "Unpublished",
                         activityStatus: item.activityStatus,
@@ -339,8 +349,11 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
 function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCustomizeColumnModalOpen }: { columnVisibility: any, setColumnVisibility: (value: any) => void, setIsCustomizeColumnModalOpen: (value: boolean) => void }) {
     const [activeTab, setActiveTab] = useState(columnVisibility.type);
     const [includeDroppedCandidates, setIncludeDroppedCandidates] = useState(columnVisibility.includeDroppedCandidates);
-    const tabOptions = ["Show per stage", "Show per substage"];
+    const tabOptions = ["Show per stage", "Show per sub-stage"];
     const [careerPipelineStages, setCareerPipelineStages] = useState<any>([]);
+    const [otherColumns, setOtherColumns] = useState<Record<string, boolean>>(
+        columnVisibility.otherColumns || { "Created Date": false, "Headcount": false, "Notes": false }
+    );
 
     useEffect(() => {
         if (columnVisibility) {
@@ -500,6 +513,17 @@ function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCust
                     )}
                     </div>
                     
+                    <div style={{ width: "100%", textAlign: "left" }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: "#181D27" }}>Others</span>
+                        {Object.keys(otherColumns).map((key) => (
+                            <div key={key} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+                                <input type="checkbox" className="custom-checkbox" checked={otherColumns[key]}
+                                    onChange={() => setOtherColumns((p) => ({ ...p, [key]: !p[key] }))} />
+                                <span style={{ fontSize: 14, fontWeight: 500, color: "#181D27" }}>{key}</span>
+                            </div>
+                        ))}
+                    </div>
+
                     <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 16 }}>
                         <Button variant="secondary" style={{ width: "50%" }} onClick={() => setIsCustomizeColumnModalOpen(false)} label="Cancel" />
                         <Button variant="primary" style={{ width: "50%" }} onClick={() => {
@@ -508,6 +532,7 @@ function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCust
                                 ...prev,
                                 type: activeTab,
                                 includeDroppedCandidates: includeDroppedCandidates,
+                                otherColumns,
                                 stages: prev.stages.map((stage: any) => ({
                                     ...stage,
                                     enabled: careerPipelineStages.find((s: any) => s.label === stage.label)?.enabled,

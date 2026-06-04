@@ -778,6 +778,18 @@ export default function CandidateCVAnalysis({
     {(includeEvaluationCard || showPreScreeningAnswers) && (
         <div className={styles.cvAnalysisContainer}>
             {includeEvaluationCard && (
+                !regenerateLoading && activeInterviews?.length > 0 && activeInterviews.some((i: any) => i.cvAnalysisV2) ? (
+                    activeInterviews
+                        .filter((i: any) => i.cvAnalysisV2)
+                        .map((interview: any) => (
+                            <EvaluationByJiaV2
+                                key={interview._id || interview.id || interview.interviewID}
+                                analysis={interview.cvAnalysisV2}
+                                onRegenerate={regenerateCV}
+                                regenerating={regenerateLoading}
+                            />
+                        ))
+                ) : (
                 <div className="layered-card-outer">
                     <div className="layered-card-middle" style={{ padding: 10 }}>
                         <div className={styles.evaluationHeader}>
@@ -858,6 +870,7 @@ export default function CandidateCVAnalysis({
                         </div>
                     </div>
                 </div>
+                )
             )}
 
             {showPreScreeningAnswers && (

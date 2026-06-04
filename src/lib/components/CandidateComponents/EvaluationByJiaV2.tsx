@@ -38,7 +38,7 @@ export default function EvaluationByJiaV2({
   const summary = useMemo(() => summarizeBuckets(analysis.qualifications), [analysis.qualifications]);
 
   return (
-    <div style={{ background: "#F8F9FC", borderRadius: 16, padding: 8, display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
+    <div style={{ background: "#FFFCF5", borderRadius: 16, padding: 8, display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
       {/* Card heading wrapper */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 12px", flexWrap: "wrap" }}>
         <img src="/jia-dashboard-logo.png" alt="Jia" style={{ width: 32, height: 32, borderRadius: 16, objectFit: "contain", flexShrink: 0 }} />

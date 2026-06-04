@@ -31,7 +31,13 @@ Read-only from `GET /api/get-pipeline-report` (unchanged). Each career is return
 
 ## Columns
 
-Fixed: `#`, **Project**, **Job Title** (links to the career, expandable for parents), **Job Owner**, **Status** (status-badge cluster). Then dynamic stage count columns, then optional **Headcount** (`career.headcount`), **Created Date** (`career.createdAt`, shown as **relative time**, e.g. "2w ago" — JIA-431), **Notes**.
+Fixed (left→right): `#`, **Job Title** (links to the career, expandable for parents), **Project**, **Job Owner**, **Status** (status-badge cluster). Then dynamic stage count columns, then optional **Headcount** (`career.headcount`), **Created Date** (`career.createdAt`, shown as **relative time**, e.g. "2w ago" — JIA-431), **Notes**.
+
+The default-visible stage columns are **CV Screening**, **AI Interview**, **HR Interview**, **Job Offer**. The underlying `Human Interview` stage is rendered under the display label **HR Interview** (via `TableMetric`'s additive `columnLabels` map) without changing the stage key used for bucketing/aggregation.
+
+### Sorting
+
+The headers **Job Title**, **Project**, **Job Owner**, **AI Interview**, and **HR Interview** are sortable. Each shows a stacked up/down chevron indicator; clicking anywhere on the header label cycles **ascending → descending → unsorted**, and the active direction is highlighted. Sorting is client-side over the aggregated rows (`sortColumn`/`sortDir` in `RecruiterPipelineReport`, with stage columns keyed on the combined per-stage total). **Parent-child integrity is preserved** — children sort with (stay grouped under) their parent, and row numbers recompute after each sort.
 
 ### Notes (recruiter-only)
 
@@ -41,7 +47,7 @@ A recruiter can **add a note** to a career via the "Add a note" modal (opened fr
 
 Toggled in the Customize Columns modal.
 
-- **Per-stage:** one count column per stage = sum of that stage's substage `candidates`. Hovering a stage **count cell** shows a tooltip with that row's substage breakdown (e.g. `Waiting Submission: 42 / For Review: 57`) — JIA-431.
+- **Per-stage:** one count column per stage = sum of that stage's substage `candidates`. Hovering a stage **count cell** shows a tooltip with that row's substage breakdown (e.g. `Waiting Submission: 42 / For Review: 57`) — JIA-431. The tooltip uses the **light Figma theme** (white background, dark bold stage title, muted substage values, soft shadow, 1px light-gray border).
 - **Per-sub-stage:** one column per substage.
 
 Canonical stages are derived from the data (`DEFAULT_JOB_PIPELINE` core stages first — CV Screening, AI Interview, Human Interview, Job Offer — then custom stages such as "Transferred"). Each column can be shown/hidden.
@@ -52,7 +58,7 @@ The "Show dropped per stage" switch adds a `Dropped from <stage|substage>` colum
 
 ## Parent-child rows
 
-Careers can have child posts (`parentCareerID`; `isChildCareer` / `isParentCareer` in `careerHierarchy.ts`). Per JIA-431 ("Combine data from Child and Parent Post"), a **parent row's stage counts combine** the parent's own candidates with all of its child posts' candidates (`combineTimelineStages`), so the parent shows the full funnel (e.g. CV Screening → Job Offer) even when early and later stages live on different posts. Children remain nested + expandable ("N child posts") for the per-post breakdown. Standalone careers and orphan children render as single rows. Exports include all rows.
+Careers can have child posts (`parentCareerID`; `isChildCareer` / `isParentCareer` in `careerHierarchy.ts`). Per JIA-431 ("Combine data from Child and Parent Post"), a **parent row's stage counts combine** the parent's own candidates with all of its child posts' candidates (`combineTimelineStages`), so the parent shows the full funnel (e.g. CV Screening → Job Offer) even when early and later stages live on different posts. Children remain nested + expandable ("N child posts") for the per-post breakdown. Expanded children are **numbered `parent.child`** (e.g. `1.1`, `1.2`), left-indented, and prefixed with a muted ↳ corner-down-right glyph. Standalone careers and orphan children render as single rows. Exports include all rows.
 
 ## Controls
 
@@ -61,7 +67,8 @@ Careers can have child posts (`parentCareerID`; `isChildCareer` / `isParentCaree
 - **Column drag-to-reorder:** native HTML5 drag on the header (matches the app's existing reorder pattern in `PipelineStageBuilder`). Fixed columns (`#`, Project, Job Title, Job Owner, Status) don't move.
 - **Lock/pin + hide:** header-hover dropdown (`Pin` / `Hide Column`); pinned columns stay sticky during horizontal scroll.
 - **Fullscreen:** CSS overlay; ESC exits; one-time "Controls Hidden" reminder.
-- **Export:** CSV (manual) + XLSX (sheetjs), full report respecting filters + visible columns + mode. Filename `<Org>-Pipeline-Report-<date>.{csv,xlsx}`.
+- **Export:** CSV (manual) + XLSX (sheetjs), full report respecting filters + visible columns + mode. Filename `<Org>-Pipeline-Report-<date>.{csv,xlsx}`. Rendered as a **solid dark (near-black) button** with a white label and a leading icon, per Figma.
+- **Pagination:** `1 - N of M` summary with prev/next chevron buttons; both are **disabled at their boundaries** (prev on page 1, next on the last page).
 
 ## Persistence
 
@@ -88,3 +95,4 @@ Loading (skeleton via `TableLoader`), empty (`NoDataAvailable`), error (toast on
 
 - JIA-379 (full screen + lock row/col): node `13865:1374`
 - JIA-431 (parent-child, new columns, customize): node `14617:8070`
+- Fidelity pass (column order, HR Interview label, sortable headers, light tooltip, dark Export, pagination, child numbering): node `14617:10564`. The redundant "Sort by: Position Name (A-Z)" toolbar dropdown was removed in favour of the per-column sort headers.

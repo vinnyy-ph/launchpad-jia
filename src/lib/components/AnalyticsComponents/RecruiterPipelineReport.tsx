@@ -50,6 +50,16 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
     const sortByOptions = ["Position Name (A-Z)", "Position Name (Z-A)", "Project Name (A-Z)", "Project Name (Z-A)"];
     const [isLoadingFullReport, setIsLoadingFullReport] = useState(false);
     const [isFullscreenView, setIsFullscreenView] = useState(false);
+    const [sortColumn, setSortColumn] = useState<string | null>(null);
+    const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
+    const onSort = (column: string) => {
+        if (sortColumn !== column) { setSortColumn(column); setSortDir("asc"); }
+        else if (sortDir === "asc") setSortDir("desc");
+        else { setSortColumn(null); setSortDir(null); }
+    };
+    // Display-only header rename (data stage stays "Human Interview"); sortable header set.
+    const DISPLAY_LABEL: Record<string, string> = { "Human Interview": "HR Interview" };
+    const SORTABLE_COLUMNS = ["Job Title", "Project", "Job Owner", "AI Interview", "Human Interview"];
     const [noteModalCareer, setNoteModalCareer] = useState<any>(null);
     const openNoteModal = (career: any) => setNoteModalCareer(career);
     const saveNote = async (career: any, note: string) => {
@@ -260,10 +270,46 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         const formattedStages = getFormattedStages(columnVisibility);
         const enabledOthers = (Object.keys(columnVisibility.otherColumns || {}) as string[])
             .filter((k) => columnVisibility.otherColumns[k]);
-        const headers = ["#", "Project", "Job Title", "Job Owner", "Status",
+        const headers = ["#", "Job Title", "Project", "Job Owner", "Status",
             ...formattedStages.map((stage) => stage.label), ...enabledOthers];
         const grouped = groupByParentChild(pipelineReport);
-        const visible = opts?.allRows ? grouped : grouped.filter((r) => r.depth === 0 || expandedParents[r.parentId!]);
+        // Group into top-level units (parent + its children) so sorting keeps children nested.
+        const units: { parent: any; children: any[] }[] = [];
+        for (const r of grouped) {
+            if (r.depth === 0) units.push({ parent: r, children: [] });
+            else units[units.length - 1]?.children.push(r);
+        }
+        if (sortColumn && sortDir) {
+            const ownerName = (it: any) => ((it.teamMembers?.find((m: any) => m.role === "Job Owner") || it.createdBy)?.name || "").toLowerCase();
+            const stageTotal = (u: any) => {
+                const it = u.parent.career;
+                const tl = u.parent.childCount > 0 ? combineTimelineStages([it, ...(u.parent.childCareers || [])]) : it.timelineStages;
+                const st = (tl || []).find((s: any) => s.name === sortColumn);
+                return st ? st.substages.reduce((a: number, s: any) => a + (s.candidates?.length || 0), 0) : 0;
+            };
+            const keyOf = (u: any) => {
+                const it = u.parent.career;
+                if (sortColumn === "Job Title") return (it.jobTitle || "").toLowerCase();
+                if (sortColumn === "Project") return (it.projectName || "").toLowerCase();
+                if (sortColumn === "Job Owner") return ownerName(it);
+                return stageTotal(u);
+            };
+            units.sort((a, b) => {
+                const ka: any = keyOf(a), kb: any = keyOf(b);
+                const cmp = typeof ka === "number" ? ka - kb : String(ka).localeCompare(String(kb));
+                return sortDir === "asc" ? cmp : -cmp;
+            });
+        }
+        const visible: any[] = [];
+        let topCounter = 0;
+        for (const u of units) {
+            topCounter++;
+            u.parent.displayIndex = String(topCounter);
+            visible.push(u.parent);
+            if (opts?.allRows || expandedParents[String(u.parent.career.id)]) {
+                u.children.forEach((c: any, ci: number) => { c.displayIndex = `${topCounter}.${ci + 1}`; visible.push(c); });
+            }
+        }
         const isPerStage = columnVisibility.type === "Show per stage";
         const cellTooltips: Record<number, Record<string, React.ReactNode>> = {};
         return {
@@ -278,6 +324,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     : item;
                 const titleCell = (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 8, paddingLeft: r.depth === 1 ? 24 : 0 }}>
+                        {r.depth === 1 && <span style={{ color: "#717680", fontSize: 14 }} aria-hidden>↳</span>}
                         {isParent && (
                             <img
                                 src="/iconsV3/chevron-down.svg"
@@ -312,10 +359,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                         const st = (countsCareer.timelineStages || []).find((s: any) => s.name === fs.label);
                         if (!st) continue;
                         tips[fs.label] = (
-                            <div style={{ fontSize: 12, lineHeight: 1.6 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 2 }}>{fs.label}</div>
+                            <div style={{ fontSize: 12, lineHeight: "18px" }}>
+                                <div style={{ fontWeight: 700, color: "#181D27", marginBottom: 2 }}>{DISPLAY_LABEL[fs.label] ?? fs.label}</div>
                                 {(st.substages || []).map((sub: any) => (
-                                    <div key={sub.name}>{sub.name}: {sub.candidates?.length || 0}</div>
+                                    <div key={sub.name} style={{ color: "#414651" }}>{sub.name}: {sub.candidates?.length || 0}</div>
                                 ))}
                             </div>
                         );
@@ -332,7 +379,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     </span>
                 );
                 return {
-                    "#": i + 1,
+                    "#": (r as any).displayIndex || String(i + 1),
                     "Project": item.projectName || "-",
                     "Job Title": titleCell,
                     "Job Owner": <JobOwner career={item} />,
@@ -376,13 +423,6 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
 
                 {/* Filters */}
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                    <CustomDropdown 
-                        value={sortBy} 
-                        setValue={(value) => setSortBy(value)} 
-                        options={sortByOptions}
-                        suffixIconJsx={<img src="/iconsV3/chevron-down.svg" alt="Chevron down" style={{ width: 12, height: 7 }} />}
-                        iconJsx={<img src="/iconsV3/sortV2.svg" alt="Sort" style={{ width: 16, height: 16 }} />} valuePrefix="Sort by:" 
-                    />
                     <MultiFilterDropdown
                         filterTypes={["careerStatuses", "jobOwners", "projects", "contributors", "careers", "hiringManagers"]}
                         setOptions={(value) => {
@@ -407,13 +447,14 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                         options={["Export as CSV", "Export as XLSX"]}
                         iconJsx={<img src="/icons/download-cloud.svg" alt="Export" style={{ width: 16, height: 16 }} />}
                         suffixIconJsx={<img src="/iconsV3/chevron-down.svg" alt="" style={{ width: 12, height: 7 }} />}
+                        buttonStyle={{ backgroundColor: "#181D27", color: "#FFFFFF", border: "1px solid #181D27", borderRadius: 8 }}
                         disabled={!pipelineReport || isLoading || totalCareers === 0}
                     />
                 {/* Pagination */}
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
                     <span>{limit * (page - 1) + 1} - {limit * page > totalCareers ? totalCareers : limit * page} of {totalCareers}</span>
-                    {page > 1 && <Button variant="secondary" onClick={() => setPage(page - 1)} label="" icon="/icons/arrow.svg" />}
-                    {page < Math.ceil(totalCareers / limit) && <Button variant="secondary" onClick={() => setPage(page + 1)} label="" icon="/icons/arrow.svg" iconStyle={{ transform: "rotate(180deg)" }} />}
+                    <Button variant="secondary" disabled={page <= 1} onClick={() => { if (page > 1) setPage(page - 1); }} label="" icon="/icons/arrow.svg" />
+                    <Button variant="secondary" disabled={page >= Math.ceil(totalCareers / limit)} onClick={() => { if (page < Math.ceil(totalCareers / limit)) setPage(page + 1); }} label="" icon="/icons/arrow.svg" iconStyle={{ transform: "rotate(180deg)" }} />
                 </div>
                 </div>
             </div>
@@ -446,6 +487,11 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     onColumnReorder={(o) => setColumnOrder(o)}
                     fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
                     getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
+                    columnLabels={DISPLAY_LABEL}
+                    sortableColumns={SORTABLE_COLUMNS}
+                    sortColumn={sortColumn}
+                    sortDir={sortDir}
+                    onSort={onSort}
                     instanceId="main"
                 /> : <NoDataAvailable />
             }
@@ -460,6 +506,11 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 onColumnReorder={(o) => setColumnOrder(o)}
                 fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
                 getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
+                columnLabels={DISPLAY_LABEL}
+                sortableColumns={SORTABLE_COLUMNS}
+                sortColumn={sortColumn}
+                sortDir={sortDir}
+                onSort={onSort}
                 instanceId="fullscreen"
             />}
         </div>

@@ -25,6 +25,15 @@ interface TableMetricProps {
     columnTooltips?: Record<string, React.ReactNode>;
     /** Per-cell tooltip (JIA-431): hovering a stage NUMBER shows its sub-stage breakdown. Returns a node for (column,rowIndex) or null/undefined. */
     getCellTooltip?: (column: string, rowIndex: number) => React.ReactNode;
+    /** Display-only header label overrides (e.g. { "Human Interview": "HR Interview" }). Cells/keys keep the real column name. */
+    columnLabels?: Record<string, string>;
+    /** Columns that show a click-to-sort affordance. */
+    sortableColumns?: string[];
+    /** Active sort column / direction (controlled by parent). */
+    sortColumn?: string | null;
+    sortDir?: "asc" | "desc" | null;
+    /** Fired when a sortable header is clicked. */
+    onSort?: (column: string) => void;
     /** Column names that may NOT be dragged (e.g. "#", "Project", "Job Title"). Default: []. */
     fixedColumns?: string[];
     /** Per-instance id prefix for tooltip ids so inline and fullscreen instances don't collide. Default: "main". */
@@ -38,6 +47,11 @@ export default function TableMetric({
     onColumnReorder,
     columnTooltips,
     getCellTooltip,
+    columnLabels,
+    sortableColumns,
+    sortColumn,
+    sortDir,
+    onSort,
     fixedColumns = [],
     instanceId = "main",
 }: TableMetricProps) {
@@ -204,7 +218,21 @@ export default function TableMetric({
                                 ) : (
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", gap: "8px" }}>
                                 <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                                {column}
+                                {sortableColumns?.includes(column) ? (
+                                    <span
+                                        onClick={(e) => { e.stopPropagation(); onSort?.(column); }}
+                                        style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", userSelect: "none" }}
+                                        aria-label={`Sort by ${column}`}
+                                    >
+                                        {columnLabels?.[column] ?? column}
+                                        <span style={{ display: "inline-flex", flexDirection: "column", lineHeight: 0, marginLeft: 2 }}>
+                                            <img src="/iconsV3/chevron-down.svg" alt="" style={{ width: 8, height: 5, transform: "rotate(180deg)", opacity: sortColumn === column && sortDir === "asc" ? 1 : 0.35 }} />
+                                            <img src="/iconsV3/chevron-down.svg" alt="" style={{ width: 8, height: 5, opacity: sortColumn === column && sortDir === "desc" ? 1 : 0.35 }} />
+                                        </span>
+                                    </span>
+                                ) : (
+                                    columnLabels?.[column] ?? column
+                                )}
                                 {hasTooltip && (
                                     <>
                                         <span
@@ -321,7 +349,14 @@ export default function TableMetric({
                                         {cellTip ? (
                                             <>
                                                 <span data-tooltip-id={cellTipId} style={{ cursor: "default" }}>{cellContent}</span>
-                                                <ReactTooltip id={cellTipId} place="top" clickable>{cellTip}</ReactTooltip>
+                                                <ReactTooltip
+                                                    id={cellTipId}
+                                                    place="top"
+                                                    variant="light"
+                                                    border="1px solid #E9EAEB"
+                                                    clickable
+                                                    style={{ borderRadius: 8, padding: 12, boxShadow: "0px 12px 16px -4px rgba(10,13,18,0.08), 0px 4px 6px -2px rgba(10,13,18,0.03), 0px 2px 2px -1px rgba(10,13,18,0.04)", color: "#414651", fontSize: 12, lineHeight: "18px", zIndex: 9999 }}
+                                                >{cellTip}</ReactTooltip>
                                             </>
                                         ) : cellContent}
                                     </td>

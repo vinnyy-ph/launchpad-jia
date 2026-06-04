@@ -23,6 +23,8 @@ interface TableMetricProps {
     onColumnReorder?: (newOrder: string[]) => void;
     /** Map of column name → React node shown in a portal tooltip on header hover. Only rendered when the column key exists. */
     columnTooltips?: Record<string, React.ReactNode>;
+    /** Per-cell tooltip (JIA-431): hovering a stage NUMBER shows its sub-stage breakdown. Returns a node for (column,rowIndex) or null/undefined. */
+    getCellTooltip?: (column: string, rowIndex: number) => React.ReactNode;
     /** Column names that may NOT be dragged (e.g. "#", "Project", "Job Title"). Default: []. */
     fixedColumns?: string[];
     /** Per-instance id prefix for tooltip ids so inline and fullscreen instances don't collide. Default: "main". */
@@ -35,6 +37,7 @@ export default function TableMetric({
     enableColumnReorder = false,
     onColumnReorder,
     columnTooltips,
+    getCellTooltip,
     fixedColumns = [],
     instanceId = "main",
 }: TableMetricProps) {
@@ -299,6 +302,8 @@ export default function TableMetric({
                                             </a>
                                         )
                                         : (row[column] !== undefined && row[column] !== null ? row[column] : "N/A");
+                                const cellTip = !hidden && getCellTooltip ? getCellTooltip(column, rowIndex) : null;
+                                const cellTipId = `tm-cell-tip-${instanceId}-${column.replace(/\s+/g, "-")}-${rowIndex}`;
                                 return (
                                     <td
                                         key={colIndex}
@@ -313,7 +318,12 @@ export default function TableMetric({
                                         }
                                         style={cellStyle}
                                     >
-                                        {cellContent}
+                                        {cellTip ? (
+                                            <>
+                                                <span data-tooltip-id={cellTipId} style={{ cursor: "default" }}>{cellContent}</span>
+                                                <ReactTooltip id={cellTipId} place="top" clickable>{cellTip}</ReactTooltip>
+                                            </>
+                                        ) : cellContent}
                                     </td>
                                 );
                             })}

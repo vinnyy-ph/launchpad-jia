@@ -26,17 +26,22 @@ Read-only from `GET /api/get-pipeline-report` (unchanged). Each career is return
 | `src/lib/utils/pipelineReport.ts` | Pure logic: `getReportStages`, `getFormattedStages`, `getStageCounts`, `groupByParentChild`, `buildPipelineReportParams`, `getExtraColumnValue`. No JSX/React. |
 | `src/lib/utils/__tests__/pipelineReport.test.ts` | Unit tests (aggregation, dropped, grouping, filter composition, extra columns). |
 | `src/lib/components/AnalyticsComponents/RecruiterPipelineReport.tsx` | The report: data fetch, filters, customize-columns modal, export, parent-child rows, column order/persistence, fullscreen. |
-| `src/lib/components/AnalyticsComponents/TableMetric.tsx` | Shared table; additive `enableColumnReorder` / `onColumnReorder` (native HTML5 drag), `columnTooltips`, `fixedColumns`, `instanceId`. |
+| `src/lib/components/AnalyticsComponents/TableMetric.tsx` | Shared table; additive `enableColumnReorder` / `onColumnReorder` (native HTML5 drag), `getCellTooltip` (per-cell stage-number tooltip), `fixedColumns`, `instanceId`. |
+| `src/app/api/update-career-note/route.ts` | Recruiter-gated note save (sets `career.notes`; org membership verified). |
 
 ## Columns
 
-Fixed: `#`, **Project**, **Job Title** (links to the career, expandable for parents), **Job Owner**, **Status** (status-badge cluster). Then dynamic stage count columns, then optional **Headcount** (`career.headcount`), **Created Date** (`career.createdAt`), **Notes**.
+Fixed: `#`, **Project**, **Job Title** (links to the career, expandable for parents), **Job Owner**, **Status** (status-badge cluster). Then dynamic stage count columns, then optional **Headcount** (`career.headcount`), **Created Date** (`career.createdAt`, shown as **relative time**, e.g. "2w ago" — JIA-431), **Notes**.
+
+### Notes (recruiter-only)
+
+A recruiter can **add a note** to a career via the "Add a note" modal (opened from the Notes column cell). The note is stored on the career (`career.notes`) through `POST /api/update-career-note` (recruiter-gated; org-membership verified) and is surfaced **only** in the recruiter pipeline report — no applicant-facing route reads it. The Notes column shows the note (or "Add note" when empty); exports use the raw note text.
 
 ### Per-stage vs per-sub-stage (default: per-stage)
 
 Toggled in the Customize Columns modal.
 
-- **Per-stage:** one count column per stage = sum of that stage's substage `candidates`. Hovering a stage header shows a tooltip with the substage breakdown.
+- **Per-stage:** one count column per stage = sum of that stage's substage `candidates`. Hovering a stage **count cell** shows a tooltip with that row's substage breakdown (e.g. `Waiting Submission: 42 / For Review: 57`) — JIA-431.
 - **Per-sub-stage:** one column per substage.
 
 Canonical stages are derived from the data (`DEFAULT_JOB_PIPELINE` core stages first — CV Screening, AI Interview, Human Interview, Job Offer — then custom stages such as "Transferred"). Each column can be shown/hidden.
@@ -47,7 +52,7 @@ The "Show dropped per stage" switch adds a `Dropped from <stage|substage>` colum
 
 ## Parent-child rows
 
-Careers can have child posts (`parentCareerID`; `isChildCareer` / `isParentCareer` in `careerHierarchy.ts`). Children nest under their parent (indented, "N child posts", expand/collapse). Standalone careers and orphan children render as top-level rows. Each row shows its own counts. Exports include all rows regardless of collapse state.
+Careers can have child posts (`parentCareerID`; `isChildCareer` / `isParentCareer` in `careerHierarchy.ts`). Per JIA-431 ("Combine data from Child and Parent Post"), a **parent row's stage counts combine** the parent's own candidates with all of its child posts' candidates (`combineTimelineStages`), so the parent shows the full funnel (e.g. CV Screening → Job Offer) even when early and later stages live on different posts. Children remain nested + expandable ("N child posts") for the per-post breakdown. Standalone careers and orphan children render as single rows. Exports include all rows.
 
 ## Controls
 

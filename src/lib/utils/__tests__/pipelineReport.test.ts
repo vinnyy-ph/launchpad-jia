@@ -1,6 +1,7 @@
 import {
   getReportStages, getFormattedStages, getStageCounts,
   groupByParentChild, buildPipelineReportParams, getExtraColumnValue,
+  combineTimelineStages, relativeTimeShort,
 } from "../pipelineReport";
 
 const career = (over: any = {}) => ({
@@ -92,6 +93,7 @@ describe("groupByParentChild", () => {
       ["Parent", 0], ["Child", 1], ["Standalone", 0],
     ]);
     expect(rows[0].childCount).toBe(1);
+    expect((rows[0].childCareers || []).map((c: any) => c.jobTitle)).toEqual(["Child"]);
   });
   it("treats an orphan child (parent absent) as depth 0", () => {
     const orphan = career({ id: "o1", parentCareerID: "missing" });
@@ -123,9 +125,50 @@ describe("buildPipelineReportParams", () => {
 });
 
 describe("getExtraColumnValue", () => {
-  it("formats created date, passes headcount, defaults missing notes", () => {
-    expect(getExtraColumnValue(career({ createdAt: "2026-01-10T00:00:00.000Z" }), "Created Date")).toMatch(/January.*2026/);
+  it("Created Date is relative time; headcount passed through; notes default to '-'", () => {
+    const threeDaysAgo = new Date(Date.now() - 3 * 864e5).toISOString();
+    expect(getExtraColumnValue(career({ createdAt: threeDaysAgo }), "Created Date")).toBe("3d ago");
     expect(getExtraColumnValue(career({ headcount: "5" }), "Headcount")).toBe("5");
     expect(getExtraColumnValue(career({ notes: undefined }), "Notes")).toBe("-");
+    expect(getExtraColumnValue(career({ notes: "urgent req" }), "Notes")).toBe("urgent req");
+  });
+});
+
+describe("relativeTimeShort (JIA-431 Created Date format)", () => {
+  it("formats deltas as compact relative strings", () => {
+    expect(relativeTimeShort(new Date(Date.now() - 30 * 1000))).toBe("just now");
+    expect(relativeTimeShort(new Date(Date.now() - 5 * 60 * 1000))).toBe("5m ago");
+    expect(relativeTimeShort(new Date(Date.now() - 3 * 3600 * 1000))).toBe("3h ago");
+    expect(relativeTimeShort(new Date(Date.now() - 2 * 864e5))).toBe("2d ago");
+    expect(relativeTimeShort(new Date(Date.now() - 14 * 864e5))).toBe("2w ago");
+    expect(relativeTimeShort(new Date(Date.now() - 60 * 864e5))).toBe("2mo ago");
+    expect(relativeTimeShort(null)).toBe("-");
+    expect(relativeTimeShort("not-a-date")).toBe("-");
+  });
+});
+
+describe("combineTimelineStages (JIA-431 parent+child combine)", () => {
+  it("unions stages/substages and concatenates candidates across the family", () => {
+    const parent = career(); // CV Screening (Waiting Submission 2) + Job Offer (For Final Review 3)
+    const child = career({ timelineStages: [
+      { id: "1", name: "CV Screening", substages: [
+        { id: "1", name: "Waiting Submission", candidates: [{}], droppedCandidates: [] },
+      ] },
+      { id: "3", name: "Human Interview", substages: [
+        { id: "3", name: "For Review", candidates: [{}, {}], droppedCandidates: [] },
+      ] },
+    ] });
+    const combined = combineTimelineStages([parent, child]);
+    const byName: any = Object.fromEntries(combined.map((s: any) => [s.name, s]));
+    const ws = byName["CV Screening"].substages.find((s: any) => s.name === "Waiting Submission");
+    expect(ws.candidates.length).toBe(3); // parent 2 + child 1
+    expect(byName["Human Interview"]).toBeTruthy(); // child-only stage merged in
+    expect(byName["Job Offer"]).toBeTruthy(); // parent-only stage retained
+    // combined per-stage count usable by getStageCounts via a synthetic career
+    const counts = getStageCounts(
+      getFormattedStages(colVis({ stages: getReportStages([parent, child]).stages, offerStages: getReportStages([parent, child]).offerStages })),
+      { timelineStages: combined }, "Show per stage"
+    );
+    expect(counts["CV Screening"]).toBe(4); // WS 3 + For Review 1
   });
 });

@@ -122,7 +122,7 @@ export function getStageCounts(formattedStages: FormattedStage[], item: any, typ
   }));
 }
 
-export interface ReportRowMeta { career: any; depth: 0 | 1; childCount: number; parentId?: string; }
+export interface ReportRowMeta { career: any; depth: 0 | 1; childCount: number; parentId?: string; childCareers?: any[]; }
 
 // Groups child careers (parentCareerID) under their parent. Standalone careers and
 // orphan children (parent not in result set) render at depth 0. Matches parent by id or _id.
@@ -144,10 +144,41 @@ export function groupByParentChild(careers: any[]): ReportRowMeta[] {
   const rows: ReportRowMeta[] = [];
   for (const p of top) {
     const kids = childrenByParent.get(String(p.id)) || [];
-    rows.push({ career: p, depth: 0, childCount: kids.length });
+    rows.push({ career: p, depth: 0, childCount: kids.length, childCareers: kids });
     for (const k of kids) rows.push({ career: k, depth: 1, childCount: 0, parentId: String(p.id) });
   }
   return rows;
+}
+
+// JIA-431 "Combine data from Child and Parent Post": merge the pipeline data of a
+// parent and its children so the parent row shows the full funnel (e.g. CV Screening
+// -> Job Offer) spanning the family. Unions stages by name and substages by name,
+// concatenating candidates / droppedCandidates. Returns a timelineStages-shaped array.
+export function combineTimelineStages(careers: any[]): any[] {
+  const stageMap = new Map<string, any>();
+  const stageOrder: string[] = [];
+  for (const c of careers || []) {
+    for (const st of c?.timelineStages || []) {
+      if (!stageMap.has(st.name)) {
+        stageMap.set(st.name, { id: st.id, name: st.name, subMap: new Map(), subOrder: [] as string[] });
+        stageOrder.push(st.name);
+      }
+      const S = stageMap.get(st.name);
+      for (const sub of st.substages || []) {
+        if (!S.subMap.has(sub.name)) {
+          S.subMap.set(sub.name, { id: sub.id, name: sub.name, candidates: [], droppedCandidates: [] });
+          S.subOrder.push(sub.name);
+        }
+        const SS = S.subMap.get(sub.name);
+        SS.candidates = SS.candidates.concat(sub.candidates || []);
+        SS.droppedCandidates = SS.droppedCandidates.concat(sub.droppedCandidates || []);
+      }
+    }
+  }
+  return stageOrder.map((name) => {
+    const S = stageMap.get(name);
+    return { id: S.id, name: S.name, substages: S.subOrder.map((sn: string) => S.subMap.get(sn)) };
+  });
 }
 
 // Builds the query params for GET /api/get-pipeline-report. The 5 ticket filters
@@ -173,13 +204,28 @@ export function buildPipelineReportParams(
 
 export type ExtraColumnKey = "Headcount" | "Created Date" | "Notes";
 
-// Value for the JIA-431 "Others" columns. Created Date formatted; Notes/Headcount gracefully default.
+// JIA-431: Created Date uses a RELATIVE time format (e.g. "10d ago"), not an absolute date.
+export function relativeTimeShort(input: any): string {
+  if (!input) return "-";
+  const t = new Date(input).getTime();
+  if (isNaN(t)) return "-";
+  const sec = Math.max(0, Math.floor((Date.now() - t) / 1000));
+  if (sec < 60) return "just now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}d ago`;
+  if (day < 30) return `${Math.floor(day / 7)}w ago`;
+  if (day < 365) return `${Math.floor(day / 30)}mo ago`;
+  return `${Math.floor(day / 365)}y ago`;
+}
+
+// Value for the JIA-431 "Others" columns. Created Date = relative time; Notes/Headcount gracefully default.
 export function getExtraColumnValue(career: any, key: ExtraColumnKey): string {
   if (key === "Headcount") return career.headcount != null && career.headcount !== "" ? String(career.headcount) : "-";
   if (key === "Notes") return career.notes ?? "-";
-  if (key === "Created Date") {
-    if (!career.createdAt) return "-";
-    return new Date(career.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  }
+  if (key === "Created Date") return relativeTimeShort(career.createdAt);
   return "-";
 }

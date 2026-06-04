@@ -7,7 +7,7 @@ import { api } from "@/lib/utils/apiClient";
 import CareerStatusBadges from "../CareerComponents/CareerStatusBadge";
 import { JobOwner } from "../DataTables/CareersTableV2";
 import { Button } from "../ui";
-import { errorToast } from "@/lib/Utils";
+import { errorToast, successToast } from "@/lib/Utils";
 import TableLoader from "@/lib/Loader/TableLoader";
 import NoDataAvailable from "./NoDataAvailable";
 import styles from "@/lib/styles/analytics/graphs.module.scss";
@@ -16,7 +16,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages } from "@/lib/utils/pipelineReport";
 
 export default function RecruiterPipelineReport({ projectId }: { projectId?: string }) {
     const searchParams = useSearchParams();
@@ -50,6 +50,19 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
     const sortByOptions = ["Position Name (A-Z)", "Position Name (Z-A)", "Project Name (A-Z)", "Project Name (Z-A)"];
     const [isLoadingFullReport, setIsLoadingFullReport] = useState(false);
     const [isFullscreenView, setIsFullscreenView] = useState(false);
+    const [noteModalCareer, setNoteModalCareer] = useState<any>(null);
+    const openNoteModal = (career: any) => setNoteModalCareer(career);
+    const saveNote = async (career: any, note: string) => {
+        try {
+            await api.post("/api/update-career-note", { _id: career._id, orgID, note });
+            setPipelineReport((prev: any) => Array.isArray(prev) ? prev.map((c: any) => c._id === career._id ? { ...c, notes: note } : c) : prev);
+            setNoteModalCareer(null);
+            successToast("Note saved", 1300);
+        } catch (e) {
+            console.error(e);
+            errorToast("Failed to save note", 1300);
+        }
+    };
     const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>({});
 
     const columnsKey = `pipelineReport:columns:${projectId ? `project:${projectId}` : "dashboard"}`;
@@ -140,6 +153,9 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 const t = typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
                 return t.replace(/,/g, "");
             }
+            if (header === "Notes") {
+                return String(row.metadata?.notes ?? "-").replace(/,/g, " ");
+            }
             return row[header];
         }).join(",")).join("\n");
         const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
@@ -165,6 +181,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 if (header === "Activity Status") return row.metadata.activityStatus;
                 if (header === "Job Post Type") return row.metadata.jobPostType;
                 if (header === "Job Title") return typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
+                if (header === "Notes") return row.metadata?.notes ?? "-";
                 return row[header];
             })),
         ];
@@ -247,11 +264,18 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
             ...formattedStages.map((stage) => stage.label), ...enabledOthers];
         const grouped = groupByParentChild(pipelineReport);
         const visible = opts?.allRows ? grouped : grouped.filter((r) => r.depth === 0 || expandedParents[r.parentId!]);
+        const isPerStage = columnVisibility.type === "Show per stage";
+        const cellTooltips: Record<number, Record<string, React.ReactNode>> = {};
         return {
             columnHeaders: headers,
             rows: visible.map((r, i) => {
                 const item = r.career;
                 const isParent = r.depth === 0 && r.childCount > 0;
+                // JIA-431 "Combine data from Child and Parent Post": a parent row shows the
+                // full funnel merged across itself + all its child posts.
+                const countsCareer = isParent
+                    ? { ...item, timelineStages: combineTimelineStages([item, ...(r.childCareers || [])]) }
+                    : item;
                 const titleCell = (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 8, paddingLeft: r.depth === 1 ? 24 : 0 }}>
                         {isParent && (
@@ -280,17 +304,47 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                         )}
                     </span>
                 );
+                // JIA-431: hovering a stage NUMBER shows its sub-stage breakdown for this row.
+                if (isPerStage) {
+                    const tips: Record<string, React.ReactNode> = {};
+                    for (const fs of formattedStages) {
+                        if ((fs as any).isDropped) continue;
+                        const st = (countsCareer.timelineStages || []).find((s: any) => s.name === fs.label);
+                        if (!st) continue;
+                        tips[fs.label] = (
+                            <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+                                <div style={{ fontWeight: 700, marginBottom: 2 }}>{fs.label}</div>
+                                {(st.substages || []).map((sub: any) => (
+                                    <div key={sub.name}>{sub.name}: {sub.candidates?.length || 0}</div>
+                                ))}
+                            </div>
+                        );
+                    }
+                    cellTooltips[i] = tips;
+                }
+                const hasNote = item.notes && String(item.notes).trim();
+                const notesCell = (
+                    <span
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openNoteModal(item); }}
+                        style={{ cursor: "pointer", color: hasNote ? "#181D27" : "#6941C6", fontWeight: hasNote ? 400 : 500 }}
+                    >
+                        {hasNote ? (String(item.notes).length > 40 ? String(item.notes).slice(0, 40) + "…" : String(item.notes)) : "Add note"}
+                    </span>
+                );
                 return {
                     "#": i + 1,
                     "Project": item.projectName || "-",
                     "Job Title": titleCell,
                     "Job Owner": <JobOwner career={item} />,
                     "Status": <CareerStatusBadges career={item} />,
-                    ...getStageCounts(formattedStages, item, columnVisibility.type),
-                    ...Object.fromEntries(enabledOthers.map((k) => [k, getExtraColumnValue(item, k as any)])),
+                    ...getStageCounts(formattedStages, countsCareer, columnVisibility.type),
+                    ...Object.fromEntries(enabledOthers.map((k) =>
+                        k === "Notes" ? [k, notesCell] : [k, getExtraColumnValue(item, k as any)]
+                    )),
                     metadata: {
                         _id: item._id,
                         jobTitle: item.jobTitle || "-",
+                        notes: hasNote ? String(item.notes) : "-",
                         jobOwner: item.teamMembers?.find((member: any) => member.role === "Job Owner") || item.createdBy,
                         publishedStatus: item.status === "active" ? "Published" : "Unpublished",
                         activityStatus: item.activityStatus,
@@ -298,38 +352,11 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     },
                 };
             }),
+            cellTooltips,
         };
     }
-    const buildHeaderTooltips = (cv: typeof columnVisibility): Record<string, React.ReactNode> => {
-        if (cv.type !== "Show per stage") return {};
-        const allStages = [...cv.stages, ...cv.offerStages];
-        const tooltips: Record<string, React.ReactNode> = {};
-        for (const stage of allStages) {
-            if (!stage.enabled) continue;
-            // Sum total candidates across all substages (across all careers already aggregated in substage.candidates arrays)
-            const substageLines = stage.substages
-                .filter((sub: any) => sub.enabled !== false)
-                .map((sub: any) => {
-                    const subLabel = sub.label?.split(" - ")?.[1] ?? sub.label;
-                    const total = (pipelineReport ?? []).reduce((acc: number, career: any) => {
-                        const ts = career.timelineStages?.find((s: any) => s.id === stage.stageId || s.name === stage.label);
-                        if (!ts) return acc;
-                        const found = ts.substages?.find((s: any) => `${ts.name} - ${s.name}` === sub.label || s.name === subLabel);
-                        return acc + (found?.candidates?.length ?? 0);
-                    }, 0);
-                    return `${subLabel}: ${total}`;
-                });
-            if (substageLines.length === 0) continue;
-            tooltips[stage.label] = (
-                <div style={{ fontSize: 12, lineHeight: 1.6 }}>
-                    {substageLines.map((line: string, i: number) => <div key={i}>{line}</div>)}
-                </div>
-            );
-        }
-        return tooltips;
-    };
 
-    const tableData = pipelineReport ? getTableData(columnVisibility, pipelineReport) : { columnHeaders: [], rows: [] };
+    const tableData = pipelineReport ? getTableData(columnVisibility, pipelineReport) : { columnHeaders: [], rows: [], cellTooltips: {} };
     const orderedHeaders = columnOrder.length
         ? [...tableData.columnHeaders].sort((a, b) => {
             const ia = columnOrder.indexOf(a);
@@ -418,11 +445,12 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     enableColumnReorder
                     onColumnReorder={(o) => setColumnOrder(o)}
                     fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
-                    columnTooltips={buildHeaderTooltips(columnVisibility)}
+                    getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
                     instanceId="main"
                 /> : <NoDataAvailable />
             }
             {isCustomizeColumnModalOpen && <CustomizeColumnModal columnVisibility={columnVisibility} setColumnVisibility={setColumnVisibility} setIsCustomizeColumnModalOpen={setIsCustomizeColumnModalOpen} />}
+            {noteModalCareer && <AddNoteModal career={noteModalCareer} onClose={() => setNoteModalCareer(null)} onSave={(note) => saveNote(noteModalCareer, note)} />}
             {isLoadingFullReport && <FullScreenLoadingAnimation title="Exporting Full Pipeline Report" subtext="Please wait while we export the full pipeline report" />}
             {isFullscreenView && <TableMetric
                 data={orderedData}
@@ -431,11 +459,41 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 enableColumnReorder
                 onColumnReorder={(o) => setColumnOrder(o)}
                 fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
-                columnTooltips={buildHeaderTooltips(columnVisibility)}
+                getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
                 instanceId="fullscreen"
             />}
         </div>
     )
+}
+
+// JIA-431: "Add a note" modal — recruiter-only note on a career, shown in the Notes column.
+function AddNoteModal({ career, onClose, onSave }: { career: any; onClose: () => void; onSave: (note: string) => void }) {
+    const [note, setNote] = useState<string>(career?.notes || "");
+    return (
+        <div className="modal-background fade-in-bottom">
+            <div className="modal-container">
+                <div className="modal-content" style={{ width: "100%", maxWidth: 640, background: "#fff", border: "1.5px solid #E9EAEB", borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: 24, position: "relative" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <span style={{ fontSize: 16, fontWeight: 500, color: "#181D27" }}>Add a note</span>
+                        <span style={{ fontSize: 14, fontWeight: 400, color: "#717680" }}>{career?.jobTitle || ""}</span>
+                    </div>
+                    <div style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }} onClick={onClose}>
+                        <img src="/icons/close.svg" alt="Close" style={{ width: 28, height: 28 }} />
+                    </div>
+                    <textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="Enter note"
+                        style={{ width: "100%", minHeight: 160, marginTop: 16, padding: 12, border: "1px solid #D5D7DA", borderRadius: 8, fontSize: 14, color: "#181D27", resize: "vertical", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+                    />
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 20 }}>
+                        <Button variant="secondary" label="Cancel" onClick={onClose} />
+                        <Button variant="primary" label="Save" onClick={() => onSave(note)} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCustomizeColumnModalOpen }: { columnVisibility: any, setColumnVisibility: (value: any) => void, setIsCustomizeColumnModalOpen: (value: boolean) => void }) {

@@ -70,13 +70,13 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
   const currentRows = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const selectTab = (key: AnalysisTab) => { setTab(key); setPage(0); };
 
-  const headerCell: React.CSSProperties = { background: "#F8F9FC", borderBottom: "1px solid #E9EAEB", padding: "12px 24px", fontSize: 12, fontWeight: 700, color: "#717680" };
+  const headerCell: React.CSSProperties = { background: "#F2F4F7", borderBottom: "1px solid #E9EAEB", padding: "12px 24px", fontSize: 12, fontWeight: 700, color: "#717680" };
   const bodyCell: React.CSSProperties = { padding: "16px 24px", display: "flex", alignItems: "center" };
 
   return (
     <div className="modal-background fade-in-bottom">
       <div className="modal-container">
-        <div className="modal-content" style={{ background: "#fff", borderRadius: 14, padding: 24, maxWidth: 900, width: "92vw", maxHeight: "88vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 24 }}>
+        <div className="modal-content" style={{ background: "#fff", borderRadius: 14, padding: 24, maxWidth: 900, width: "92vw", maxHeight: "90vh", display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: "#181D27" }}>View Analysis</h3>
@@ -132,28 +132,30 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
           </div>
 
           {/* Table */}
-          <div style={{ border: "1px solid #E9EAEB", borderRadius: 16, overflow: "hidden", boxShadow: "0px 1px 2px rgba(10,13,18,0.05)" }}>
+          <div style={{ border: "1px solid #E9EAEB", borderRadius: 16, overflow: "hidden", boxShadow: "0px 1px 2px rgba(10,13,18,0.05)", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
             {/* Header row */}
             <div style={{ display: "flex" }}>
               <div style={{ ...headerCell, width: RANKING_W, flexShrink: 0 }}>Ranking</div>
               <div style={{ ...headerCell, flex: 1 }}>Qualification Assessment</div>
             </div>
-            {/* Body rows */}
-            {currentRows.length === 0 ? (
-              <div style={{ padding: 32, textAlign: "center", color: "#717680", fontSize: 14 }}>No qualifications in this category.</div>
-            ) : (
-              currentRows.map((q, i) => (
-                <div key={i} style={{ display: "flex", borderBottom: "1px solid #E9EAEB" }}>
-                  <div style={{ ...bodyCell, width: RANKING_W, flexShrink: 0 }}>
-                    <StatusPill status={q.status} />
+            {/* Body rows (scrolls within the table so pagination + Done stay visible) */}
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+              {currentRows.length === 0 ? (
+                <div style={{ padding: 32, textAlign: "center", color: "#717680", fontSize: 14 }}>No qualifications in this category.</div>
+              ) : (
+                currentRows.map((q, i) => (
+                  <div key={i} style={{ display: "flex", borderBottom: "1px solid #E9EAEB" }}>
+                    <div style={{ ...bodyCell, width: RANKING_W, flexShrink: 0 }}>
+                      <StatusPill status={q.status} />
+                    </div>
+                    <div style={{ ...bodyCell, flex: 1, flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: "#181D27" }}>{q.text}</span>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: "#717680" }}>{q.evidence}</span>
+                    </div>
                   </div>
-                  <div style={{ ...bodyCell, flex: 1, flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: "#181D27" }}>{q.text}</span>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: "#717680" }}>{q.evidence}</span>
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
             {/* Pagination */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #E9EAEB", padding: "12px 24px" }}>
               <button

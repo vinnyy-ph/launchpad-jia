@@ -1,12 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import TableMetric from "./TableMetric";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/utils/apiClient";
 import CareerStatusBadges from "../CareerComponents/CareerStatusBadge";
 import { JobOwner } from "../DataTables/CareersTableV2";
 import { Button } from "../ui";
-import { errorToast } from "@/lib/Utils";
+import { errorToast, successToast } from "@/lib/Utils";
 import TableLoader from "@/lib/Loader/TableLoader";
 import NoDataAvailable from "./NoDataAvailable";
 import styles from "@/lib/styles/analytics/graphs.module.scss";
@@ -15,6 +16,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages } from "@/lib/utils/pipelineReport";
 
 export default function RecruiterPipelineReport({ projectId }: { projectId?: string }) {
     const searchParams = useSearchParams();
@@ -42,11 +44,39 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         includeDroppedCandidates: false,
         stages: [],
         offerStages: [],
+        otherColumns: { "Created Date": false, "Headcount": false, "Notes": false } as Record<string, boolean>,
     });
     const [sortBy, setSortBy] = useState<string>("Position Name (A-Z)");
     const sortByOptions = ["Position Name (A-Z)", "Position Name (Z-A)", "Project Name (A-Z)", "Project Name (Z-A)"];
     const [isLoadingFullReport, setIsLoadingFullReport] = useState(false);
     const [isFullscreenView, setIsFullscreenView] = useState(false);
+    const [sortColumn, setSortColumn] = useState<string | null>(null);
+    const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
+    const onSort = (column: string) => {
+        if (sortColumn !== column) { setSortColumn(column); setSortDir("asc"); }
+        else if (sortDir === "asc") setSortDir("desc");
+        else { setSortColumn(null); setSortDir(null); }
+    };
+    // Display-only header rename (data stage stays "Human Interview"); sortable header set.
+    const DISPLAY_LABEL: Record<string, string> = { "Human Interview": "HR Interview" };
+    const SORTABLE_COLUMNS = ["Job Title", "Project", "Job Owner", "AI Interview", "Human Interview"];
+    const [noteModalCareer, setNoteModalCareer] = useState<any>(null);
+    const openNoteModal = (career: any) => setNoteModalCareer(career);
+    const saveNote = async (career: any, note: string) => {
+        try {
+            await api.post("/api/update-career-note", { _id: career._id, orgID, note });
+            setPipelineReport((prev: any) => Array.isArray(prev) ? prev.map((c: any) => c._id === career._id ? { ...c, notes: note } : c) : prev);
+            setNoteModalCareer(null);
+            successToast("Note saved", 1300);
+        } catch (e) {
+            console.error(e);
+            errorToast("Failed to save note", 1300);
+        }
+    };
+    const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>({});
+
+    const columnsKey = `pipelineReport:columns:${projectId ? `project:${projectId}` : "dashboard"}`;
+    const [columnOrder, setColumnOrder] = useLocalStorage<string[]>(columnsKey, []);
 
     const {
         isViewStateReady,
@@ -90,12 +120,13 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 });
                 setPipelineReport(response.data.careers)
                 setTotalCareers(response.data.totalCareers);
-                const { stages, offerStages } = getStages(response.data.careers);
+                const { stages, offerStages } = getReportStages(response.data.careers);
                 setColumnVisibility({
                     type: "Show per stage",
                     includeDroppedCandidates: false,
                     stages: stages,
                     offerStages: offerStages,
+                    otherColumns: { "Created Date": false, "Headcount": false, "Notes": false },
                 });
             } catch (error) {
                 console.error(error);
@@ -109,97 +140,12 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         }
     }, [isViewStateReady, orgID, page, limit, filterStatus, projectId, sortBy]);
 
-    const getStages = (careers: any[]) => {
-        const stages = [];
-        const offerStages = [];
-        careers.forEach((item: any) => {
-            item.timelineStages.forEach((stage: any) => {
-                const existingStage = stages.find((s) => s.label === stage.name);
-                if (["1", "2", "3"].includes(stage.id) && !existingStage) {
-                    const parentStage = {
-                        label: stage.name,
-                        stageId: stage.id,
-                        enabled: true,
-                        substages: [],
-                    }
-                    stage.substages.forEach((substage: any) => {
-                        parentStage.substages.push({
-                            label: `${stage.name} - ${substage.name}`,
-                            stageId: stage.id,
-                            substageId: substage.id,
-                            candidates: substage.candidates,
-                            droppedCandidates: substage.droppedCandidates,
-                            enabled: true,
-                        });
-                    });
-                    stages.push(parentStage);
-                } else if (["4"].includes(stage.id) && !offerStages.find((s) => s.stageId === stage.id)) {
-                    const parentStage = {
-                        label: stage.name,
-                        stageId: stage.id,
-                        substages: [],
-                        enabled: true,
-                    }
-                    stage.substages.forEach((substage: any) => {
-                        parentStage.substages.push({
-                            label: `${stage.name} - ${substage.name}`,
-                            stageId: stage.id,
-                            substageId: substage.id,
-                            candidates: substage.candidates,
-                            droppedCandidates: substage.droppedCandidates,
-                            enabled: true,
-                        });
-                    });
-                    offerStages.push(parentStage);
-                } else if (!["1", "2", "3", "4"].includes(stage.id) && !existingStage) {
-                    const parentStage = {
-                        label: stage.name,
-                        stageId: stage.id,
-                        substages: [],
-                        enabled: true,
-                    }
-                    stage.substages.forEach((substage: any) => {
-                        parentStage.substages.push({
-                            label: `${stage.name} - ${substage.name}`,
-                            stageId: stage.id,
-                            substageId: substage.id,
-                            candidates: substage.candidates,
-                            droppedCandidates: substage.droppedCandidates,
-                            enabled: true,
-                        });
-                    });
-                    stages.push(parentStage);
-                } else if (!["4"].includes(stage.id) && existingStage) {
-                    // Add substages to the existing stage
-                    const existingStageIndex = stages.findIndex((s) => s.label === stage.name);
-                    if (existingStageIndex !== -1) {
-                        const existingParentStage = { ...stages[existingStageIndex] };
-                        for (const substage of stage.substages) {
-                            const existingSubstage = existingParentStage.substages.find((s: any) => s.label === `${stage.name} - ${substage.name}`);
-                            if (!existingSubstage) {
-                                existingParentStage.substages.push({
-                                    label: `${stage.name} - ${substage.name}`,
-                                    stageId: stage.id,
-                                    substageId: substage.id,
-                                    candidates: substage.candidates,
-                                    droppedCandidates: substage.droppedCandidates,
-                                    enabled: true,
-                                });
-                            }
-                        }
-                        // Replace the existing stage with the updated parent stage
-                        stages[existingStageIndex] = existingParentStage;
-                    }
-                }
-            });
-        });
-        return { stages, offerStages };
-    }
-
     const handleDownloadCSV = async () => {
         const formattedData = await getFullPipelineReport();
-        let newHeaders = formattedData.columnHeaders;
-        newHeaders.splice(3, 1, "Published Status", "Activity Status", "Job Post Type");
+        if (!formattedData) return;
+        const newHeaders = [...formattedData.columnHeaders];
+        const statusIdx = newHeaders.indexOf("Status");
+        if (statusIdx !== -1) newHeaders.splice(statusIdx, 1, "Published Status", "Activity Status", "Job Post Type");
         const csvContent = `${newHeaders.join(",")}` + "\n" + formattedData.rows.map((row: any) => newHeaders.map((header: any) => {
             if (header === "Job Owner") {
                 return row.metadata.jobOwner.name;
@@ -214,7 +160,11 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 return row.metadata.jobPostType;
             }
             if (header === "Job Title") {
-                return row[header]?.replace(/,/g, "");
+                const t = typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
+                return t.replace(/,/g, "");
+            }
+            if (header === "Notes") {
+                return String(row.metadata?.notes ?? "-").replace(/,/g, " ");
             }
             return row[header];
         }).join(",")).join("\n");
@@ -226,6 +176,30 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         link.click();
         document.body.removeChild(link);
     }
+
+    const handleDownloadXLSX = async () => {
+        const formattedData = await getFullPipelineReport();
+        if (!formattedData) return;
+        const headers = [...formattedData.columnHeaders];
+        const statusIdx = headers.indexOf("Status");
+        if (statusIdx !== -1) headers.splice(statusIdx, 1, "Published Status", "Activity Status", "Job Post Type");
+        const aoa = [
+            headers,
+            ...formattedData.rows.map((row: any) => headers.map((header: string) => {
+                if (header === "Job Owner") return row.metadata.jobOwner?.name ?? "-";
+                if (header === "Published Status") return row.metadata.publishedStatus;
+                if (header === "Activity Status") return row.metadata.activityStatus;
+                if (header === "Job Post Type") return row.metadata.jobPostType;
+                if (header === "Job Title") return typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
+                if (header === "Notes") return row.metadata?.notes ?? "-";
+                return row[header];
+            })),
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Pipeline Report");
+        XLSX.writeFile(wb, `${activeOrg?.name ? `${activeOrg.name}-` : ""}Pipeline-Report-${new Date().toLocaleDateString()}.xlsx`);
+    };
 
     const getFullPipelineReport = async () => {
         // Fetch the full pipeline report from the API
@@ -248,7 +222,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     hiringManagers: filterStatus.hiringManagers.map((h) => h.email).join(","),
                 } 
             });
-            const { stages, offerStages } = getStages(response.data.careers);
+            const { stages, offerStages } = getReportStages(response.data.careers);
             // Match enabled state with the stages and offerStages
             const updatedStages = stages.map((stage: any) => {
                 const existingStage = columnVisibility.stages.find((s: any) => s.label === stage.label);
@@ -282,7 +256,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 ...columnVisibility,
                 stages: updatedStages,
                 offerStages: updatedOfferStages,
-            }, response.data.careers);
+            }, response.data.careers, { allRows: true });
             return formattedData;
         } catch (error) {
             console.error(error);
@@ -292,104 +266,153 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         }
     }
 
-    const getTableData = (columnVisibility: any, pipelineReport: any[]) => {
-        const formattedStages: { label: string, stageId: string, substageId?: string, isDropped?: boolean, parentStageLabel?: string }[] = [];
-        const allStages = [...columnVisibility.stages, ...columnVisibility.offerStages];
-        if (columnVisibility.type === "Show per stage") {
-            allStages.forEach((stage) => {
-                const existingStage = formattedStages.find((s) => s.label === stage.label);
-                if (existingStage || !stage.enabled) return;
-                formattedStages.push({
-                    label: stage.label,
-                    stageId: stage.stageId,
-                });
-
-                // Add dropped candidates if includeDroppedCandidates is true
-                if (columnVisibility.includeDroppedCandidates) {
-                    formattedStages.push({
-                        label: `Dropped from ${stage.label}`,
-                        stageId: stage.stageId,
-                        isDropped: true,
-                    });
-                }
-            });
-        } else {
-            allStages.forEach((stage) => {
-                stage.substages.forEach((substage) => {
-                    const existingSubstage = formattedStages.find((s) => s.label === substage.label);
-                    if (existingSubstage || !substage.enabled) return;
-                    formattedStages.push({
-                        label: substage.label,
-                        stageId: stage.stageId,
-                        substageId: substage.substageId,
-                        parentStageLabel: stage.label,
-                    });
-
-                    if (columnVisibility.includeDroppedCandidates) {
-                        formattedStages.push({
-                            label: `Dropped from ${substage.label}`,
-                            stageId: stage.stageId,
-                            substageId: substage.substageId,
-                            isDropped: true,
-                            parentStageLabel: stage.label,
-                        });
-                    }
-                });
+    const getTableData = (columnVisibility: any, pipelineReport: any[], opts?: { allRows?: boolean }) => {
+        const formattedStages = getFormattedStages(columnVisibility);
+        const enabledOthers = (Object.keys(columnVisibility.otherColumns || {}) as string[])
+            .filter((k) => columnVisibility.otherColumns[k]);
+        const headers = ["#", "Job Title", "Project", "Job Owner", "Status",
+            ...formattedStages.map((stage) => stage.label), ...enabledOthers];
+        const grouped = groupByParentChild(pipelineReport);
+        // Group into top-level units (parent + its children) so sorting keeps children nested.
+        const units: { parent: any; children: any[] }[] = [];
+        for (const r of grouped) {
+            if (r.depth === 0) units.push({ parent: r, children: [] });
+            else units[units.length - 1]?.children.push(r);
+        }
+        if (sortColumn && sortDir) {
+            const ownerName = (it: any) => ((it.teamMembers?.find((m: any) => m.role === "Job Owner") || it.createdBy)?.name || "").toLowerCase();
+            const stageTotal = (u: any) => {
+                const it = u.parent.career;
+                const tl = u.parent.childCount > 0 ? combineTimelineStages([it, ...(u.parent.childCareers || [])]) : it.timelineStages;
+                const st = (tl || []).find((s: any) => s.name === sortColumn);
+                return st ? st.substages.reduce((a: number, s: any) => a + (s.candidates?.length || 0), 0) : 0;
+            };
+            const keyOf = (u: any) => {
+                const it = u.parent.career;
+                if (sortColumn === "Job Title") return (it.jobTitle || "").toLowerCase();
+                if (sortColumn === "Project") return (it.projectName || "").toLowerCase();
+                if (sortColumn === "Job Owner") return ownerName(it);
+                return stageTotal(u);
+            };
+            units.sort((a, b) => {
+                const ka: any = keyOf(a), kb: any = keyOf(b);
+                const cmp = typeof ka === "number" ? ka - kb : String(ka).localeCompare(String(kb));
+                return sortDir === "asc" ? cmp : -cmp;
             });
         }
-        console.log(formattedStages);
-        const headers = ["Project", "Job Title", "Job Owner", "Status", ...formattedStages.map((stage) => stage.label)];
+        const visible: any[] = [];
+        let topCounter = 0;
+        for (const u of units) {
+            topCounter++;
+            u.parent.displayIndex = String(topCounter);
+            visible.push(u.parent);
+            if (opts?.allRows || expandedParents[String(u.parent.career.id)]) {
+                u.children.forEach((c: any, ci: number) => { c.displayIndex = `${topCounter}.${ci + 1}`; visible.push(c); });
+            }
+        }
+        const isPerStage = columnVisibility.type === "Show per stage";
+        const cellTooltips: Record<number, Record<string, React.ReactNode>> = {};
         return {
             columnHeaders: headers,
-            rows: pipelineReport.map((item: any) => {
+            rows: visible.map((r, i) => {
+                const item = r.career;
+                const isParent = r.depth === 0 && r.childCount > 0;
+                // JIA-431 "Combine data from Child and Parent Post": a parent row shows the
+                // full funnel merged across itself + all its child posts.
+                const countsCareer = isParent
+                    ? { ...item, timelineStages: combineTimelineStages([item, ...(r.childCareers || [])]) }
+                    : item;
+                const titleCell = (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, paddingLeft: r.depth === 1 ? 24 : 0 }}>
+                        {r.depth === 1 && <span style={{ color: "#717680", fontSize: 14 }} aria-hidden>↳</span>}
+                        {isParent && (
+                            <img
+                                src="/iconsV3/chevron-down.svg"
+                                alt=""
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setExpandedParents((p) => ({ ...p, [String(item.id)]: !p[String(item.id)] }));
+                                }}
+                                style={{
+                                    width: 12,
+                                    height: 7,
+                                    cursor: "pointer",
+                                    transform: expandedParents[String(item.id)] ? "none" : "rotate(-90deg)",
+                                    transition: "transform 0.2s ease",
+                                }}
+                            />
+                        )}
+                        <span>{item.jobTitle || "-"}</span>
+                        {isParent && (
+                            <span style={{ fontSize: 12, color: "#717680" }}>
+                                {r.childCount} child post{r.childCount > 1 ? "s" : ""}
+                            </span>
+                        )}
+                    </span>
+                );
+                // JIA-431: hovering a stage NUMBER shows its sub-stage breakdown for this row.
+                if (isPerStage) {
+                    const tips: Record<string, React.ReactNode> = {};
+                    for (const fs of formattedStages) {
+                        if ((fs as any).isDropped) continue;
+                        const st = (countsCareer.timelineStages || []).find((s: any) => s.name === fs.label);
+                        if (!st) continue;
+                        tips[fs.label] = (
+                            <div style={{ fontSize: 12, lineHeight: "18px" }}>
+                                <div style={{ fontWeight: 700, color: "#181D27", marginBottom: 2 }}>{DISPLAY_LABEL[fs.label] ?? fs.label}</div>
+                                {(st.substages || []).map((sub: any) => (
+                                    <div key={sub.name} style={{ color: "#414651" }}>{sub.name}: {sub.candidates?.length || 0}</div>
+                                ))}
+                            </div>
+                        );
+                    }
+                    cellTooltips[i] = tips;
+                }
+                const hasNote = item.notes && String(item.notes).trim();
+                const notesCell = (
+                    <span
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openNoteModal(item); }}
+                        style={{ cursor: "pointer", color: hasNote ? "#181D27" : "#6941C6", fontWeight: hasNote ? 400 : 500 }}
+                    >
+                        {hasNote ? (String(item.notes).length > 40 ? String(item.notes).slice(0, 40) + "…" : String(item.notes)) : "Add note"}
+                    </span>
+                );
                 return {
+                    "#": (r as any).displayIndex || String(i + 1),
                     "Project": item.projectName || "-",
-                    "Job Title": item.jobTitle || "-",
+                    "Job Title": titleCell,
                     "Job Owner": <JobOwner career={item} />,
                     "Status": <CareerStatusBadges career={item} />,
-                    ...getStageData(formattedStages, item),
+                    ...getStageCounts(formattedStages, countsCareer, columnVisibility.type),
+                    ...Object.fromEntries(enabledOthers.map((k) =>
+                        k === "Notes" ? [k, notesCell] : [k, getExtraColumnValue(item, k as any)]
+                    )),
                     metadata: {
                         _id: item._id,
+                        jobTitle: item.jobTitle || "-",
+                        notes: hasNote ? String(item.notes) : "-",
                         jobOwner: item.teamMembers?.find((member: any) => member.role === "Job Owner") || item.createdBy,
                         publishedStatus: item.status === "active" ? "Published" : "Unpublished",
                         activityStatus: item.activityStatus,
                         jobPostType: item.jobPostType ? item.jobPostType?.charAt(0)?.toUpperCase() + item.jobPostType?.slice(1) : "-",
-                    }
-                }
+                    },
+                };
             }),
-        }
+            cellTooltips,
+        };
     }
 
-    const getStageData = (formattedStages: any, item: any) => {
-        if (columnVisibility.type === "Show per stage") {
-            return {
-                ...(Object.fromEntries(formattedStages.map((stage) => {
-                    const existingStage = item.timelineStages.find((s: any) => s.name === stage.label || `Dropped from ${s.name}` === stage.label);
-                    return [
-                        stage.label, 
-                        existingStage?.substages?.reduce((acc: number, substage: any) => acc + (stage.isDropped ? substage.droppedCandidates.length : substage.candidates.length), 0) || 0
-                    ]
-                }))),
-            }
-        } else {
-            // Per substage
-            return {
-                ...(Object.fromEntries(formattedStages.map((stage) => {
-                    let existingSubstage;
-                    item.timelineStages.forEach((s: any) => {
-                        if (s.name === stage.parentStageLabel) {
-                            existingSubstage = s.substages.find((sub: any) => `${s.name} - ${sub.name}` === stage.label || `Dropped from ${s.name} - ${sub.name}` === stage.label);
-                        }
-                    })
+    const tableData = pipelineReport ? getTableData(columnVisibility, pipelineReport) : { columnHeaders: [], rows: [], cellTooltips: {} };
+    const orderedHeaders = columnOrder.length
+        ? [...tableData.columnHeaders].sort((a, b) => {
+            const ia = columnOrder.indexOf(a);
+            const ib = columnOrder.indexOf(b);
+            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+        })
+        : tableData.columnHeaders;
+    const orderedData = { ...tableData, columnHeaders: orderedHeaders };
 
-                    return [
-                        stage.label, 
-                        existingSubstage?.[stage.isDropped ? "droppedCandidates" : "candidates"]?.length || 0
-                    ]
-                }))),
-            }
-        }
-    }
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%" }}>
             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 24 }}>
@@ -400,13 +423,6 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
 
                 {/* Filters */}
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                    <CustomDropdown 
-                        value={sortBy} 
-                        setValue={(value) => setSortBy(value)} 
-                        options={sortByOptions}
-                        suffixIconJsx={<img src="/iconsV3/chevron-down.svg" alt="Chevron down" style={{ width: 12, height: 7 }} />}
-                        iconJsx={<img src="/iconsV3/sortV2.svg" alt="Sort" style={{ width: 16, height: 16 }} />} valuePrefix="Sort by:" 
-                    />
                     <MultiFilterDropdown
                         filterTypes={["careerStatuses", "jobOwners", "projects", "contributors", "careers", "hiringManagers"]}
                         setOptions={(value) => {
@@ -425,12 +441,20 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     />
                     <Button variant="secondary" disabled={!pipelineReport || isLoading || totalCareers === 0} onClick={() => setIsCustomizeColumnModalOpen(true)} label="Customize Columns" icon="/icons/pipeline-report-column.svg" />
                     <Button variant="secondary" disabled={!pipelineReport || isLoading || totalCareers === 0} onClick={() => setIsFullscreenView(true)} label="View fullscreen" icon="/iconsV3/fullscreen.svg" />
-                    <Button variant="primary" disabled={!pipelineReport || isLoading || totalCareers === 0} onClick={handleDownloadCSV} label="Export" icon="/icons/download-cloud.svg" />
+                    <CustomDropdown
+                        value="Export"
+                        setValue={(v) => { if (v === "Export as CSV") handleDownloadCSV(); if (v === "Export as XLSX") handleDownloadXLSX(); }}
+                        options={["Export as CSV", "Export as XLSX"]}
+                        iconJsx={<img src="/icons/download-cloud.svg" alt="Export" style={{ width: 16, height: 16 }} />}
+                        suffixIconJsx={<img src="/iconsV3/chevron-down.svg" alt="" style={{ width: 12, height: 7 }} />}
+                        buttonStyle={{ backgroundColor: "#181D27", color: "#FFFFFF", border: "1px solid #181D27", borderRadius: 8 }}
+                        disabled={!pipelineReport || isLoading || totalCareers === 0}
+                    />
                 {/* Pagination */}
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
                     <span>{limit * (page - 1) + 1} - {limit * page > totalCareers ? totalCareers : limit * page} of {totalCareers}</span>
-                    {page > 1 && <Button variant="secondary" onClick={() => setPage(page - 1)} label="" icon="/icons/arrow.svg" />}
-                    {page < Math.ceil(totalCareers / limit) && <Button variant="secondary" onClick={() => setPage(page + 1)} label="" icon="/icons/arrow.svg" iconStyle={{ transform: "rotate(180deg)" }} />}
+                    <Button variant="secondary" disabled={page <= 1} onClick={() => { if (page > 1) setPage(page - 1); }} label="" icon="/icons/arrow.svg" />
+                    <Button variant="secondary" disabled={page >= Math.ceil(totalCareers / limit)} onClick={() => { if (page < Math.ceil(totalCareers / limit)) setPage(page + 1); }} label="" icon="/icons/arrow.svg" iconStyle={{ transform: "rotate(180deg)" }} />
                 </div>
                 </div>
             </div>
@@ -442,11 +466,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 <table className="table align-items-center table-flush">
                 <thead>
                   <tr>
-                    <th scope="col" className={styles.tableHeaderCell}>
-                      Job Title
-                    </th>
-                    <th scope="col" className={styles.tableHeaderCell}>Job Owner</th>
+                    <th scope="col" className={styles.tableHeaderCell}>#</th>
                     <th scope="col" className={styles.tableHeaderCell}>Project</th>
+                    <th scope="col" className={styles.tableHeaderCell}>Job Title</th>
+                    <th scope="col" className={styles.tableHeaderCell}>Job Owner</th>
                     <th scope="col" className={styles.tableHeaderCell}>Status</th>
                     <th scope="col" className={styles.tableHeaderCell}>CV Screening</th>
                     <th scope="col" className={styles.tableHeaderCell}>AI Interview</th>
@@ -458,20 +481,80 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                   <TableLoader type="careers-v2" />
                 </tbody>
               </table>
-              </div> : pipelineReport ? <TableMetric data={getTableData(columnVisibility, pipelineReport)} /> : <NoDataAvailable />
+              </div> : pipelineReport ? <TableMetric
+                    data={orderedData}
+                    enableColumnReorder
+                    onColumnReorder={(o) => setColumnOrder(o)}
+                    fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
+                    getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
+                    columnLabels={DISPLAY_LABEL}
+                    sortableColumns={SORTABLE_COLUMNS}
+                    sortColumn={sortColumn}
+                    sortDir={sortDir}
+                    onSort={onSort}
+                    instanceId="main"
+                /> : <NoDataAvailable />
             }
             {isCustomizeColumnModalOpen && <CustomizeColumnModal columnVisibility={columnVisibility} setColumnVisibility={setColumnVisibility} setIsCustomizeColumnModalOpen={setIsCustomizeColumnModalOpen} />}
+            {noteModalCareer && <AddNoteModal career={noteModalCareer} onClose={() => setNoteModalCareer(null)} onSave={(note) => saveNote(noteModalCareer, note)} />}
             {isLoadingFullReport && <FullScreenLoadingAnimation title="Exporting Full Pipeline Report" subtext="Please wait while we export the full pipeline report" />}
-            {isFullscreenView && <TableMetric data={getTableData(columnVisibility, pipelineReport)} isFullscreenView={true} onCloseFullscreenView={() => setIsFullscreenView(false)} />}
+            {isFullscreenView && <TableMetric
+                data={orderedData}
+                isFullscreenView={true}
+                onCloseFullscreenView={() => setIsFullscreenView(false)}
+                enableColumnReorder
+                onColumnReorder={(o) => setColumnOrder(o)}
+                fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
+                getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
+                columnLabels={DISPLAY_LABEL}
+                sortableColumns={SORTABLE_COLUMNS}
+                sortColumn={sortColumn}
+                sortDir={sortDir}
+                onSort={onSort}
+                instanceId="fullscreen"
+            />}
         </div>
     )
+}
+
+// JIA-431: "Add a note" modal — recruiter-only note on a career, shown in the Notes column.
+function AddNoteModal({ career, onClose, onSave }: { career: any; onClose: () => void; onSave: (note: string) => void }) {
+    const [note, setNote] = useState<string>(career?.notes || "");
+    return (
+        <div className="modal-background fade-in-bottom">
+            <div className="modal-container">
+                <div className="modal-content" style={{ width: "100%", maxWidth: 640, background: "#fff", border: "1.5px solid #E9EAEB", borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: 24, position: "relative" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <span style={{ fontSize: 16, fontWeight: 500, color: "#181D27" }}>Add a note</span>
+                        <span style={{ fontSize: 14, fontWeight: 400, color: "#717680" }}>{career?.jobTitle || ""}</span>
+                    </div>
+                    <div style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }} onClick={onClose}>
+                        <img src="/icons/close.svg" alt="Close" style={{ width: 28, height: 28 }} />
+                    </div>
+                    <textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="Enter note"
+                        style={{ width: "100%", minHeight: 160, marginTop: 16, padding: 12, border: "1px solid #D5D7DA", borderRadius: 8, fontSize: 14, color: "#181D27", resize: "vertical", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+                    />
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 20 }}>
+                        <Button variant="secondary" label="Cancel" onClick={onClose} />
+                        <Button variant="primary" label="Save" onClick={() => onSave(note)} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCustomizeColumnModalOpen }: { columnVisibility: any, setColumnVisibility: (value: any) => void, setIsCustomizeColumnModalOpen: (value: boolean) => void }) {
     const [activeTab, setActiveTab] = useState(columnVisibility.type);
     const [includeDroppedCandidates, setIncludeDroppedCandidates] = useState(columnVisibility.includeDroppedCandidates);
-    const tabOptions = ["Show per stage", "Show per substage"];
+    const tabOptions = ["Show per stage", "Show per sub-stage"];
     const [careerPipelineStages, setCareerPipelineStages] = useState<any>([]);
+    const [otherColumns, setOtherColumns] = useState<Record<string, boolean>>(
+        columnVisibility.otherColumns || { "Created Date": false, "Headcount": false, "Notes": false }
+    );
 
     useEffect(() => {
         if (columnVisibility) {
@@ -631,6 +714,17 @@ function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCust
                     )}
                     </div>
                     
+                    <div style={{ width: "100%", textAlign: "left" }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: "#181D27" }}>Others</span>
+                        {Object.keys(otherColumns).map((key) => (
+                            <div key={key} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+                                <input type="checkbox" className="custom-checkbox" checked={otherColumns[key]}
+                                    onChange={() => setOtherColumns((p) => ({ ...p, [key]: !p[key] }))} />
+                                <span style={{ fontSize: 14, fontWeight: 500, color: "#181D27" }}>{key}</span>
+                            </div>
+                        ))}
+                    </div>
+
                     <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 16 }}>
                         <Button variant="secondary" style={{ width: "50%" }} onClick={() => setIsCustomizeColumnModalOpen(false)} label="Cancel" />
                         <Button variant="primary" style={{ width: "50%" }} onClick={() => {
@@ -639,6 +733,7 @@ function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCust
                                 ...prev,
                                 type: activeTab,
                                 includeDroppedCandidates: includeDroppedCandidates,
+                                otherColumns,
                                 stages: prev.stages.map((stage: any) => ({
                                     ...stage,
                                     enabled: careerPipelineStages.find((s: any) => s.label === stage.label)?.enabled,

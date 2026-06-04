@@ -90,7 +90,7 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
           </div>
 
           {/* Top summary: ring + badges + overall summary */}
-          <div style={{ display: "flex", gap: 40, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
             <MatchScoreDonut score={analysis.matchScore} size={140} />
             <QualificationBadges summary={summary} />
             <div style={{ flex: 1, minWidth: 240 }}>
@@ -148,7 +148,7 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
                 <div style={{ padding: 32, textAlign: "center", color: "#717680", fontSize: 14 }}>No qualifications in this category.</div>
               ) : (
                 currentRows.map((q, i) => (
-                  <div key={i} style={{ display: "flex", borderBottom: "1px solid #E9EAEB" }}>
+                  <div key={i} style={{ display: "flex", minHeight: 72, borderBottom: "1px solid #E9EAEB" }}>
                     <div style={{ ...bodyCell, width: RANKING_W, flexShrink: 0 }}>
                       <StatusPill status={q.status} />
                     </div>
@@ -161,7 +161,7 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
               )}
             </div>
             {/* Pagination */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #E9EAEB", padding: "12px 24px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #E9EAEB", padding: "12px 24px 16px" }}>
               <button
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}

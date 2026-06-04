@@ -62,7 +62,7 @@ export default function EvaluationByJiaV2({
           <div style={{ display: "flex", flexWrap: "wrap", gap: 40, alignItems: "center" }}>
             <MatchScoreDonut score={analysis.matchScore} size={160} />
             <QualificationBadges summary={summary} />
-            <div style={{ flex: 1, minWidth: 240 }}>
+            <div style={{ flex: 1, minWidth: 240, marginLeft: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 16, fontWeight: 500, color: "#181D27" }}>Overall Summary</span>
                 {analysis.overallFit && (

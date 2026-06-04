@@ -22,7 +22,7 @@ function Pill({ hue, icon, label, count }: { hue: Hue; icon: string; label: stri
         border: `1px solid ${hue.border}`,
         color: hue.text,
         borderRadius: 8,
-        padding: "4px 8px",
+        padding: "4px 10px 4px 8px",
         fontSize: 14,
         fontWeight: 500,
         width: "fit-content",

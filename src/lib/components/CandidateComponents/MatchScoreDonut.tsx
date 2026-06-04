@@ -16,12 +16,12 @@ export default function MatchScoreDonut({ score, size = 120 }: Props) {
     <div style={{ position: "relative", width: size, height: size }}>
       <svg width={size} height={size}>
         <defs>
-          {/* Figma "Primary/Blue -> Yellow" ring — pastel blue -> lavender -> pink -> peach */}
+          {/* Figma "Gradient/Primary/Blue -> Yellow" — exact stops blue/purple/pink/yellow */}
           <linearGradient id="matchScoreGradient" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#84CAFF" />
-            <stop offset="35%" stopColor="#B6A6F2" />
-            <stop offset="70%" stopColor="#F7A3C4" />
-            <stop offset="100%" stopColor="#FDC9A6" />
+            <stop offset="0%" stopColor="#9FCAED" />
+            <stop offset="33%" stopColor="#CEB6DA" />
+            <stop offset="66%" stopColor="#EBACC9" />
+            <stop offset="100%" stopColor="#FCCEC0" />
           </linearGradient>
         </defs>
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#F2F4F7" strokeWidth={stroke} />

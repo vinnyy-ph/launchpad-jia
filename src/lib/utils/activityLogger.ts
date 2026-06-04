@@ -31,7 +31,9 @@ type ActivityKind =
   | "recruiter_unpublished_career"
   | "recruiter_updated_activity_status"
   | "recruiter_updated_subscription_plan"
-  | "recruiter_deleted_career";
+  | "recruiter_deleted_career"
+  | "recruiter_archived_career"
+  | "recruiter_restored_career";
 
 type ActorInfo = {
   type: "candidate" | "recruiter" | "system";
@@ -115,7 +117,9 @@ export async function logActivity({
     kind === "recruiter_unpublished_career" ||
     kind === "recruiter_updated_activity_status" ||
     kind === "recruiter_updated_subscription_plan" ||
-    kind === "recruiter_deleted_career";
+    kind === "recruiter_deleted_career" ||
+    kind === "recruiter_archived_career" ||
+    kind === "recruiter_restored_career";
 
   if (!interview && !isAutomationManagementKind && !isCareerManagementKind) {
     console.warn("logActivity: interview data missing");
@@ -744,6 +748,38 @@ export async function logActivity({
           metadata: {
             ...basePayload.metadata,
             message: `${actorName} deleted the ${jobTitle || "career"} career`,
+          },
+        });
+      }
+
+      case "recruiter_archived_career": {
+        return recordActivityHistory(db, {
+          ...basePayload,
+          action: "Archived Career",
+          source: "manual",
+          actor: {
+            ...basePayload.actor,
+            type: "recruiter",
+          },
+          metadata: {
+            ...basePayload.metadata,
+            message: `${actorName} archived the ${jobTitle || "career"} career`,
+          },
+        });
+      }
+
+      case "recruiter_restored_career": {
+        return recordActivityHistory(db, {
+          ...basePayload,
+          action: "Restored Career",
+          source: "manual",
+          actor: {
+            ...basePayload.actor,
+            type: "recruiter",
+          },
+          metadata: {
+            ...basePayload.metadata,
+            message: `${actorName} restored the ${jobTitle || "career"} career`,
           },
         });
       }

@@ -1621,6 +1621,13 @@ export default function () {
               <ManualProfileWizard
                 userEmail={lockedEmail}
                 onExit={() => setShowManualWizard(false)}
+                onSubmitted={async () => {
+                  setShowManualWizard(false);
+                  // Refresh the candidate's CV so "Review Current CV" reflects
+                  // the newly saved profile without requiring a full page reload.
+                  const refreshed = await fetchPersistedCV();
+                  setDigitalCV(refreshed);
+                }}
               />
             )}
 

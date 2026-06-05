@@ -27,8 +27,11 @@ import type {
   AwardSectionItem,
   ReferenceSectionItem,
   ContactWebsite,
+  StructuredCV,
 } from "@/lib/utils/structuredCV";
 import { validatePhoneFormat } from "@/lib/utils/phoneValidation";
+import { api } from "@/lib/utils/apiClient";
+import { inferPhoneCountry } from "@/lib/utils/phoneInput";
 
 interface StepDef {
   title: string;
@@ -109,11 +112,45 @@ interface WizardData {
 interface ManualProfileWizardProps {
   onExit: () => void;
   userEmail?: string;
+  onSubmitted?: () => void;
+}
+
+// Pure helpers — assembled outside the component to avoid re-creation on renders.
+function assembleStructuredCV(d: WizardData): StructuredCV {
+  const linkedin = d.websites.find((w) => w.type === "Linkedin")?.url ?? "";
+  return {
+    introduction: d.introduction,
+    contactInfo: {
+      email: d.contact.email,
+      phone: d.contact.phone,
+      isPhoneVerified: d.contact.isPhoneVerified,
+      countryCode: inferPhoneCountry(d.contact.phone),
+      address: d.contact.address,
+      linkedin,
+      websites: d.websites,
+    },
+    experience: d.experience,
+    skills: d.skills,
+    education: d.education,
+    projects: d.projects,
+    certifications: d.certifications,
+    awards: d.awards,
+    references: d.references,
+  };
+}
+
+function fullName(c: ContactStepValue): string {
+  return [c.firstName, c.middleInitial ? `${c.middleInitial}.` : "", c.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export default function ManualProfileWizard({
   onExit,
   userEmail = "",
+  onSubmitted,
 }: ManualProfileWizardProps) {
   const [stepIndex, setStepIndex] = useState(0); // 0-based
 
@@ -137,9 +174,40 @@ export default function ManualProfileWizard({
   }
 
   const [showDiscard, setShowDiscard] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function patch(p: Partial<WizardData>) {
     setData((d) => ({ ...d, ...p }));
+  }
+
+  async function handleSubmit() {
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const uniqRes = await api.post("/api/job-portal/check-phone-unique", {
+        phone: data.contact.phone,
+        email: data.contact.email,
+      });
+      if (uniqRes?.data?.unique === false) {
+        setSubmitError("That mobile number is already linked to another account.");
+        setStepIndex(0);
+        return;
+      }
+      const structuredCV = assembleStructuredCV(data);
+      await api.post("/api/whitecloak/store-cv", {
+        name: fullName(data.contact),
+        email: data.contact.email,
+        cvData: { structuredCV },
+        fileInfo: null,
+      });
+      (onSubmitted ?? onExit)();
+    } catch {
+      setSubmitError("Something went wrong saving your profile. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const step = STEPS[stepIndex];
@@ -255,7 +323,7 @@ export default function ManualProfileWizard({
 
   function goNext() {
     if (isLast) {
-      onExit();
+      handleSubmit();
       return;
     }
     setStepIndex((current) => Math.min(TOTAL_STEPS - 1, current + 1));
@@ -297,18 +365,24 @@ export default function ManualProfileWizard({
 
         {renderStep()}
 
+        {submitError && (
+          <p className={styles.submitError} role="alert">
+            {submitError}
+          </p>
+        )}
+
         <div className={styles.footer}>
           {step.hasSkip && (
             <Button label="Skip" variant="secondary" pill onClick={goNext} />
           )}
           <Button
-            label={isLast ? "Submit" : "Next"}
+            label={isLast ? (submitting ? "Submitting…" : "Submit") : "Next"}
             variant="primary"
             pill
             iconJsx={!isLast ? <ChevronRight /> : undefined}
             iconPosition="right"
             onClick={goNext}
-            disabled={!canAdvance(stepIndex)}
+            disabled={submitting || !canAdvance(stepIndex)}
           />
         </div>
       </div>

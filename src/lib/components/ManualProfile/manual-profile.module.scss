@@ -131,6 +131,13 @@ $verified: #1570ef;
   cursor: pointer;
 }
 
+.submitError {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0 0 8px;
+  text-align: center;
+}
+
 .footer {
   display: flex;
   align-items: center;

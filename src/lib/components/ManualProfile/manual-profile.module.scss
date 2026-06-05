@@ -131,6 +131,17 @@ $verified: #1570ef;
   cursor: pointer;
 }
 
+.addressBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.addressManualFields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
 .submitError {
   color: #dc2626;
   font-size: 13px;

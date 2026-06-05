@@ -5,6 +5,11 @@ import { Field, Group, Tooltip } from "@/lib/components/ui";
 import { MarkerPin01 } from "@untitledui/icons";
 import { assetConstants } from "@/lib/utils/constantsV2";
 import {
+  type AddressParts,
+  composeAddress,
+  createEmptyAddressParts,
+} from "@/lib/utils/addressFormat";
+import {
   PHONE_COUNTRY_OPTIONS,
   type SupportedPhoneCountry,
   applyCountryDialCode,
@@ -23,6 +28,8 @@ export interface ContactStepValue {
   phone: string;
   isPhoneVerified: boolean;
   address: string;
+  addressManual: boolean;
+  addressParts: AddressParts;
 }
 
 export function createEmptyContact(email = ""): ContactStepValue {
@@ -34,6 +41,8 @@ export function createEmptyContact(email = ""): ContactStepValue {
     phone: "",
     isPhoneVerified: false,
     address: "",
+    addressManual: false,
+    addressParts: createEmptyAddressParts(),
   };
 }
 
@@ -54,6 +63,26 @@ export default function ContactInformationStep({
   );
   const [isVerifyOpen, setIsVerifyOpen] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [manualMode, setManualMode] = useState<boolean>(value.addressManual);
+  const [addressParts, setAddressParts] = useState<AddressParts>(value.addressParts);
+
+  function toggleManualMode() {
+    const next = !manualMode;
+    setManualMode(next);
+    // Flip the persisted flag only; never recompose here so a freeform
+    // address typed in the single line is not wiped on toggle.
+    patch({ addressManual: next });
+  }
+
+  function updateAddressPart(key: keyof AddressParts, partValue: string) {
+    const nextParts = { ...addressParts, [key]: partValue };
+    setAddressParts(nextParts);
+    patch({
+      address: composeAddress(nextParts),
+      addressParts: nextParts,
+      addressManual: manualMode,
+    });
+  }
 
   function patch(partial: Partial<ContactStepValue>) {
     onChange({ ...value, ...partial });
@@ -207,18 +236,64 @@ export default function ContactInformationStep({
           />
         </Group>
 
-        <div>
-          <Field
-            label="Address"
-            withAsterisk
-            placeholder="123 Street, City, Country"
-            value={value.address}
-            sectionLeft={<MarkerPin01 width={18} height={18} color="#717680" />}
-            sectionWidth={40}
-            onChange={(event) => patch({ address: event.target.value })}
-          />
-          <button type="button" className={styles.manualAddressLink}>
-            Enter address manually (optional)
+        <div className={styles.addressBlock}>
+          {!manualMode ? (
+            <Field
+              label="Address"
+              withAsterisk
+              placeholder="123 Street, City, Country"
+              value={value.address}
+              sectionLeft={<MarkerPin01 width={18} height={18} color="#717680" />}
+              sectionWidth={40}
+              onChange={(event) => patch({ address: event.target.value })}
+            />
+          ) : (
+            <div className={styles.addressManualFields}>
+              <Field
+                label="Street Address"
+                withAsterisk
+                placeholder="House/Unit no., street, barangay"
+                value={addressParts.street}
+                onChange={(event) => updateAddressPart("street", event.target.value)}
+              />
+              <Group grow align="flex-start">
+                <Field
+                  label="City / Municipality"
+                  withAsterisk
+                  placeholder="City"
+                  value={addressParts.city}
+                  onChange={(event) => updateAddressPart("city", event.target.value)}
+                />
+                <Field
+                  label="Province / Region"
+                  placeholder="Province"
+                  value={addressParts.province}
+                  onChange={(event) => updateAddressPart("province", event.target.value)}
+                />
+              </Group>
+              <Group grow align="flex-start">
+                <Field
+                  label="Postal Code"
+                  placeholder="Postal code"
+                  value={addressParts.postal}
+                  onChange={(event) => updateAddressPart("postal", event.target.value)}
+                />
+                <Field
+                  label="Country"
+                  withAsterisk
+                  placeholder="Country"
+                  value={addressParts.country}
+                  onChange={(event) => updateAddressPart("country", event.target.value)}
+                />
+              </Group>
+            </div>
+          )}
+          <button
+            type="button"
+            className={styles.manualAddressLink}
+            onClick={toggleManualMode}
+          >
+            {manualMode ? "Use a single line instead" : "Enter address manually (optional)"}
           </button>
         </div>
       </div>

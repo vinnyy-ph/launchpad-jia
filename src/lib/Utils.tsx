@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import { api } from "@/lib/utils/apiClient";
 import { assetConstants } from "./utils/constantsV2";
 export { deleteCareer } from "@/lib/utils/careerDelete";
+export { archiveCareerRequest, restoreCareerRequest } from "@/lib/utils/careerArchiveActions";
 
 export const CORE_API_URL = process.env.NEXT_PUBLIC_CORE_API_URL;
 

@@ -1,0 +1,373 @@
+// Manual Profile wizard (T5) — "Create a Profile Manually" flow.
+// Mirrors the Figma "Create a Profile Manually" frames.
+
+$text: #181d27;
+$muted: #535862;
+$muted-2: #717680;
+$border: #e9eaeb;
+$border-strong: #d5d7da;
+$danger: #f04438;
+$verified: #1570ef;
+
+.wizard {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: $muted-2;
+    cursor: pointer;
+    border-radius: 8px;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .title {
+    flex: 1;
+    font-size: 22px;
+    font-weight: 700;
+    color: $text;
+    line-height: 1.2;
+  }
+
+  .stepCount {
+    font-size: 14px;
+    color: $muted-2;
+  }
+}
+
+.card {
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 28px 32px 24px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.progressTrack {
+  position: relative;
+  height: 6px;
+  border-radius: 99px;
+  background: $border;
+  overflow: hidden;
+}
+
+.progressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: 99px;
+  background-image: linear-gradient(
+    90deg,
+    #f4a28e 0%,
+    #e8a6bf 45%,
+    #9db8ec 100%
+  );
+  background-repeat: no-repeat;
+  background-position: left center;
+  transition: width 0.35s ease;
+}
+
+.sectionHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: $text;
+    margin: 0;
+  }
+
+  p {
+    font-size: 14px;
+    color: $muted;
+    margin: 0;
+  }
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.manualAddressLink {
+  align-self: flex-start;
+  margin-top: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6172f3;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.footerSpread {
+  justify-content: space-between;
+}
+
+.placeholder {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $muted-2;
+  font-size: 14px;
+  border: 1px dashed $border-strong;
+  border-radius: 12px;
+}
+
+// Phone field inline section (country select + verify / verified)
+.phoneCountry {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 12px;
+  color: $text;
+  font-size: 14px;
+
+  select {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: $text;
+    cursor: pointer;
+    appearance: none;
+    outline: none;
+    padding-right: 2px;
+  }
+
+  img {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.verifyButton {
+  border: 1px solid $border-strong;
+  border-radius: 999px;
+  background: #fff;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 600;
+  height: 26px;
+  padding: 0 14px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9f9f9;
+  }
+}
+
+.verifiedTick {
+  width: 20px;
+  height: 20px;
+}
+
+// ----- Phone verification modal -----
+.verifyForm {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 8px 6px 4px;
+}
+
+.verifyClose {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  border: none;
+  background: transparent;
+  color: #98a2b3;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.verifyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid $border;
+  border-radius: 12px;
+  color: $text;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.verifyCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.verifyHeading {
+  font-size: 17px;
+  font-weight: 700;
+  color: $text;
+}
+
+.verifySub {
+  font-size: 13px;
+  color: $muted;
+  max-width: 320px;
+}
+
+.verifyMasked {
+  color: $text;
+  font-weight: 600;
+}
+
+.verifyFieldFull {
+  width: 100%;
+}
+
+.otpRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.otpHint {
+  font-size: 12px;
+  color: $muted-2;
+}
+
+.resendRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: $muted;
+}
+
+.resendTimer {
+  color: $text;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.resendButton {
+  border: none;
+  background: none;
+  padding: 0;
+  font-weight: 600;
+  color: $verified;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sparkles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 0;
+
+  span {
+    font-size: 18px;
+    color: #f4a9b8;
+    animation: sparklePulse 1s ease-in-out infinite;
+
+    &:nth-child(2) {
+      font-size: 24px;
+      animation-delay: 0.15s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+@keyframes sparklePulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.actionsRow {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.verifyConfirmField {
+  position: relative;
+  width: 100%;
+}
+
+.verifyConfirmBadge {
+  width: 20px;
+  height: 20px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

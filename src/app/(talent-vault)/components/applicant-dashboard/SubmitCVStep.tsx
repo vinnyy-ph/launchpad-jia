@@ -7,13 +7,15 @@ interface SubmitCVStepProps {
   hasCV?: boolean;
   onReviewCV?(): void;
   onFileSelect?(file: File): void;
+  onCreateManually?(): void;
   isUploading?: boolean;
 }
 
-export function SubmitCVStep({ 
-  hasCV = false, 
+export function SubmitCVStep({
+  hasCV = false,
   onReviewCV,
   onFileSelect,
+  onCreateManually,
   isUploading = false,
 }: SubmitCVStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +47,16 @@ export function SubmitCVStep({
 
   return (
     <div className={styles.cvManageContainer}>
-      <div 
+      <div className={styles.cvContainer}>
+        <img alt="" src="/iconsV3/edit.svg" />
+        <button onClick={onCreateManually}>Create a Profile Manually</button>
+        <span>
+          Quickstart your job application by creating your own CV from
+          scratch.
+        </span>
+      </div>
+
+      <div
         className={styles.cvContainer}
         onDragOver={handleDragOver}
         onDrop={handleDrop}

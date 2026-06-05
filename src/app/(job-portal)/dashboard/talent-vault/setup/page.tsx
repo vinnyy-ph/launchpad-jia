@@ -19,6 +19,7 @@ import {
 } from "@/app/(talent-vault)/components/applicant-dashboard/TVPreScreeningStep";
 import { TVInterviewStep } from "@/app/(talent-vault)/components/applicant-dashboard/TVInterviewStep";
 import { TalentVaultInfoHelp } from "@/app/(talent-vault)/components/applicant-dashboard/TalentVaultInfoHelp";
+import ManualProfileWizard from "@/lib/components/ManualProfile/ManualProfileWizard";
 import styles from "@/app/(talent-vault)/styles/modules/profile-setup.module.scss";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -156,6 +157,7 @@ export default function TalentVaulSetupPage() {
   }, [user?.email, router]);
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [isCreatingManually, setIsCreatingManually] = useState(false);
   const [hasCV, setHasCV] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isBuildingCV, setIsBuildingCV] = useState(false);
@@ -762,11 +764,19 @@ try {
       )}
 
       <div className={styles.profileSetupContent}>
-        {currentStep === 1 && !isBuildingCV && !selectedFile && (
+        {currentStep === 1 && isCreatingManually && (
+          <ManualProfileWizard
+            userEmail={user?.email || ""}
+            onExit={() => setIsCreatingManually(false)}
+          />
+        )}
+
+        {currentStep === 1 && !isCreatingManually && !isBuildingCV && !selectedFile && (
           <SubmitCVStep
             hasCV={hasCV}
             onReviewCV={handleReviewCV}
             onFileSelect={handleFileSelect}
+            onCreateManually={() => setIsCreatingManually(true)}
             isUploading={isUploading}
           />
         )}

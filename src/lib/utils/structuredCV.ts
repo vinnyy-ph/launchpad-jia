@@ -97,6 +97,17 @@ export interface AwardSectionItem {
   description: string;
 }
 
+export interface ReferenceSectionItem {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  countryCode: string;
+  company: string;
+  position: string;
+  relation: string;
+}
+
 export interface StructuredCV {
   introduction: string;
   contactInfo: ContactInfoSection;
@@ -106,6 +117,7 @@ export interface StructuredCV {
   projects: ProjectSectionItem[];
   certifications: CertificationSectionItem[];
   awards: AwardSectionItem[];
+  references?: ReferenceSectionItem[];
 }
 
 export interface StructuredCVDerivedFields {
@@ -436,6 +448,24 @@ function normalizeAwardItem(value: unknown, index: number): AwardSectionItem {
   };
 }
 
+function normalizeReferenceItem(input: unknown): ReferenceSectionItem | null {
+  if (!input || typeof input !== "object") return null;
+  const o = input as Record<string, unknown>;
+  const name = toTrimmedString(o.name);
+  const company = toTrimmedString(o.company);
+  if (!name && !company && !toTrimmedString(o.email) && !toTrimmedString(o.phone)) return null;
+  return {
+    id: typeof o.id === "string" && o.id ? o.id : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    name,
+    email: toTrimmedString(o.email),
+    phone: toTrimmedString(o.phone),
+    countryCode: toTrimmedString(o.countryCode),
+    company,
+    position: toTrimmedString(o.position),
+    relation: toTrimmedString(o.relation),
+  };
+}
+
 function normalizeArrayFromSection<T>(
   rawSectionContent: unknown,
   normalizer: (value: unknown, index: number) => T
@@ -506,6 +536,10 @@ export function normalizeStructuredCVInput(input: unknown): StructuredCV {
       normalizeCertificationItem
     ),
     awards: normalizeArrayFromSection<AwardSectionItem>(obj.awards, normalizeAwardItem),
+    references: normalizeArrayFromSection<ReferenceSectionItem | null>(
+      obj.references,
+      (item) => normalizeReferenceItem(item)
+    ).filter((r): r is ReferenceSectionItem => r !== null),
   };
 }
 

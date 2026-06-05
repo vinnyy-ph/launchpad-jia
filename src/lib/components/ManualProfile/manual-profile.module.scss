@@ -16,6 +16,13 @@ $verified: #1570ef;
   display: flex;
   flex-direction: column;
   gap: 20px;
+
+  // Argon's global `button {}` paints every bare <button> with a drop shadow;
+  // neutralise it on our custom triggers (accordion headers, dropdowns, icon
+  // buttons). Menus/cards are <div>s, so they keep their own shadows.
+  button {
+    box-shadow: none;
+  }
 }
 
 .header {
@@ -544,6 +551,12 @@ $verified: #1570ef;
   align-items: center;
   gap: 18px;
   padding: 8px 12px 4px;
+
+  // Same argon global-button shadow reset for the portaled verify modal
+  // (it renders outside .wizard).
+  button {
+    box-shadow: none;
+  }
 }
 
 .verifyClose {

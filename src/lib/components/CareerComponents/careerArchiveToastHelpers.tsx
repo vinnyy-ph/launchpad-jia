@@ -15,6 +15,8 @@ const baseToastOptions = {
   draggable: true,
   progress: undefined,
   closeButton: true,
+  // Figma alert width is 480px (default react-toastify is 320); stay responsive on small screens.
+  style: { width: 480, maxWidth: "calc(100vw - 32px)" },
 };
 
 /**

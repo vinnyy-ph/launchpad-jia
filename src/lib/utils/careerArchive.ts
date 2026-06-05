@@ -25,29 +25,24 @@ export function archivedConstraint(selectedStatuses: string[] = []) {
     : { archived: { $ne: true } };
 }
 
-interface SubstageLike { id?: string; name?: string }
-interface StageLike { id?: string; type?: string; substages?: SubstageLike[] }
+/**
+ * Candidate application statuses that must NOT be dropped on archive:
+ * already-hired (kept) and already-terminal-dropped (no re-drop).
+ * The app's notion of "Hired stage" is the `applicationStatus` field
+ * (see get-careers / get-career-applicants), not a pipeline substage.
+ */
+export const NON_DROPPABLE_STATUSES = ["Hired", "Dropped"] as const;
 
-/** Resolve the "Hired" substage id from a career's own pipeline; fallback "4". */
-export function resolveHiredSubstageId(pipelineStages?: StageLike[]): string {
-  if (Array.isArray(pipelineStages)) {
-    for (const stage of pipelineStages) {
-      const hired = stage?.substages?.find((s) => s?.name === "Hired");
-      if (hired?.id) return hired.id;
-    }
-  }
-  return "4";
-}
+interface InterviewLike { _id?: any; applicationStatus?: string | null }
 
-interface InterviewLike { _id?: any; substageId?: string; applicationStatus?: string }
-
-/** Ids of interviews to drop on "archive and drop all": non-Hired, not already dropped. */
-export function selectInterviewIdsToDrop(
-  interviews: InterviewLike[],
-  hiredSubstageId: string
-): any[] {
+/**
+ * Ids of candidate "interview" docs to drop on "archive and drop all":
+ * everyone NOT in the Hired stage and not already Dropped. Ongoing / null /
+ * any other in-progress status becomes Dropped.
+ */
+export function selectInterviewIdsToDrop(interviews: InterviewLike[]): any[] {
   return (interviews || [])
-    .filter((iv) => iv?.applicationStatus !== "Dropped" && iv?.substageId !== hiredSubstageId)
+    .filter((iv) => !NON_DROPPABLE_STATUSES.includes(iv?.applicationStatus as any))
     .map((iv) => iv._id);
 }
 

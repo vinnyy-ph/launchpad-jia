@@ -3,7 +3,6 @@ import {
   ARCHIVE_MATCH_STAGE,
   withExcludeArchived,
   archivedConstraint,
-  resolveHiredSubstageId,
   selectInterviewIdsToDrop,
   planArchiveTargets,
 } from "@/lib/utils/careerArchive";
@@ -36,44 +35,27 @@ describe("careerArchive query helpers", () => {
   });
 });
 
-describe("resolveHiredSubstageId", () => {
-  const finalStage = {
-    id: "job-offer",
-    type: "core",
-    substages: [
-      { id: "1", name: "For Final Review" },
-      { id: "4", name: "Hired" },
-    ],
-  };
-
-  it("finds the Hired substage by name", () => {
-    expect(resolveHiredSubstageId([{ id: "cv" }, finalStage] as any)).toBe("4");
-  });
-
-  it("falls back to '4' when no Hired substage name present", () => {
-    expect(resolveHiredSubstageId([{ id: "cv", substages: [] }] as any)).toBe("4");
-  });
-
-  it("is undefined-safe", () => {
-    expect(resolveHiredSubstageId(undefined)).toBe("4");
-  });
-});
-
 describe("selectInterviewIdsToDrop", () => {
-  const hiredId = "4";
+  // "Hired stage" = applicationStatus "Hired" (per get-careers / get-career-applicants),
+  // not a pipeline substage. Drop everyone not Hired and not already Dropped.
   const interviews = [
-    { _id: "i1", substageId: "1" }, // not hired -> drop
-    { _id: "i2", substageId: "4" }, // hired -> keep
-    { _id: "i3", substageId: undefined }, // not hired -> drop
-    { _id: "i4", applicationStatus: "Dropped", substageId: "1" }, // already dropped -> skip
+    { _id: "i1", applicationStatus: "Ongoing" }, // drop
+    { _id: "i2", applicationStatus: "Hired" }, // keep
+    { _id: "i3", applicationStatus: null }, // ongoing/unknown -> drop
+    { _id: "i4", applicationStatus: "Dropped" }, // already dropped -> skip
+    { _id: "i5" }, // missing status -> drop
   ];
 
-  it("selects only non-Hired, not-already-dropped interviews", () => {
-    expect(selectInterviewIdsToDrop(interviews as any, hiredId)).toEqual(["i1", "i3"]);
+  it("drops everyone not Hired and not already Dropped", () => {
+    expect(selectInterviewIdsToDrop(interviews as any)).toEqual(["i1", "i3", "i5"]);
+  });
+
+  it("keeps Hired candidates", () => {
+    expect(selectInterviewIdsToDrop([{ _id: "h", applicationStatus: "Hired" }] as any)).toEqual([]);
   });
 
   it("is empty-safe", () => {
-    expect(selectInterviewIdsToDrop([], hiredId)).toEqual([]);
+    expect(selectInterviewIdsToDrop([])).toEqual([]);
   });
 });
 

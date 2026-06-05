@@ -3,7 +3,7 @@ import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { ObjectId } from "mongodb";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { logActivity } from "@/lib/utils/activityLogger";
-import { resolveHiredSubstageId, selectInterviewIdsToDrop, planArchiveTargets } from "@/lib/utils/careerArchive";
+import { selectInterviewIdsToDrop, planArchiveTargets } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
@@ -41,18 +41,15 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     let droppedCount = 0;
     if (dropCandidates) {
       const careerStringIds = [career, ...children].map((c: any) => c.id).filter(Boolean);
+      // Candidate "interview" docs carry their career's `id` as their own `id`
+      // (see get-career-applicants getFilter: { id: careerID }). "Hired stage" is
+      // the applicationStatus field, not a pipeline substage.
       const interviews = await db
         .collection("interviews")
-        .find({ orgID, careerId: { $in: careerStringIds } })
+        .find({ orgID, id: { $in: careerStringIds } })
+        .project({ _id: 1, applicationStatus: 1 })
         .toArray();
-      // Group by career (pipelines differ per career), reuse the tested helper per group.
-      const idsToDrop: any[] = [];
-      for (const c of [career, ...children] as any[]) {
-        if (!c.id) continue;
-        const hiredId = resolveHiredSubstageId(c.pipelineStages);
-        const careerInterviews = interviews.filter((iv: any) => iv.careerId === c.id);
-        idsToDrop.push(...selectInterviewIdsToDrop(careerInterviews, hiredId));
-      }
+      const idsToDrop = selectInterviewIdsToDrop(interviews);
       if (idsToDrop.length > 0) {
         const res = await db.collection("interviews").updateMany(
           { _id: { $in: idsToDrop } },

@@ -1,13 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/lib/components/ui";
 import { ChevronLeft, ChevronRight } from "@untitledui/icons";
 import ContactInformationStep, {
   type ContactStepValue,
   createEmptyContact,
 } from "./ContactInformationStep";
+import DiscardProfileModal from "./DiscardProfileModal";
 import styles from "./manual-profile.module.scss";
+import type {
+  ExperienceSectionItem,
+  EducationSectionItem,
+  ProjectSectionItem,
+  CertificationSectionItem,
+  AwardSectionItem,
+  ReferenceSectionItem,
+  ContactWebsite,
+} from "@/lib/utils/structuredCV";
+import { validatePhoneFormat } from "@/lib/utils/phoneValidation";
 
 interface StepDef {
   title: string;
@@ -72,6 +83,19 @@ const STEPS: StepDef[] = [
 
 const TOTAL_STEPS = STEPS.length;
 
+interface WizardData {
+  contact: ContactStepValue;
+  websites: ContactWebsite[];
+  education: EducationSectionItem[];
+  experience: ExperienceSectionItem[];
+  skills: string[];
+  projects: ProjectSectionItem[];
+  certifications: CertificationSectionItem[];
+  awards: AwardSectionItem[];
+  references: ReferenceSectionItem[];
+  introduction: string;
+}
+
 interface ManualProfileWizardProps {
   onExit: () => void;
   userEmail?: string;
@@ -82,9 +106,31 @@ export default function ManualProfileWizard({
   userEmail = "",
 }: ManualProfileWizardProps) {
   const [stepIndex, setStepIndex] = useState(0); // 0-based
-  const [contact, setContact] = useState<ContactStepValue>(() =>
-    createEmptyContact(userEmail),
-  );
+
+  const [data, setData] = useState<WizardData>(() => ({
+    contact: createEmptyContact(userEmail),
+    websites: [],
+    education: [],
+    experience: [],
+    skills: [],
+    projects: [],
+    certifications: [],
+    awards: [],
+    references: [],
+    introduction: "",
+  }));
+
+  // Capture the initial data snapshot once (for dirty tracking).
+  const initialDataRef = useRef<WizardData | null>(null);
+  if (initialDataRef.current === null) {
+    initialDataRef.current = data;
+  }
+
+  const [showDiscard, setShowDiscard] = useState(false);
+
+  function patch(p: Partial<WizardData>) {
+    setData((d) => ({ ...d, ...p }));
+  }
 
   const step = STEPS[stepIndex];
   const isFirst = stepIndex === 0;
@@ -97,20 +143,33 @@ export default function ManualProfileWizard({
     backgroundSize: `${(10000 / progressPct).toFixed(2)}% 100%`,
   };
 
-  const isContactValid = useMemo(() => {
-    if (stepIndex !== 0) return true;
-    return (
-      contact.firstName.trim() !== "" &&
-      contact.lastName.trim() !== "" &&
-      contact.middleInitial.trim() !== "" &&
-      contact.email.trim() !== "" &&
-      contact.address.trim() !== ""
-    );
-  }, [stepIndex, contact]);
+  const isDirty = useMemo(
+    () =>
+      initialDataRef.current !== null &&
+      JSON.stringify(data) !== JSON.stringify(initialDataRef.current),
+    [data],
+  );
+
+  function canAdvance(i: number): boolean {
+    if (i === 0) {
+      const c = data.contact;
+      return (
+        [c.firstName, c.lastName, c.middleInitial, c.email, c.address].every(
+          (v) => v.trim() !== "",
+        ) && validatePhoneFormat(c.phone).valid
+      );
+    }
+    // Steps 2–10 use Skip / optional rows; row validation lives in the editors.
+    return true;
+  }
 
   function goBack() {
     if (isFirst) {
-      onExit();
+      if (isDirty) {
+        setShowDiscard(true);
+      } else {
+        onExit();
+      }
       return;
     }
     setStepIndex((current) => Math.max(0, current - 1));
@@ -126,6 +185,13 @@ export default function ManualProfileWizard({
 
   return (
     <div className={styles.wizard}>
+      <DiscardProfileModal
+        opened={showDiscard}
+        onGoBack={() => setShowDiscard(false)}
+        onSaveExit={onExit}
+        onExitWithoutSaving={onExit}
+      />
+
       <div className={styles.header}>
         <button
           type="button"
@@ -153,8 +219,8 @@ export default function ManualProfileWizard({
 
         {stepIndex === 0 ? (
           <ContactInformationStep
-            value={contact}
-            onChange={setContact}
+            value={data.contact}
+            onChange={(contact) => patch({ contact })}
             lockEmail={Boolean(userEmail)}
           />
         ) : (
@@ -174,7 +240,7 @@ export default function ManualProfileWizard({
             iconJsx={!isLast ? <ChevronRight /> : undefined}
             iconPosition="right"
             onClick={goNext}
-            disabled={!isContactValid}
+            disabled={!canAdvance(stepIndex)}
           />
         </div>
       </div>

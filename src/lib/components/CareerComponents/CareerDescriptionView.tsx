@@ -19,6 +19,7 @@ import { Button } from "../ui";
 import { generateJobPortalUrl } from "@/lib/utils/subdomainUtils";
 import { type CareerDeletePreview } from "@/lib/utils/careerDelete";
 import { useCareerArchiveModal } from "@/lib/hooks/useCareerArchiveModal";
+import ArchivedBanner from "./ArchivedBanner";
 import {
   HIRING_MANAGER_ROLE,
   normalizeCareerTeamRole,
@@ -327,6 +328,11 @@ export default function CareerDescriptionView({
 
   return (
     <>
+    {formData?.archived && (
+      <div style={{ marginBottom: 16 }}>
+        <ArchivedBanner onRestore={() => openRestore(formData)} />
+      </div>
+    )}
     <div style={{ display: "flex", gap: 24, marginTop: 24, marginBottom: 40 }}>
       {/* Left Column */}
       <div

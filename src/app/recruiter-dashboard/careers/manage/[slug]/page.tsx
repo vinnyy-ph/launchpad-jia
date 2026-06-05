@@ -860,6 +860,8 @@ export default function ManageCareerPage() {
           careerPostType: response.data?.careerPostType || null,
           childTitle: response.data?.childTitle || "",
           parentCareerTitle: response.data?.parentCareer?.jobTitle || "",
+          archived: response.data?.archived || false,
+          archivedAt: response.data?.archivedAt || null,
         });
         const jobPipeline =
           normalizePipeline(response.data?.pipelineStages || DEFAULT_JOB_PIPELINE);
@@ -1018,6 +1020,8 @@ export default function ManageCareerPage() {
       careerPostType: career?.careerPostType || null,
       childTitle: career?.childTitle || "",
       parentCareerTitle: career?.parentCareer?.jobTitle || "",
+      archived: career?.archived || false,
+      archivedAt: career?.archivedAt || null,
     });
     setIsEditing(false);
   };

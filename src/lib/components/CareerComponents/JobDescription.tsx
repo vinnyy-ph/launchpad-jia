@@ -9,7 +9,7 @@ import DirectInterviewLinkV2 from "./DirectInterviewLinkV2";
 import CareerForm from "./CareerForm";
 import CareerLink from "./CareerLink";
 import { useRouter, useSearchParams } from "next/navigation";
-import { deleteCareer as deleteCareerWithNotice } from "@/lib/utils/careerDelete";
+import { useCareerArchiveModal } from "@/lib/hooks/useCareerArchiveModal";
 
 export default function JobDescription({ formData, setFormData, isEditing, setIsEditing, handleCancelEdit }: { formData: any, setFormData: (formData: any) => void, isEditing: boolean, setIsEditing: (isEditing: boolean) => void, handleCancelEdit: () => void }) {
     const { user } = useAppContext();
@@ -19,6 +19,10 @@ export default function JobDescription({ formData, setFormData, isEditing, setIs
     const [showEditModal, setShowEditModal] = useState(false);
     const [linkedProject, setLinkedProject] = useState<any>(null);
     const [loadingProject, setLoadingProject] = useState(true);
+
+    const { openArchive, openRestore, modals } = useCareerArchiveModal(() => {
+      router.push(`/recruiter-dashboard/careers?orgID=${orgID}`);
+    });
 
     const handleEdit = () => {
       router.push(`/recruiter-dashboard/careers/edit-career/${formData._id}?orgID=${orgID}`);
@@ -98,10 +102,6 @@ export default function JobDescription({ formData, setFormData, isEditing, setIs
             });
         }
     }
-
-    async function deleteCareer() {
-        await deleteCareerWithNotice(formData._id, { orgID });
-      }
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 16 }}>
@@ -324,13 +324,13 @@ export default function JobDescription({ formData, setFormData, isEditing, setIs
                   </div>
 
                       <div className="layered-card-content">
-                        <button 
+                        <button
                         onClick={() => {
-                          deleteCareer();
+                          formData.archived ? openRestore(formData) : openArchive(formData);
                         }}
                         style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,backgroundColor: "#FFFFFF", color: "#B32318", borderRadius: "60px", padding: "5px 10px", border: "1px solid #B32318", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
-                                <i className="la la-trash" style={{ color: "#B32318", fontSize: 16 }}></i>
-                                <span>Delete this career</span>
+                                <i className="la la-archive" style={{ color: "#B32318", fontSize: 16 }}></i>
+                                <span>{formData.archived ? "Restore this career" : "Archive this career"}</span>
                         </button>
                         <span style={{ fontSize: "14px", color: "#717680", textAlign: "center" }}>Be careful, this action cannot be undone.</span>
                     </div>
@@ -347,6 +347,7 @@ export default function JobDescription({ formData, setFormData, isEditing, setIs
                   </div>
                 </div>
             )}
+            {modals}
         </div>
     )
 }

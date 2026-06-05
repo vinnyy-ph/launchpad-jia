@@ -254,7 +254,7 @@ $verified: #1570ef;
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  padding: 8px 6px 4px;
+  padding: 8px 12px 4px;
 }
 
 .verifyClose {
@@ -314,12 +314,59 @@ $verified: #1570ef;
   width: 100%;
 }
 
-.otpRow {
+// Figma 6-box OTP: even square cells, centered, contained in the modal.
+.otpInput {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
+}
+
+.otpBox {
+  box-sizing: border-box;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  color: #111827;
+  outline: none;
+  -moz-appearance: textfield;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: #d5d7da;
+    font-weight: 500;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &:focus,
+  &:focus-visible {
+    border-color: #111827;
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.08);
+  }
+}
+
+.otpBoxError {
+  border-color: #fda29b;
+  color: #f04438;
+
+  &:focus {
+    border-color: #fda29b;
+    box-shadow: 0 0 0 4px rgba(240, 68, 56, 0.1);
+  }
 }
 
 .otpHint {

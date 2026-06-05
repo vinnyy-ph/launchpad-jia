@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Field, Modal } from "@/lib/components/ui";
-import PasscodeInput from "@/lib/components/CandidateProfileComponents/PasscodeInput";
+import OtpInput from "./OtpInput";
 import { usePasscodeValue } from "@/lib/hooks/usePasscodeValue";
 import { assetConstants } from "@/lib/utils/constantsV2";
 import {
@@ -91,7 +91,7 @@ export default function ManualPhoneVerifyModal({
 
   const isPhoneValid = isStrictInternationalPhone(phone.trim());
   const isOtpComplete = passcode.trim().length === 6;
-  const sizeForStep = step === "otp" || step === "verifying" ? 520 : step === "confirm" ? 480 : 436;
+  const sizeForStep = step === "otp" || step === "verifying" ? 448 : step === "confirm" ? 480 : 436;
 
   function handleClose() {
     if (verifyTimerRef.current) clearTimeout(verifyTimerRef.current);
@@ -156,8 +156,8 @@ export default function ManualPhoneVerifyModal({
       onClose={handleClose}
       centered
       size={sizeForStep}
-      radius={24}
-      overlayProps={{ blur: 6, opacity: 0.2 }}
+      radius={16}
+      overlayProps={{ blur: 4, opacity: 0.5 }}
       withCloseButton={false}
     >
       <div className={styles.verifyForm}>
@@ -226,6 +226,7 @@ export default function ManualPhoneVerifyModal({
               <span className={styles.verifyHeading}>Verify your Mobile Number</span>
               <span className={styles.verifySub}>
                 We&apos;ve sent a 6-digit verification code to{" "}
+                <br />
                 <span className={styles.verifyMasked}>{maskNumber(phone)}</span>
               </span>
             </div>
@@ -238,13 +239,12 @@ export default function ManualPhoneVerifyModal({
               </div>
             ) : (
               <>
-                <div className={styles.otpRow}>
-                  <PasscodeInput
-                    onDigitChange={onDigitChange}
-                    onComplete={onComplete}
-                    placeholder="0"
-                  />
-                </div>
+                <OtpInput
+                  onDigitChange={onDigitChange}
+                  onComplete={onComplete}
+                  placeholder="0"
+                  autoFocus
+                />
                 <span className={styles.otpHint}>
                   It may take up to 2 minutes for the code to arrive.
                 </span>
@@ -273,9 +273,9 @@ export default function ManualPhoneVerifyModal({
                 variant="primary"
                 pill
                 onClick={handleVerify}
-                disabled={step === "verifying" || !isOtpComplete}
+                disabled={step === "verifying"}
                 iconJsx={step === "verifying" ? <span className={styles.spinner} /> : undefined}
-                style={{ width: "100%" }}
+                style={{ width: "100%", height: 52 }}
               />
             </div>
           </>

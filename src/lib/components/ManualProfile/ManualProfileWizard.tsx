@@ -370,12 +370,11 @@ export default function ManualProfileWizard({
 
         <div className={styles.footer}>
           {step.hasSkip && (
-            <Button label="Skip" variant="secondary" pill onClick={goNext} />
+            <Button label="Skip" variant="secondary" onClick={goNext} />
           )}
           <Button
             label={isLast ? (submitting ? "Submitting…" : "Submit") : "Next"}
             variant="primary"
-            pill
             iconJsx={!isLast ? <ChevronRight /> : undefined}
             iconPosition="right"
             onClick={goNext}

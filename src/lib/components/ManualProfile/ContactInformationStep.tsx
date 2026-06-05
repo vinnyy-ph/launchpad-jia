@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Field, Group } from "@/lib/components/ui";
+import { Field, Group, Tooltip } from "@/lib/components/ui";
 import { MarkerPin01 } from "@untitledui/icons";
 import { assetConstants } from "@/lib/utils/constantsV2";
 import {
@@ -59,6 +59,20 @@ export default function ContactInformationStep({
     onChange({ ...value, ...partial });
   }
 
+  // The dial code (e.g. +63) is a fixed, bold prefix driven by the country
+  // selector; the editable input holds only the national number. The full
+  // E.164 value is kept in value.phone for validation + submission.
+  const dialCode =
+    PHONE_COUNTRY_OPTIONS.find((option) => option.code === country)?.dialCode ?? "+63";
+  const dialDigits = dialCode.replace(/^\+/, "");
+  const phoneDigits = value.phone.replace(/\D/g, "");
+  const nationalNumber = phoneDigits.startsWith(dialDigits)
+    ? phoneDigits.slice(dialDigits.length)
+    : phoneDigits;
+  const emailTooltip = lockEmail
+    ? "This is the email linked to your Google sign-in, so it can't be changed here."
+    : "We'll use this email to keep your application linked to your account and to reach you.";
+
   const phoneCountrySection = (
     <span className={styles.phoneCountry}>
       <select
@@ -81,6 +95,7 @@ export default function ContactInformationStep({
         ))}
       </select>
       <img alt="" src={assetConstants.chevron} />
+      <span className={styles.phoneDial}>{dialCode}</span>
     </span>
   );
 
@@ -125,32 +140,32 @@ export default function ContactInformationStep({
 
         <Group grow align="flex-start">
           <Field
-            label={
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                Email
-                <img
-                  alt=""
-                  src="/icons/help-circle.svg"
-                  style={{ width: 16, height: 16 }}
-                />
-              </span>
-            }
+            label="Email"
             withAsterisk
             type="email"
             placeholder="your.email@example.com"
             value={value.email}
             disabled={lockEmail}
+            sectionRight={
+              <Tooltip
+                message={emailTooltip}
+                position="top"
+                width={248}
+                align="end"
+              />
+            }
+            sectionRightWidth={40}
+            sectionRightPointerEvents="auto"
             onChange={(event) => patch({ email: event.target.value })}
           />
           <Field
             label="Mobile Number"
             type="tel"
             inputMode="numeric"
-            placeholder="+63 987 654 3210"
-            value={value.phone}
+            placeholder="987 654 3210"
+            value={nationalNumber}
             sectionLeft={phoneCountrySection}
             sectionDivider
-            sectionWidth={68}
             sectionPointerEvents="auto"
             sectionRight={
               value.isPhoneVerified ? (
@@ -178,11 +193,11 @@ export default function ContactInformationStep({
               setPhoneError(result.valid ? null : result.error ?? null);
             }}
             onChange={(event) => {
+              const nationalDigits = event.target.value.replace(/\D/g, "");
               const nextPhone = sanitizeInternationalPhoneInput(
-                event.target.value,
+                `${dialCode}${nationalDigits}`,
                 country,
               );
-              setCountry(inferPhoneCountry(nextPhone));
               setPhoneError(null);
               patch({
                 phone: nextPhone,

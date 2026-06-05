@@ -225,6 +225,15 @@ $verified: #1570ef;
   }
 }
 
+// Bold, uneditable dial-code prefix shown before the editable national number.
+.phoneDial {
+  margin-left: 2px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #181d27;
+  white-space: nowrap;
+}
+
 .verifyButton {
   border: 1px solid $border-strong;
   border-radius: 999px;

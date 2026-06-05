@@ -11,6 +11,7 @@ import {
   inferPhoneCountry,
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
+import { validatePhoneFormat } from "@/lib/utils/phoneValidation";
 import ManualPhoneVerifyModal from "./ManualPhoneVerifyModal";
 import styles from "./manual-profile.module.scss";
 
@@ -52,6 +53,7 @@ export default function ContactInformationStep({
     inferPhoneCountry(value.phone),
   );
   const [isVerifyOpen, setIsVerifyOpen] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   function patch(partial: Partial<ContactStepValue>) {
     onChange({ ...value, ...partial });
@@ -170,12 +172,18 @@ export default function ContactInformationStep({
             sectionRightPointerEvents="auto"
             sectionRightWidth={value.isPhoneVerified ? 44 : 96}
             disabled={value.isPhoneVerified}
+            error={phoneError ?? undefined}
+            onBlur={() => {
+              const result = validatePhoneFormat(value.phone);
+              setPhoneError(result.valid ? null : result.error ?? null);
+            }}
             onChange={(event) => {
               const nextPhone = sanitizeInternationalPhoneInput(
                 event.target.value,
                 country,
               );
               setCountry(inferPhoneCountry(nextPhone));
+              setPhoneError(null);
               patch({
                 phone: nextPhone,
                 isPhoneVerified: value.isPhoneVerified && value.phone === nextPhone,

@@ -21,6 +21,8 @@ const COUNTRY_META: Record<SupportedPhoneCountry, { name: string; iso: string }>
 interface CountrySelectProps {
   value: SupportedPhoneCountry;
   onChange: (next: SupportedPhoneCountry) => void;
+  /** Read-only display (no popover) — used on the confirm step. */
+  disabled?: boolean;
 }
 
 function FlagIcon({ country }: { country: SupportedPhoneCountry }) {
@@ -38,7 +40,11 @@ function FlagIcon({ country }: { country: SupportedPhoneCountry }) {
 // <select> with a design-system-styled button trigger + popover listbox. Mirrors
 // the keyboard/close behaviour of ui/Select (arrow keys, Enter, Escape, Tab,
 // outside click) without touching that shared component.
-export default function CountrySelect({ value, onChange }: CountrySelectProps) {
+export default function CountrySelect({
+  value,
+  onChange,
+  disabled = false,
+}: CountrySelectProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [opened, setOpened] = useState(false);
@@ -77,6 +83,7 @@ export default function CountrySelect({ value, onChange }: CountrySelectProps) {
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (disabled) return;
     switch (event.key) {
       case "ArrowDown":
         event.preventDefault();
@@ -125,18 +132,24 @@ export default function CountrySelect({ value, onChange }: CountrySelectProps) {
         ref={triggerRef}
         type="button"
         className={styles.countryTrigger}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={opened}
         aria-label={`Phone country: ${selectedMeta.name}`}
-        onClick={() => setOpened((current) => !current)}
+        onClick={() => {
+          if (disabled) return;
+          setOpened((current) => !current);
+        }}
         onKeyDown={handleKeyDown}
       >
         <FlagIcon country={value} />
         <span className={styles.countryCode}>{value}</span>
-        <ChevronDown
-          className={`${styles.countryChevron}${opened ? ` ${styles.countryChevronOpen}` : ""}`}
-          aria-hidden
-        />
+        {!disabled && (
+          <ChevronDown
+            className={`${styles.countryChevron}${opened ? ` ${styles.countryChevronOpen}` : ""}`}
+            aria-hidden
+          />
+        )}
       </button>
 
       {opened && (

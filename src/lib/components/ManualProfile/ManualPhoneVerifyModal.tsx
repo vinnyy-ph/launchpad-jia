@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Field, Modal } from "@/lib/components/ui";
+import CountrySelect from "./CountrySelect";
 import OtpInput from "./OtpInput";
 import { usePasscodeValue } from "@/lib/hooks/usePasscodeValue";
 import { assetConstants } from "@/lib/utils/constantsV2";
@@ -9,8 +10,10 @@ import {
   PHONE_COUNTRY_OPTIONS,
   type SupportedPhoneCountry,
   applyCountryDialCode,
+  formatNationalNumber,
   inferPhoneCountry,
   isStrictInternationalPhone,
+  maxNationalDigits,
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
 import { Phone01 } from "@untitledui/icons";
@@ -129,24 +132,25 @@ export default function ManualPhoneVerifyModal({
     handleClose();
   }
 
-  const countrySection = (
+  // Dial code is a fixed bold prefix; the editable input holds only the national
+  // number (auto-spaced + capped per country). Full E.164 stays in `phone`.
+  const dialCode =
+    PHONE_COUNTRY_OPTIONS.find((option) => option.code === country)?.dialCode ?? "+63";
+  const dialDigits = dialCode.replace(/^\+/, "");
+  const phoneDigits = phone.replace(/\D/g, "");
+  const nationalNumber = phoneDigits.startsWith(dialDigits)
+    ? phoneDigits.slice(dialDigits.length)
+    : phoneDigits;
+
+  function handleCountryChange(next: SupportedPhoneCountry) {
+    setCountry(next);
+    setPhone(applyCountryDialCode(phone, next));
+  }
+
+  const renderCountrySection = (disabled: boolean) => (
     <span className={styles.phoneCountry}>
-      <select
-        aria-label="Phone country"
-        value={country}
-        onChange={(event) => {
-          const next = event.target.value as SupportedPhoneCountry;
-          setCountry(next);
-          setPhone(applyCountryDialCode(phone, next));
-        }}
-      >
-        {PHONE_COUNTRY_OPTIONS.map((option) => (
-          <option key={option.code} value={option.code}>
-            {option.code}
-          </option>
-        ))}
-      </select>
-      <img alt="" src={assetConstants.chevron} />
+      <CountrySelect value={country} onChange={handleCountryChange} disabled={disabled} />
+      <span className={styles.phoneDial}>{dialCode}</span>
     </span>
   );
 
@@ -187,15 +191,19 @@ export default function ManualPhoneVerifyModal({
                 withAsterisk
                 type="tel"
                 inputMode="numeric"
-                placeholder="+63 987 654 3210"
-                value={phone}
+                placeholder="987 654 3210"
+                value={formatNationalNumber(nationalNumber, country)}
                 error={phoneError || undefined}
-                sectionLeft={countrySection}
+                sectionLeft={renderCountrySection(false)}
                 sectionDivider
-                sectionWidth={68}
                 sectionPointerEvents="auto"
                 onChange={(event) => {
-                  setPhone(sanitizeInternationalPhoneInput(event.target.value, country));
+                  const nationalDigits = event.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, maxNationalDigits(country));
+                  setPhone(
+                    sanitizeInternationalPhoneInput(`${dialCode}${nationalDigits}`, country),
+                  );
                   if (phoneError) setPhoneError("");
                 }}
               />
@@ -294,11 +302,10 @@ export default function ManualPhoneVerifyModal({
                 label="Mobile Number"
                 withAsterisk
                 type="tel"
-                value={phone}
+                value={formatNationalNumber(nationalNumber, country)}
                 disabled
-                sectionLeft={countrySection}
+                sectionLeft={renderCountrySection(true)}
                 sectionDivider
-                sectionWidth={68}
                 sectionRight={
                   <img
                     className={styles.verifyConfirmBadge}

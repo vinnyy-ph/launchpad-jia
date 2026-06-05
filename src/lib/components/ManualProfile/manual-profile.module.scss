@@ -243,6 +243,10 @@ $verified: #1570ef;
     outline: 2px solid rgba(17, 24, 39, 0.25);
     outline-offset: 2px;
   }
+
+  &:disabled {
+    cursor: default;
+  }
 }
 
 .countryFlag {

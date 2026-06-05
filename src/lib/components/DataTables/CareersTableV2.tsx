@@ -10,8 +10,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import useDebounce from "../../hooks/useDebounceHook";
 import CareerStatus from "../CareerComponents/CareerStatus";
 import { candidateActionToast, errorToast } from "@/lib/Utils";
-import { deleteCareer } from "@/lib/utils/careerDelete";
 import CustomDropdown from "../Dropdown/CustomDropdown";
+import { useCareerArchiveModal } from "@/lib/hooks/useCareerArchiveModal";
 import { Tooltip } from "react-tooltip";
 import CareerActionModal from "../CareerComponents/CareerActionModal";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
@@ -119,6 +119,8 @@ export default function CareersV2Table() {
   const [showSaveModal, setShowSaveModal] = useState("");
   const [isSavingCareer, setIsSavingCareer] = useState(false);
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { openArchive, openRestore, modals: archiveModals } = useCareerArchiveModal(() => setRefreshKey((k) => k + 1));
 
   const navigateToPage = useCallback((page: number, mode: "push" | "replace" = "push") => {
     const nextPage = Math.max(1, Math.floor(page));
@@ -289,7 +291,7 @@ export default function CareersV2Table() {
       setLoading(false);
       setHasFetchedCareersMeta(false);
     }
-  }, [isViewStateReady, orgID, user?.email, currentPage, debouncedSearch, sortConfig, filterStatus]);
+  }, [isViewStateReady, orgID, user?.email, currentPage, debouncedSearch, sortConfig, filterStatus, refreshKey]);
 
   useEffect(() => {
     if (!hasFetchedCareersMeta) {
@@ -591,7 +593,17 @@ export default function CareersV2Table() {
                               <span>{item.projectName || "-"}</span>
                             </td>
                             <td>
-                              <CareerStatusBadges career={item} />
+                              <div className="d-flex align-items-center" style={{ gap: 4 }}>
+                                {item.archived && (
+                                  <img
+                                    src="/careers/archived.svg"
+                                    alt="Archived"
+                                    title="Archived"
+                                    style={{ width: 16, height: 16 }}
+                                  />
+                                )}
+                                <CareerStatusBadges career={item} />
+                              </div>
                             </td>
                             <td>
                               <div className="d-flex justify-content-center align-items-center">
@@ -735,7 +747,7 @@ export default function CareersV2Table() {
                                       >
                                         <span>Publish Career</span>
                                       </div>
-                                    ) : (
+                                    ) : !item.archived ? (
                                       <div
                                         className="dropdown-item"
                                         style={{ color: "#B42318" }}
@@ -748,7 +760,7 @@ export default function CareersV2Table() {
                                       >
                                         <span>Unpublish Career</span>
                                       </div>
-                                    )}
+                                    ) : null}
 
                                     <div className="dropdown-item"
                                         // style={{ color: "#B42318" }}
@@ -764,14 +776,25 @@ export default function CareersV2Table() {
 
                                     <div className="dropdown-divider"></div>
 
-                                    <div className="dropdown-item" style={{ color: "#B42318" }} onClick={(e) => {
-                                      if (e.defaultPrevented) return;
-                                      e.preventDefault();
-                                      setMenuOpen(false);
-                                      deleteCareer(item._id, { orgID });
-                                    }}>
-                                      <span>Delete Career</span>
-                                    </div>
+                                    {item.archived ? (
+                                      <div className="dropdown-item" onClick={(e) => {
+                                        if (e.defaultPrevented) return;
+                                        e.preventDefault();
+                                        setMenuOpen(false);
+                                        openRestore(item);
+                                      }}>
+                                        <span>Restore</span>
+                                      </div>
+                                    ) : (
+                                      <div className="dropdown-item" style={{ color: "#B42318" }} onClick={(e) => {
+                                        if (e.defaultPrevented) return;
+                                        e.preventDefault();
+                                        setMenuOpen(false);
+                                        openArchive(item);
+                                      }}>
+                                        <span>Archive</span>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -819,6 +842,7 @@ export default function CareersV2Table() {
           </div>
         </div>
       </div >
+      {archiveModals}
       {
         (isAtPlanCapacity || !hasPlan) && <Tooltip className="career-fit-tooltip fade-in" id="add-career-tooltip" />
       }

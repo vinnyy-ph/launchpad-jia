@@ -206,9 +206,18 @@ export const CAREER_STATUS_OPTIONS = [
               border: "1px solid #FECDCA",
               disabledIcon: "/careers/unpublished-disabled.svg",
               tooltipText: "Unpublished",
-          }
+          },
+          {
+              value: "archived",
+              label: "Archived",
+              icon: "/careers/archived.svg",
+              backgroundColor: "#F5F5F5",
+              border: "1px solid #E9EAEB",
+              disabledIcon: "/careers/archived.svg",
+              tooltipText: "Archived",
+          },
       ]
-  }, 
+  },
   {
       label: "Activity Status",
       options: [

@@ -9,6 +9,10 @@ import ContactInformationStep, {
 } from "./ContactInformationStep";
 import MultiEntryStep from "./MultiEntryStep";
 import DiscardProfileModal from "./DiscardProfileModal";
+import WebsitesStep from "./WebsitesStep";
+import SkillsStep from "./SkillsStep";
+import ReferenceModal from "./ReferenceModal";
+import IntroductionStep from "./IntroductionStep";
 import EducationModal from "@/lib/components/screens/EducationModal";
 import ExperienceModal from "@/lib/components/screens/ExperienceModal";
 import ProjectsModal from "@/lib/components/screens/ProjectsModal";
@@ -201,6 +205,19 @@ export default function ManualProfileWizard({
             rowLabel={(a) => a.title || "Award"}
             addLabel="Add award" />
         );
+      case 1:
+        return <WebsitesStep value={data.websites} onChange={(websites) => patch({ websites })} />;
+      case 4:
+        return <SkillsStep value={data.skills} onChange={(skills) => patch({ skills })} />;
+      case 8:
+        return (
+          <MultiEntryStep items={data.references} onChange={(references) => patch({ references })}
+            EditorModal={ReferenceModal}
+            rowLabel={(r) => r.name || "Reference"}
+            addLabel="Add reference" />
+        );
+      case 9:
+        return <IntroductionStep value={data.introduction} onChange={(introduction) => patch({ introduction })} />;
       default:
         return (
           <div className={styles.placeholder}>
@@ -219,6 +236,7 @@ export default function ManualProfileWizard({
         ) && validatePhoneFormat(c.phone).valid
       );
     }
+    if (i === 9) return data.introduction.trim() !== "";
     // Steps 2–10 use Skip / optional rows; row validation lives in the editors.
     return true;
   }

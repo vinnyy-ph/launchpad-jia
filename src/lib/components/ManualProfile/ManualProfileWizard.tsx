@@ -287,11 +287,8 @@ export default function ManualProfileWizard({
       case 9:
         return <IntroductionStep value={data.introduction} onChange={(introduction) => patch({ introduction })} />;
       default:
-        return (
-          <div className={styles.placeholder}>
-            {step.title} — step {stepIndex + 1} of {TOTAL_STEPS} (coming soon)
-          </div>
-        );
+        // All 10 steps (0–9) are handled above; this is an unreachable safety fallback.
+        return null;
     }
   }
 

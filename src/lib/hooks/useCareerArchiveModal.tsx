@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Career } from "@/lib/types/projects";
 import ArchiveCareerModal from "@/lib/components/CareerComponents/ArchiveCareerModal";

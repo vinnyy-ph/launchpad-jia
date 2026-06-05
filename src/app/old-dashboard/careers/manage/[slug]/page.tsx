@@ -6,10 +6,6 @@ import { useAppContext } from "@/lib/context/AppContext";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { errorToast, loadingToast } from "@/lib/Utils";
-import {
-  buildCareerListUrl,
-  deleteCareer as deleteCareerWithNotice,
-} from "@/lib/utils/careerDelete";
 import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
 import AuthGuard from "@/lib/components/AuthGuard/AuthGuard";
@@ -131,19 +127,6 @@ export default function Dashboard() {
         window.location.href = "/dashboard/careers";
       });
     }
-  }
-
-  async function deleteCareer() {
-    const resolvedSlug = Array.isArray(slug) ? slug[0] : slug;
-    if (!resolvedSlug) {
-      errorToast("Career not found", 1500);
-      return;
-    }
-
-    await deleteCareerWithNotice(resolvedSlug, {
-      orgID,
-      redirectTo: buildCareerListUrl("/dashboard/careers", orgID),
-    });
   }
 
   return (
@@ -343,30 +326,6 @@ export default function Dashboard() {
 
                   <DirectInterviewLink data={data} />
 
-                  <div className="card shadow-1 mt-4">
-                    <div className="card-header">
-                      <h3 className="mb-0 mr-auto">
-                        <i className="la la-edit text-primary mr-2" /> Advanced
-                        Settings
-                      </h3>
-
-                      <i className="la la-bars text-primary mr-2" />
-                    </div>
-
-                    <div className="card-body">
-                      <small className="text-black">
-                        <i className="la la-exclamation-triangle text-danger"></i>{" "}
-                        Be Careful, This Action cannot be undone.
-                      </small>
-                      <button
-                        className="btn btn-default"
-                        onClick={deleteCareer}
-                      >
-                        <i className="la la-trash text-danger"></i> Delete this
-                        Entry
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

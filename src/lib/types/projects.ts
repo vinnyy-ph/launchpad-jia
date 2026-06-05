@@ -30,6 +30,9 @@ export interface Career {
   _id: string;
   jobTitle: string;
   status?: string;
+  archived?: boolean;
+  archivedAt?: string | null;
+  archivedBy?: string | null;
   createdAt?: string;
   lastActivityAt?: string;
   orgID?: string;

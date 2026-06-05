@@ -48,7 +48,7 @@ export function SubmitCVStep({
   return (
     <div className={styles.cvManageContainer}>
       <div className={styles.cvContainer}>
-        <img alt="" src="/iconsV3/plus.svg" />
+        <img alt="" src="/iconsV3/create-profile.svg" />
         <button onClick={onCreateManually}>Create a Profile Manually</button>
         <span>
           Quickstart your job application by creating your own CV from

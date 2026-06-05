@@ -1546,8 +1546,12 @@ export default function () {
           <div className={styles.uploadCVContainer}>
             {!screeningResult && !showManualWizard && (
               <div className={styles.uploadCVHeader}>
-                {interview.organization && interview.organization.image && (
-                  <img alt="" src={interview.organization.image} />
+                {interview.organization && (
+                  <div className={styles.companyLogoCard}>
+                    {interview.organization.image && (
+                      <img alt="" src={interview.organization.image} />
+                    )}
+                  </div>
                 )}
                 <div className={styles.textContainer}>
                   <span className={styles.tag}>You're applying for</span>
@@ -1625,7 +1629,7 @@ export default function () {
                 {!buildingCV && !userCV && !file && (
                   <div className={styles.cvManageContainer}>
                     <div className={styles.cvContainer}>
-                      <img alt="" src={assetConstants.plus} />
+                      <img alt="" src="/iconsV3/create-profile.svg" />
                       <button onClick={() => setShowManualWizard(true)}>
                         Create a Profile Manually
                       </button>

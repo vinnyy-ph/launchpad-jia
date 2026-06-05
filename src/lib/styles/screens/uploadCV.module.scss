@@ -9,14 +9,27 @@
   padding: 48px 16px 40px 16px;
   .uploadCVHeader {
     display: flex;
-    gap: 32px;
-    img {
-      $size: 116px;
-      height: $size;
-      width: $size;
-      border-radius: 10px;
-      border: 1px solid #6a6a6a80;
-      object-fit: cover;
+    align-items: center;
+    gap: 24px;
+    .companyLogoCard {
+      flex-shrink: 0;
+      box-sizing: border-box;
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      border: 1px solid var(--Border-primary, #e9eaeb);
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      img {
+        width: 100%;
+        height: 100%;
+        padding: 16px;
+        box-sizing: border-box;
+        object-fit: contain;
+      }
     }
     .textContainer {
       display: flex;
@@ -122,7 +135,7 @@
   }
   .cvManageContainer {
     display: flex;
-    gap: 55px;
+    gap: 24px;
     .cvContainer {
       border: 1px solid var(--Border-primary, #e9eaeb);
       border-radius: 12px;
@@ -130,10 +143,38 @@
       display: flex;
       flex: 1;
       flex-direction: column;
-      padding: 40px;
+      align-items: flex-start;
+      padding: 24px;
+      img {
+        width: 56px;
+        height: 56px;
+      }
       button {
-        margin: 24px 0 16px 0;
-        padding: 10px 0;
+        width: 100%;
+        margin: 36px 0 16px 0;
+        padding: 11px 18px;
+        border: none;
+        border-radius: 6px;
+        background: var(--Text-text-primary, #181d27);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 20px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        &:hover {
+          background: #0f131a;
+        }
+        &:disabled,
+        &.disabled {
+          background: #e5e5e5;
+          color: #9ca3af;
+          cursor: not-allowed;
+          &:hover {
+            background: #e5e5e5;
+          }
+        }
       }
       span {
         font-weight: 500;
@@ -613,12 +654,12 @@
     .uploadCVHeader {
       box-sizing: border-box;
       flex-direction: column;
+      align-items: flex-start;
       gap: 16px;
       padding: 0 8px;
-      img {
-        $size: 48px;
-        height: $size;
-        width: $size;
+      .companyLogoCard {
+        width: 88px;
+        height: 88px;
       }
     }
     .stepContainer {

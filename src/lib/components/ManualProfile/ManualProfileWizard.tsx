@@ -7,7 +7,13 @@ import ContactInformationStep, {
   type ContactStepValue,
   createEmptyContact,
 } from "./ContactInformationStep";
+import MultiEntryStep from "./MultiEntryStep";
 import DiscardProfileModal from "./DiscardProfileModal";
+import EducationModal from "@/lib/components/screens/EducationModal";
+import ExperienceModal from "@/lib/components/screens/ExperienceModal";
+import ProjectsModal from "@/lib/components/screens/ProjectsModal";
+import CertificationModal from "@/lib/components/screens/CertificationModal";
+import AwardModal from "@/lib/components/screens/AwardModal";
 import styles from "./manual-profile.module.scss";
 import type {
   ExperienceSectionItem,
@@ -150,6 +156,60 @@ export default function ManualProfileWizard({
     [data],
   );
 
+  function renderStep() {
+    switch (stepIndex) {
+      case 0:
+        return (
+          <ContactInformationStep
+            value={data.contact}
+            onChange={(contact) => patch({ contact })}
+            lockEmail={Boolean(userEmail)}
+          />
+        );
+      case 2:
+        return (
+          <MultiEntryStep items={data.education} onChange={(education) => patch({ education })}
+            EditorModal={EducationModal}
+            rowLabel={(e) => `${e.degree || "Degree"}: ${e.school || "School-name"}`}
+            addLabel="Add education" />
+        );
+      case 3:
+        return (
+          <MultiEntryStep items={data.experience} onChange={(experience) => patch({ experience })}
+            EditorModal={ExperienceModal}
+            rowLabel={(x) => `${x.title || "Job Title"}: ${x.company || "Company"}`}
+            addLabel="Add experience" />
+        );
+      case 5:
+        return (
+          <MultiEntryStep items={data.projects} onChange={(projects) => patch({ projects })}
+            EditorModal={ProjectsModal}
+            rowLabel={(p) => p.name || "Project"}
+            addLabel="Add project" />
+        );
+      case 6:
+        return (
+          <MultiEntryStep items={data.certifications} onChange={(certifications) => patch({ certifications })}
+            EditorModal={CertificationModal}
+            rowLabel={(c) => c.name || "Certificate"}
+            addLabel="Add certification" />
+        );
+      case 7:
+        return (
+          <MultiEntryStep items={data.awards} onChange={(awards) => patch({ awards })}
+            EditorModal={AwardModal}
+            rowLabel={(a) => a.title || "Award"}
+            addLabel="Add award" />
+        );
+      default:
+        return (
+          <div className={styles.placeholder}>
+            {step.title} — step {stepIndex + 1} of {TOTAL_STEPS} (coming soon)
+          </div>
+        );
+    }
+  }
+
   function canAdvance(i: number): boolean {
     if (i === 0) {
       const c = data.contact;
@@ -217,17 +277,7 @@ export default function ManualProfileWizard({
           <p>{step.subtitle}</p>
         </div>
 
-        {stepIndex === 0 ? (
-          <ContactInformationStep
-            value={data.contact}
-            onChange={(contact) => patch({ contact })}
-            lockEmail={Boolean(userEmail)}
-          />
-        ) : (
-          <div className={styles.placeholder}>
-            {step.title} — step {stepIndex + 1} of {TOTAL_STEPS} (coming soon)
-          </div>
-        )}
+        {renderStep()}
 
         <div className={styles.footer}>
           {step.hasSkip && (

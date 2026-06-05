@@ -3,6 +3,7 @@ import connectMongoDB from "../../../lib/mongoDB/mongoDB";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { ObjectId } from "mongodb";
 import { fetchBadgeDataForCareers, attachBadgesToCareers, getCareerViewStatusMap } from "@/lib/utils/badgeComputations";
+import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
 
 
 export const GET = withAuth(async (request: AuthenticatedRequest) => {
@@ -100,16 +101,18 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
             defaultSort = { [key]: config.direction === "ascending" ? 1 : -1, _id: -1 };
         }
 
-        if (status && status !== "All Statuses") {
-            filter.status = { $in: status.split(",").map((s) => {
-                if (s === "Published") {
-                    return "active";
-                } else if (s === "Unpublished") {
-                    return "inactive";
-                } else {
-                    return s;
-                }
-            }) };
+        const tokens = status && status !== "All Statuses" ? status.split(",") : [];
+        const showArchived = tokens.includes("archived") || tokens.includes("Archived");
+        if (showArchived) {
+            filter.archived = true;
+        } else {
+            filter.archived = { $ne: true };
+            const statusTokens = tokens.filter((s) => s !== "archived" && s !== "Archived");
+            if (statusTokens.length) {
+                filter.status = { $in: statusTokens.map((s) =>
+                    s === "Published" ? "active" : s === "Unpublished" ? "inactive" : s
+                ) };
+            }
         }
 
         if (activityStatus) {
@@ -544,7 +547,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
 
         const total = shouldComputeBadgesFirst ? allCareers.length : await db.collection("careers").countDocuments(filter);
         const totalPages = Math.ceil(total / limit);
-        const totalActiveCareers = await db.collection("careers").countDocuments({ orgID, status: "active" });
+        const totalActiveCareers = await db.collection("careers").countDocuments({ orgID, status: "active", ...EXCLUDE_ARCHIVED });
 
         return NextResponse.json({
             careers,

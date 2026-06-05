@@ -59,6 +59,8 @@ import ChildSelectionModal from "@/lib/components/CareerComponents/LinkedCareers
 import MissingParentModal from "@/lib/components/CareerComponents/LinkedCareers/MissingParentModal";
 import CareerHierarchyBadge from "@/lib/components/CareerComponents/CareerHierarchyBadge";
 import linkedStyles from "@/lib/components/CareerComponents/LinkedCareers/linked-careers.module.scss";
+import ArchivedBanner from "@/lib/components/CareerComponents/ArchivedBanner";
+import { useCareerArchiveModal } from "@/lib/hooks/useCareerArchiveModal";
 
 const CAREER_TAB_VALUES = [
   "application-timeline",
@@ -150,6 +152,8 @@ export default function ManageCareerPage() {
   const [userMemberRole, setUserMemberRole] = useState<string | null>(null);
   const [invitedCandidates, setInvitedCandidates] = useState<any[]>([]);
   const [showCareerStatusModal, setShowCareerStatusModal] = useState(false);
+
+  const { openRestore, modals: archiveModals } = useCareerArchiveModal(() => setTimeout(() => window.location.reload(), 2000));
 
   // Linked career expansion state
   const [emailAutomationCareerId, setEmailAutomationCareerId] = useState<string | undefined>(undefined);
@@ -860,6 +864,8 @@ export default function ManageCareerPage() {
           careerPostType: response.data?.careerPostType || null,
           childTitle: response.data?.childTitle || "",
           parentCareerTitle: response.data?.parentCareer?.jobTitle || "",
+          archived: response.data?.archived || false,
+          archivedAt: response.data?.archivedAt || null,
         });
         const jobPipeline =
           normalizePipeline(response.data?.pipelineStages || DEFAULT_JOB_PIPELINE);
@@ -1018,6 +1024,8 @@ export default function ManageCareerPage() {
       careerPostType: career?.careerPostType || null,
       childTitle: career?.childTitle || "",
       parentCareerTitle: career?.parentCareer?.jobTitle || "",
+      archived: career?.archived || false,
+      archivedAt: career?.archivedAt || null,
     });
     setIsEditing(false);
   };
@@ -2558,6 +2566,11 @@ export default function ManageCareerPage() {
             )}
           </div>
         )}
+        {formData?.archived && (
+          <div style={{ marginBottom: 16 }}>
+            <ArchivedBanner onRestore={() => openRestore(formData)} />
+          </div>
+        )}
         {/* Tabs */}
         {!emailAutomation && (
           <div className="career-tab-container">
@@ -2950,6 +2963,7 @@ export default function ManageCareerPage() {
           onClose={() => setShowMissingParentModal(false)}
           onOpenEditPage={handleOpenEditCareerPage}
         />
+        {archiveModals}
       </div>
     </>
   );

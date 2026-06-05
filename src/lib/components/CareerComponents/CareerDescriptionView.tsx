@@ -17,10 +17,8 @@ import { useRouter } from "next/navigation";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import { Button } from "../ui";
 import { generateJobPortalUrl } from "@/lib/utils/subdomainUtils";
-import {
-  deleteCareer as deleteCareerWithNotice,
-  type CareerDeletePreview,
-} from "@/lib/utils/careerDelete";
+import { type CareerDeletePreview } from "@/lib/utils/careerDelete";
+import { useCareerArchiveModal } from "@/lib/hooks/useCareerArchiveModal";
 import {
   HIRING_MANAGER_ROLE,
   normalizeCareerTeamRole,
@@ -46,6 +44,9 @@ export default function CareerDescriptionView({
   const { user, orgID } = useAppContext();
   const [activeOrg] = useLocalStorage("activeOrg", null);
   const router = useRouter();
+  const { openArchive, openRestore, modals } = useCareerArchiveModal(() => {
+    router.push(`/recruiter-dashboard/careers?orgID=${orgID}`);
+  });
   const [userMemberRole, setUserMemberRole] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState({
     careerDetails: true,
@@ -256,14 +257,6 @@ export default function CareerDescriptionView({
     }
   };
 
-  const handleDeleteCareer = async () => {
-    if (!canEdit) return;
-    await deleteCareerWithNotice(formData._id, {
-      orgID,
-      preview: deletePreview,
-    });
-  };
-
   const handleCopyLink = () => {
     if (directInterviewLink) {
       navigator.clipboard.writeText(directInterviewLink);
@@ -333,6 +326,7 @@ export default function CareerDescriptionView({
   }, [formData._id]);
 
   return (
+    <>
     <div style={{ display: "flex", gap: 24, marginTop: 24, marginBottom: 40 }}>
       {/* Left Column */}
       <div
@@ -1994,9 +1988,12 @@ export default function CareerDescriptionView({
             </span>
             <div className="layered-card-content">
               <Button
-                onClick={handleDeleteCareer}
+                onClick={() => {
+                  if (!canEdit) return;
+                  formData.archived ? openRestore(formData) : openArchive(formData);
+                }}
                 disabled={!canEdit}
-                label="Delete this career"
+                label={formData.archived ? "Restore this career" : "Archive this career"}
                 variant={canEdit ? "tertiary-filled-destructive" : "secondary"}
                 style={{
                   width: "100%",
@@ -2019,5 +2016,7 @@ export default function CareerDescriptionView({
         </div>
       </div>
     </div>
+    {modals}
+    </>
   );
 }

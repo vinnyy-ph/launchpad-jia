@@ -3,6 +3,7 @@ import connectMongoDB from "../../../lib/mongoDB/mongoDB";
 import { ObjectId } from "mongodb";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { verifyUserIsMember } from "@/lib/utils/adminAuth";
+import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
 
 
 export const GET = withAuth(async (request: AuthenticatedRequest) => {
@@ -16,7 +17,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
     }
 
     const { db } = await connectMongoDB();
-    const filter: any = { orgID, 'pipelineStages.0': { $exists: true }};
+    const filter: any = { orgID, 'pipelineStages.0': { $exists: true }, ...EXCLUDE_ARCHIVED };
 
     const result = await verifyUserIsMember(db, email, orgID);
     if (!result.authorized) {

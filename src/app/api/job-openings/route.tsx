@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import connectMongoDB from "@/lib/mongoDB/mongoDB";
+import { ARCHIVE_MATCH_STAGE } from "@/lib/utils/careerArchive";
 
 export async function POST() {
   try {
@@ -8,6 +9,7 @@ export async function POST() {
     const careers = await db
       .collection("careers")
       .aggregate([
+        ARCHIVE_MATCH_STAGE,
         {
           $lookup: {
             from: "organizations",

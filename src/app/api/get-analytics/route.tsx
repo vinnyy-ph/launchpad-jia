@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import moment from "moment";
 import { DEFAULT_JOB_PIPELINE } from "../../../lib/utils/constants";
 import { ObjectId } from "mongodb";
+import { EXCLUDE_ARCHIVED, withExcludeArchived } from "@/lib/utils/careerArchive";
 
 interface DateFilter {
     type: "Custom" | "Today" | "7D" | "30D" | "3M" | "6M" | "12M" | "All-time" | "Default";
@@ -46,10 +47,10 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
         let careerIds: string[] = careerFilter;
         
         if (!hasFullAccess) {
-            const assignedCareers = await db.collection("careers").find({
+            const assignedCareers = await db.collection("careers").find(withExcludeArchived({
                 orgID: orgID,
                 "teamMembers.email": userEmail,
-            }).project({ _id: 1, id: 1 }).toArray();
+            })).project({ _id: 1, id: 1 }).toArray();
             const assignedCareerIds = assignedCareers.map((c: any) => c.id);
             const allowedCareerIds = [...new Set([...(authUserRole?.careers || []), ...assignedCareerIds])];
 
@@ -358,11 +359,11 @@ const getActiveCareers = async (db: any, orgID: string, careerIds: string[], dat
         memberMatch.$and.push({ teamMembers: { $elemMatch: { email: { $in: hiringManagerFilters.map((m) => m.email) }, role: "Hiring Manager" } } });
     }
 
-    const selectedCareers = await db.collection("careers").find({ 
+    const selectedCareers = await db.collection("careers").find(withExcludeArchived({
         orgID: orgID,
         ...(careerIds.length > 0 ? { id: { $in: careerIds } } : {}),
         ...(memberMatch.$and.length > 0 ? memberMatch : {}),
-    }).toArray();
+    })).toArray();
     const aggregatedData = await db.collection("recruiter-metrics").aggregate([
         {
             $match: {
@@ -1692,7 +1693,8 @@ const getStageAging = async (db: any, orgID: string, careerIds: string[], dateFi
                     {
                         $match: {
                             $expr: { $eq: ["$_id", "$$careerId"] },
-                            orgID: orgID
+                            orgID: orgID,
+                            ...EXCLUDE_ARCHIVED,
                         }
                     },
                     {
@@ -2115,6 +2117,7 @@ const getOfferAcceptanceRate = async (db: any, orgID: string, careerFilter: Obje
         {
             $match: {
                 orgID: orgID,
+                ...EXCLUDE_ARCHIVED,
                 ...(careerFilter.length > 0 ? { _id: { $in: careerFilter } } : {}),
             }
         },
@@ -2124,7 +2127,7 @@ const getOfferAcceptanceRate = async (db: any, orgID: string, careerFilter: Obje
                 let: { careerId: { $toString: "$_id" } },
                 pipeline: [
                     {
-                        $match: { 
+                        $match: {
                             $expr: { $eq: ["$careerId", "$$careerId"] },
                             ...matchTime,
                         }
@@ -2201,6 +2204,7 @@ const getEndorsementEfficiency = async (db: any, orgID: string, careerFilter: Ob
         {
             $match: {
                 orgID: orgID,
+                ...EXCLUDE_ARCHIVED,
                 ...(careerFilter.length > 0 ? { _id: { $in: careerFilter } } : {}),
             }
         },
@@ -2359,6 +2363,7 @@ const getTimeToHire = async (db: any, orgID: string, careerFilter: ObjectId[], d
         {
             $match: {
                 orgID: orgID,
+                ...EXCLUDE_ARCHIVED,
                 ...(careerFilter.length > 0 ? { _id: { $in: careerFilter } } : {}),
             }
         },
@@ -2368,8 +2373,8 @@ const getTimeToHire = async (db: any, orgID: string, careerFilter: ObjectId[], d
                 let: { careerId: { $toString: "$_id" } },
                 pipeline: [
                     {
-                        $match: { 
-                            $expr: { $eq: ["$careerId", "$$careerId"] }, 
+                        $match: {
+                            $expr: { $eq: ["$careerId", "$$careerId"] },
                             ...matchTime,
                         },
                     }

@@ -10,8 +10,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import useDebounce from "../../hooks/useDebounceHook";
 import CareerStatus from "../CareerComponents/CareerStatus";
 import { candidateActionToast, errorToast } from "@/lib/Utils";
-import { deleteCareer } from "@/lib/utils/careerDelete";
 import CustomDropdown from "../Dropdown/CustomDropdown";
+import { useCareerArchiveModal } from "@/lib/hooks/useCareerArchiveModal";
 import { Tooltip } from "react-tooltip";
 import CareerActionModal from "../CareerComponents/CareerActionModal";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
@@ -119,6 +119,8 @@ export default function CareersV2Table() {
   const [showSaveModal, setShowSaveModal] = useState("");
   const [isSavingCareer, setIsSavingCareer] = useState(false);
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { openArchive, openRestore, modals: archiveModals } = useCareerArchiveModal(() => setRefreshKey((k) => k + 1));
 
   const navigateToPage = useCallback((page: number, mode: "push" | "replace" = "push") => {
     const nextPage = Math.max(1, Math.floor(page));
@@ -289,7 +291,7 @@ export default function CareersV2Table() {
       setLoading(false);
       setHasFetchedCareersMeta(false);
     }
-  }, [isViewStateReady, orgID, user?.email, currentPage, debouncedSearch, sortConfig, filterStatus]);
+  }, [isViewStateReady, orgID, user?.email, currentPage, debouncedSearch, sortConfig, filterStatus, refreshKey]);
 
   useEffect(() => {
     if (!hasFetchedCareersMeta) {
@@ -591,7 +593,17 @@ export default function CareersV2Table() {
                               <span>{item.projectName || "-"}</span>
                             </td>
                             <td>
-                              <CareerStatusBadges career={item} />
+                              <div className="d-flex align-items-center" style={{ gap: 4 }}>
+                                {item.archived && (
+                                  <img
+                                    src="/careers/archived.svg"
+                                    alt="Archived"
+                                    title="Archived"
+                                    style={{ width: 16, height: 16 }}
+                                  />
+                                )}
+                                <CareerStatusBadges career={item} />
+                              </div>
                             </td>
                             <td>
                               <div className="d-flex justify-content-center align-items-center">
@@ -658,120 +670,147 @@ export default function CareersV2Table() {
                                       padding: "10px 15px"
                                     }}
                                   >
-                                    <div className="dropdown-item" onClick={(e) => {
-                                      if (e.defaultPrevented) return;
-                                      e.preventDefault();
-                                      setMenuOpen(false);
-                                      router.push(`/recruiter-dashboard/careers/edit-career/${item._id}?orgID=${orgID}`);
-                                    }}>
-                                      <span>Edit Career</span>
+                                    {/* Dropdown header */}
+                                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#414651", padding: "4px 8px 8px 8px", userSelect: "none" }}>
+                                      Career menu
                                     </div>
 
-                                    <div className="dropdown-item" onClick={(e) => {
-                                      if (e.defaultPrevented) return;
-                                      e.preventDefault();
-                                      setMenuOpen(false);
-                                      
-                                      let careerLink: string;
-                                      if (organization?.brandedPortalEnabled && organization?.brandedJobPortalSubdomain) {
-                                        careerLink = generateJobPortalUrl(organization.brandedJobPortalSubdomain, item._id);
-                                      } else {
-                                        const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
-                                        careerLink = `${protocol}//${process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN}/job-openings/${item._id}`;
-                                      }
-                                      
-                                      navigator.clipboard.writeText(careerLink);
-                                      candidateActionToast(
-                                        "Career Link Copied to Clipboard",
-                                        1300,
-                                        <i className="la la-link mr-1 text-info"></i>
-                                      );
-                                    }}>
-                                      <span>Copy Career Link</span>
-                                    </div>
-
-                                    {item.status === "inactive" ? (
-                                      <div
-                                        className="dropdown-item"
-                                        style={{
-                                          color: (item.jobPostType === "premium" && !hasPremiumCapacity) || (item.jobPostType === "credit-based" && !hasCreditBasedCapacity)
-                                            ? "#D0D5DD"
-                                            : "#027948",
-                                          cursor: (item.jobPostType === "premium" && !hasPremiumCapacity) || (item.jobPostType === "credit-based" && !hasCreditBasedCapacity)
-                                            ? "not-allowed"
-                                            : "pointer",
-                                        }}
-                                        onClick={(e) => {
-                                          if (e.defaultPrevented) return;
-                                          e.preventDefault();
-
-                                          const isPremium = item.jobPostType === "premium";
-                                          const hasPlanForType = isPremium
-                                            ? jobPostUsage.hasPremiumPlan
-                                            : jobPostUsage.hasCreditBasedPlan;
-                                          const hasCapacityForType = isPremium
-                                            ? hasPremiumCapacity
-                                            : hasCreditBasedCapacity;
-
-                                          if (!hasPlanForType) {
-                                            errorToast(
-                                              `This organization does not have an active ${item.jobPostType} plan. Please assign a plan to publish job posts.`,
-                                              3000
-                                            );
-                                            return;
-                                          }
-
-                                          if (!hasCapacityForType) {
-                                            errorToast(
-                                              `You have reached the maximum number of ${item.jobPostType} job posts for your plan`,
-                                              3000
-                                            );
-                                            return;
-                                          }
-
-                                          setMenuOpen(false);
-                                          setShowSaveModal("publish");
-                                        }}
-                                      >
-                                        <span>Publish Career</span>
+                                    {item.archived ? (
+                                      /* Archived career: show only Restore */
+                                      <div className="dropdown-item" style={{ color: "#414651", fontSize: "14px", display: "flex", alignItems: "center" }} onClick={(e) => {
+                                        if (e.defaultPrevented) return;
+                                        e.preventDefault();
+                                        setMenuOpen(false);
+                                        openRestore(item);
+                                      }}>
+                                        <i className="la la-redo-alt mr-2" style={{ fontSize: 16 }}></i>
+                                        <span>Restore</span>
                                       </div>
                                     ) : (
-                                      <div
-                                        className="dropdown-item"
-                                        style={{ color: "#B42318" }}
-                                        onClick={(e) => {
+                                      /* Active career: show 5 items + divider + Archive */
+                                      <>
+                                        <div className="dropdown-item" style={{ color: "#414651", fontSize: "14px", display: "flex", alignItems: "center" }} onClick={(e) => {
                                           if (e.defaultPrevented) return;
                                           e.preventDefault();
                                           setMenuOpen(false);
-                                          setShowSaveModal("unpublish");
-                                        }}
-                                      >
-                                        <span>Unpublish Career</span>
-                                      </div>
-                                    )}
+                                          router.push(`/recruiter-dashboard/careers/edit-career/${item._id}?orgID=${orgID}`);
+                                        }}>
+                                          <i className="la la-pen mr-2" style={{ fontSize: 16 }}></i>
+                                          <span>Edit career</span>
+                                        </div>
 
-                                    <div className="dropdown-item"
-                                        // style={{ color: "#B42318" }}
-                                        onClick={(e) => {
+                                        <div className="dropdown-item" style={{ color: "#414651", fontSize: "14px", display: "flex", alignItems: "center" }} onClick={(e) => {
+                                          if (e.defaultPrevented) return;
+                                          e.preventDefault();
+                                          setMenuOpen(false);
+
+                                          let careerLink: string;
+                                          if (organization?.brandedPortalEnabled && organization?.brandedJobPortalSubdomain) {
+                                            careerLink = generateJobPortalUrl(organization.brandedJobPortalSubdomain, item._id);
+                                          } else {
+                                            const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
+                                            careerLink = `${protocol}//${process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN}/job-openings/${item._id}`;
+                                          }
+
+                                          navigator.clipboard.writeText(careerLink);
+                                          candidateActionToast(
+                                            "Career Link Copied to Clipboard",
+                                            1300,
+                                            <i className="la la-link mr-1 text-info"></i>
+                                          );
+                                        }}>
+                                          <i className="la la-link mr-2" style={{ fontSize: 16 }}></i>
+                                          <span>Copy career link</span>
+                                        </div>
+
+                                        <div className="dropdown-item" style={{ color: "#414651", fontSize: "14px", display: "flex", alignItems: "center" }} onClick={(e) => {
                                           if (e.defaultPrevented) return;
                                           e.preventDefault();
                                           setMenuOpen(false);
                                           setShowUpdateStatusModal(true);
-                                        }}
-                                      >
-                                        <span>Update Status</span>
-                                      </div>
+                                        }}>
+                                          <i className="la la-exchange-alt mr-2" style={{ fontSize: 16 }}></i>
+                                          <span>Update status</span>
+                                        </div>
 
-                                    <div className="dropdown-divider"></div>
+                                        {item.status === "inactive" ? (
+                                          <div
+                                            className="dropdown-item"
+                                            style={{
+                                              color: (item.jobPostType === "premium" && !hasPremiumCapacity) || (item.jobPostType === "credit-based" && !hasCreditBasedCapacity)
+                                                ? "#D0D5DD"
+                                                : "#414651",
+                                              cursor: (item.jobPostType === "premium" && !hasPremiumCapacity) || (item.jobPostType === "credit-based" && !hasCreditBasedCapacity)
+                                                ? "not-allowed"
+                                                : "pointer",
+                                              fontSize: "14px",
+                                              display: "flex",
+                                              alignItems: "center",
+                                            }}
+                                            onClick={(e) => {
+                                              if (e.defaultPrevented) return;
+                                              e.preventDefault();
 
-                                    <div className="dropdown-item" style={{ color: "#B42318" }} onClick={(e) => {
-                                      if (e.defaultPrevented) return;
-                                      e.preventDefault();
-                                      setMenuOpen(false);
-                                      deleteCareer(item._id, { orgID });
-                                    }}>
-                                      <span>Delete Career</span>
-                                    </div>
+                                              const isPremium = item.jobPostType === "premium";
+                                              const hasPlanForType = isPremium
+                                                ? jobPostUsage.hasPremiumPlan
+                                                : jobPostUsage.hasCreditBasedPlan;
+                                              const hasCapacityForType = isPremium
+                                                ? hasPremiumCapacity
+                                                : hasCreditBasedCapacity;
+
+                                              if (!hasPlanForType) {
+                                                errorToast(
+                                                  `This organization does not have an active ${item.jobPostType} plan. Please assign a plan to publish job posts.`,
+                                                  3000
+                                                );
+                                                return;
+                                              }
+
+                                              if (!hasCapacityForType) {
+                                                errorToast(
+                                                  `You have reached the maximum number of ${item.jobPostType} job posts for your plan`,
+                                                  3000
+                                                );
+                                                return;
+                                              }
+
+                                              setMenuOpen(false);
+                                              setShowSaveModal("publish");
+                                            }}
+                                          >
+                                            <i className="la la-eye-slash mr-2" style={{ fontSize: 16 }}></i>
+                                            <span>Publish career</span>
+                                          </div>
+                                        ) : (
+                                          <div
+                                            className="dropdown-item"
+                                            style={{ color: "#414651", fontSize: "14px", display: "flex", alignItems: "center" }}
+                                            onClick={(e) => {
+                                              if (e.defaultPrevented) return;
+                                              e.preventDefault();
+                                              setMenuOpen(false);
+                                              setShowSaveModal("unpublish");
+                                            }}
+                                          >
+                                            <i className="la la-eye-slash mr-2" style={{ fontSize: 16 }}></i>
+                                            <span>Unpublish career</span>
+                                          </div>
+                                        )}
+
+                                        <div className="dropdown-divider"></div>
+
+                                        <div className="dropdown-item" style={{ color: "#414651", fontSize: "14px", display: "flex", alignItems: "center" }} onClick={(e) => {
+                                          if (e.defaultPrevented) return;
+                                          e.preventDefault();
+                                          setMenuOpen(false);
+                                          openArchive(item);
+                                        }}>
+                                          <i className="la la-archive mr-2" style={{ fontSize: 16 }}></i>
+                                          <span>Archive</span>
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -819,6 +858,7 @@ export default function CareersV2Table() {
           </div>
         </div>
       </div >
+      {archiveModals}
       {
         (isAtPlanCapacity || !hasPlan) && <Tooltip className="career-fit-tooltip fade-in" id="add-career-tooltip" />
       }

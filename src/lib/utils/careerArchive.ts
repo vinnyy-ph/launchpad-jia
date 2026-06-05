@@ -52,3 +52,34 @@ interface CareerLike { _id?: any; id?: string }
 export function planArchiveTargets(parent: CareerLike, children: CareerLike[]): any[] {
   return [parent._id, ...(children || []).map((c) => c._id)];
 }
+
+interface ArchiveOpts { batchId: string; by?: string | null; at?: Date }
+
+/** The $set patch to archive ONE career, capturing its prior publish state for undo. */
+export function archiveCareerPatch(career: { status?: string | null; activityStatus?: string | null }, opts: ArchiveOpts) {
+  const at = opts.at ?? new Date();
+  return {
+    archived: true,
+    archivedAt: at,
+    archivedBy: opts.by ?? null,
+    archiveBatchId: opts.batchId,
+    status: "inactive",
+    activityStatus: "Inactive",
+    statusBeforeArchive: career.status ?? null,
+    activityStatusBeforeArchive: career.activityStatus ?? null,
+    updatedAt: at,
+  };
+}
+
+/** The { $set, $unset } update to UNDO an archive on ONE career (restore prior state). */
+export function undoCareerUpdate(career: { status?: string | null; activityStatus?: string | null; statusBeforeArchive?: string | null; activityStatusBeforeArchive?: string | null }) {
+  return {
+    $set: {
+      archived: false,
+      status: career.statusBeforeArchive ?? career.status ?? "inactive",
+      activityStatus: career.activityStatusBeforeArchive ?? career.activityStatus ?? "Inactive",
+      updatedAt: new Date(),
+    },
+    $unset: { archivedAt: "", archivedBy: "", archiveBatchId: "", statusBeforeArchive: "", activityStatusBeforeArchive: "" },
+  };
+}

@@ -3,7 +3,7 @@ import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { ObjectId } from "mongodb";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { logActivity } from "@/lib/utils/activityLogger";
-import { selectInterviewIdsToDrop, planArchiveTargets } from "@/lib/utils/careerArchive";
+import { selectInterviewIdsToDrop, planArchiveTargets, archiveCareerPatch } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
@@ -27,16 +27,13 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       ? await db.collection("careers").find({ orgID, parentCareerID: career.id }).toArray()
       : [];
     const targetIds = planArchiveTargets(career, children);
+    const archiveBatchId = new ObjectId().toString();
 
-    const archivePatch = {
-      archived: true,
-      archivedAt: new Date(),
-      archivedBy: userEmail,
-      status: "inactive",
-      activityStatus: "Inactive",
-      updatedAt: new Date(),
-    };
-    await db.collection("careers").updateMany({ _id: { $in: targetIds } }, { $set: archivePatch });
+    await db.collection("careers").bulkWrite(
+      [career, ...children].map((c: any) => ({
+        updateOne: { filter: { _id: c._id }, update: { $set: archiveCareerPatch(c, { batchId: archiveBatchId, by: userEmail }) } },
+      }))
+    );
 
     let droppedCount = 0;
     if (dropCandidates) {
@@ -53,7 +50,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       if (idsToDrop.length > 0) {
         const res = await db.collection("interviews").updateMany(
           { _id: { $in: idsToDrop } },
-          { $set: { applicationStatus: "Dropped", interviewStatus: "Dropped", droppedReason: "career_archived", updatedAt: new Date() } }
+          { $set: { applicationStatus: "Dropped", interviewStatus: "Dropped", droppedReason: "career_archived", archiveBatchId, updatedAt: new Date() } }
         );
         droppedCount = res.modifiedCount ?? idsToDrop.length;
       }
@@ -82,6 +79,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       success: true,
       archivedCount: targetIds.length,
       droppedCount,
+      archiveBatchId,
     });
   } catch (error) {
     console.error("Error archiving career:", error);

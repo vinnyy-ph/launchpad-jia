@@ -153,7 +153,7 @@ export default function ManageCareerPage() {
   const [invitedCandidates, setInvitedCandidates] = useState<any[]>([]);
   const [showCareerStatusModal, setShowCareerStatusModal] = useState(false);
 
-  const { openRestore, modals: archiveModals } = useCareerArchiveModal(() => window.location.reload());
+  const { openRestore, modals: archiveModals } = useCareerArchiveModal(() => setTimeout(() => window.location.reload(), 2000));
 
   // Linked career expansion state
   const [emailAutomationCareerId, setEmailAutomationCareerId] = useState<string | undefined>(undefined);

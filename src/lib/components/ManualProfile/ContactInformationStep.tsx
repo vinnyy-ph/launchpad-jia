@@ -19,6 +19,7 @@ import {
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
 import { validatePhoneFormat } from "@/lib/utils/phoneValidation";
+import CountrySelect from "./CountrySelect";
 import ManualPhoneVerifyModal from "./ManualPhoneVerifyModal";
 import styles from "./manual-profile.module.scss";
 
@@ -104,28 +105,18 @@ export default function ContactInformationStep({
     ? "This is the email linked to your Google sign-in, so it can't be changed here."
     : "We'll use this email to keep your application linked to your account and to reach you.";
 
+  function handleCountryChange(next: SupportedPhoneCountry) {
+    setCountry(next);
+    const nextPhone = applyCountryDialCode(value.phone, next);
+    patch({
+      phone: nextPhone,
+      isPhoneVerified: value.isPhoneVerified && value.phone === nextPhone,
+    });
+  }
+
   const phoneCountrySection = (
     <span className={styles.phoneCountry}>
-      <select
-        aria-label="Phone country"
-        value={country}
-        onChange={(event) => {
-          const next = event.target.value as SupportedPhoneCountry;
-          setCountry(next);
-          const nextPhone = applyCountryDialCode(value.phone, next);
-          patch({
-            phone: nextPhone,
-            isPhoneVerified: value.isPhoneVerified && value.phone === nextPhone,
-          });
-        }}
-      >
-        {PHONE_COUNTRY_OPTIONS.map((option) => (
-          <option key={option.code} value={option.code}>
-            {option.code}
-          </option>
-        ))}
-      </select>
-      <img alt="" src={assetConstants.chevron} />
+      <CountrySelect value={country} onChange={handleCountryChange} />
       <span className={styles.phoneDial}>{dialCode}</span>
     </span>
   );

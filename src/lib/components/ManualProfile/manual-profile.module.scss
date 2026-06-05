@@ -218,22 +218,114 @@ $verified: #1570ef;
   padding-left: 12px;
   color: $text;
   font-size: 14px;
+}
 
-  select {
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    color: $text;
-    cursor: pointer;
-    appearance: none;
-    outline: none;
-    padding-right: 2px;
-  }
+// Custom country dropdown (replaces the native <select>).
+.countrySelect {
+  position: relative;
+  display: inline-flex;
+}
 
-  img {
-    width: 14px;
-    height: 14px;
+.countryTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: $text;
+  line-height: 1;
+  border-radius: 6px;
+
+  &:focus-visible {
+    outline: 2px solid rgba(17, 24, 39, 0.25);
+    outline-offset: 2px;
   }
+}
+
+.countryFlag {
+  width: 20px;
+  height: 15px;
+  border-radius: 2px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.countryCode {
+  font-weight: 500;
+}
+
+.countryChevron {
+  width: 14px;
+  height: 14px;
+  color: $muted-2;
+  transition: transform 0.15s ease;
+}
+
+.countryChevronOpen {
+  transform: rotate(180deg);
+}
+
+.countryMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 60;
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.countryOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: $text;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.countryOptionSelected {
+  background: #f9fafb;
+}
+
+.countryOptionHighlighted {
+  background: #f3f4f6;
+}
+
+.countryOptionName {
+  flex: 1;
+}
+
+.countryOptionDial {
+  color: $muted-2;
+  white-space: nowrap;
+}
+
+.countryOptionCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  color: $text;
 }
 
 // Bold, uneditable dial-code prefix shown before the editable national number.

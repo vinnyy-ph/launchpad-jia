@@ -47,6 +47,7 @@ import {
   buildStructuredCVFromDigitalCV,
   normalizeStructuredCVInput,
 } from "@/lib/utils/structuredCV";
+import ManualProfileWizard from "@/lib/components/ManualProfile/ManualProfileWizard";
 
 const PHONE_VERIFICATION_RECAPTCHA_ID = "upload-cv-recaptcha-container";
 
@@ -55,6 +56,7 @@ export default function () {
   const { user, setModalType } = useAppContext();
   const lockedEmail = typeof user?.email === "string" ? user.email.trim() : "";
   const [buildingCV, setBuildingCV] = useState(false);
+  const [showManualWizard, setShowManualWizard] = useState(false);
   const [currentStep, setCurrentStep] = useState(null);
   const [digitalCV, setDigitalCV] = useState(null);
   const [showSkillModal, setShowSkillModal] = useState(false);
@@ -1542,7 +1544,7 @@ export default function () {
 
         {interview && (
           <div className={styles.uploadCVContainer}>
-            {!screeningResult && (
+            {!screeningResult && !showManualWizard && (
               <div className={styles.uploadCVHeader}>
                 {interview.organization && interview.organization.image && (
                   <img alt="" src={interview.organization.image} />
@@ -1562,7 +1564,7 @@ export default function () {
               </div>
             )}
 
-            {!screeningResult && (
+            {!screeningResult && !showManualWizard && (
               <div className={styles.stepContainer}>
                 <div className={styles.step}>
                   {step.map((_, index) => (
@@ -1611,10 +1613,28 @@ export default function () {
               </div>
             )}
 
-            {currentStep == step[0] && (
+            {currentStep == step[0] && showManualWizard && (
+              <ManualProfileWizard
+                userEmail={lockedEmail}
+                onExit={() => setShowManualWizard(false)}
+              />
+            )}
+
+            {currentStep == step[0] && !showManualWizard && (
               <>
                 {!buildingCV && !userCV && !file && (
                   <div className={styles.cvManageContainer}>
+                    <div className={styles.cvContainer}>
+                      <img alt="" src={assetConstants.plus} />
+                      <button onClick={() => setShowManualWizard(true)}>
+                        Create a Profile Manually
+                      </button>
+                      <span>
+                        Quickstart your job application by creating your own CV
+                        from scratch.
+                      </span>
+                    </div>
+
                     <div
                       className={styles.cvContainer}
                       onDragOver={handleDragOver}

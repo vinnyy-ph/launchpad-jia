@@ -13,7 +13,9 @@ import {
   PHONE_COUNTRY_OPTIONS,
   type SupportedPhoneCountry,
   applyCountryDialCode,
+  formatNationalNumber,
   inferPhoneCountry,
+  maxNationalDigits,
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
 import { validatePhoneFormat } from "@/lib/utils/phoneValidation";
@@ -192,7 +194,7 @@ export default function ContactInformationStep({
             type="tel"
             inputMode="numeric"
             placeholder="987 654 3210"
-            value={nationalNumber}
+            value={formatNationalNumber(nationalNumber, country)}
             sectionLeft={phoneCountrySection}
             sectionDivider
             sectionPointerEvents="auto"
@@ -222,7 +224,9 @@ export default function ContactInformationStep({
               setPhoneError(result.valid ? null : result.error ?? null);
             }}
             onChange={(event) => {
-              const nationalDigits = event.target.value.replace(/\D/g, "");
+              const nationalDigits = event.target.value
+                .replace(/\D/g, "")
+                .slice(0, maxNationalDigits(country));
               const nextPhone = sanitizeInternationalPhoneInput(
                 `${dialCode}${nationalDigits}`,
                 country,

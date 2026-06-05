@@ -20,8 +20,16 @@ $verified: #1570ef;
   // Argon's global `button {}` paints every bare <button> with a drop shadow;
   // neutralise it on our custom triggers (accordion headers, dropdowns, icon
   // buttons). Menus/cards are <div>s, so they keep their own shadows.
+  // Also kill argon's `button:focus { outline: 5px auto }` focus ring.
   button {
     box-shadow: none;
+
+    &:focus,
+    &:focus-visible,
+    &:active {
+      outline: none;
+      box-shadow: none;
+    }
   }
 }
 
@@ -556,6 +564,13 @@ $verified: #1570ef;
   // (it renders outside .wizard).
   button {
     box-shadow: none;
+
+    &:focus,
+    &:focus-visible,
+    &:active {
+      outline: none;
+      box-shadow: none;
+    }
   }
 }
 

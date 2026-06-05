@@ -4,6 +4,7 @@ import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { DEFAULT_JOB_PIPELINE } from "@/lib/utils/constants";
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
+import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
 
 export const GET = withAuth(async (request: AuthenticatedRequest) => {
     const { searchParams } = new URL(request.url);
@@ -52,7 +53,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
         }
     }
 
-    let filter: any = { orgID };
+    let filter: any = { orgID, ...EXCLUDE_ARCHIVED };
     // if (authUserRole?.role === "hiring_manager" && authUserRole?.careers?.length > 0) {
     //         filter.id = { $in: authUserRole?.careers };
     //     }

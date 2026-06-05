@@ -4,6 +4,7 @@ import {
   AuthenticatedRequest,
   withAuth,
 } from "../../../lib/utils/authMiddleware";
+import { withExcludeArchived } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (req: AuthenticatedRequest) => {
   try {
@@ -13,7 +14,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
     // Get counts from each collection
     const careersCount = await db
       .collection("careers")
-      .find({ orgID, status: "active" })
+      .find(withExcludeArchived({ orgID, status: "active" }))
       .count();
     const interviewsCount = await db
       .collection("interviews")

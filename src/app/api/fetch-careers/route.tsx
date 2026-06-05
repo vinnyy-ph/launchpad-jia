@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
+import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
 
 /**
  * Fetches careers for the authenticated user.
@@ -48,6 +49,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
     // Other users: Only see careers where they are team members
     const query: any = {
       orgID: orgID,
+      ...EXCLUDE_ARCHIVED,
     };
 
     let projectCareerIds: ObjectId[] = [];
@@ -88,7 +90,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
     console.log("[fetch-careers] Returning career titles:", careers.map((c: any) => c.jobTitle));
     
     // Debug: Log all careers in org to compare
-    const allCareersInOrg = await db.collection("careers").find({ orgID }).toArray();
+    const allCareersInOrg = await db.collection("careers").find({ orgID, ...EXCLUDE_ARCHIVED }).toArray();
     console.log("[fetch-careers] TOTAL careers in org (unfiltered):", allCareersInOrg.length);
     console.log("[fetch-careers] FILTERED careers for user:", careers.length);
     

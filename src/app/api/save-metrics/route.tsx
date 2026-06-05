@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectMongoDB from "../../../lib/mongoDB/mongoDB";
 import moment from "moment";
+import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
 
 class JobMetrics {
     careerId?: string;
@@ -19,7 +20,7 @@ class JobMetrics {
 export async function GET(request: Request) {
     try {
         const { db } = await connectMongoDB();
-        const careers = await db.collection("careers").find({}).toArray();
+        const careers = await db.collection("careers").find({ ...EXCLUDE_ARCHIVED }).toArray();
         const bulkMetrics = [];
         const currentDate = moment().startOf("day").toDate();
         for (const career of careers) {

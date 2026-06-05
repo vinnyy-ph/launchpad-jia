@@ -61,7 +61,7 @@ export default function WebsitesStep({ value, onChange }: WebsitesStepProps) {
           <div key={website.id} className={styles.websiteCard}>
             <button
               type="button"
-              className={`${styles.websiteHeader}${open ? ` ${styles.websiteHeaderOpen}` : ""}`}
+              className={styles.websiteHeader}
               aria-expanded={open}
               onClick={() => toggle(website.id)}
             >

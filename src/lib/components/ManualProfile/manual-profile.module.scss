@@ -196,10 +196,17 @@ $verified: #1570ef;
   background: transparent;
   cursor: pointer;
   text-align: left;
-}
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
 
-.websiteHeaderOpen {
-  border-bottom: 1px solid #e5e7eb;
+  // No button focus ring/shadow (argon adds one to bare <button>s).
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
 }
 
 .websiteHeaderLabel {
@@ -221,6 +228,8 @@ $verified: #1570ef;
   flex-direction: column;
   gap: 16px;
   padding: 20px 24px 24px;
+  // Divider that visually separates the header bar from the content region.
+  border-top: 1px solid #e5e7eb;
 }
 
 .websiteRow {

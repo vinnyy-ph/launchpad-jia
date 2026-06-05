@@ -172,6 +172,170 @@ $verified: #1570ef;
   border-radius: 12px;
 }
 
+// ----- Websites step: accordion of website sub-cards -----
+.websitesList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.websiteCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.websiteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.websiteHeaderOpen {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.websiteHeaderLabel {
+  font-size: 15px;
+  font-weight: 500;
+  color: $text;
+  line-height: 1.4;
+}
+
+.websiteChevron {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: $muted-2;
+}
+
+.websiteBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 24px;
+}
+
+.websiteRow {
+  display: flex;
+  gap: 24px;
+}
+
+.websiteCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.websiteFieldLabel {
+  font-size: 14px;
+  color: $muted;
+}
+
+// Compound URL input: tinted "https://" prefix + editable segment.
+.urlField {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid $border-strong;
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: #fca5a5;
+    box-shadow: 0 0 0 3px rgba(252, 165, 165, 0.2);
+  }
+}
+
+.urlPrefix {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  background: #f9fafb;
+  color: #9ca3af;
+  font-size: 14px;
+  white-space: nowrap;
+  border-right: 1px solid #e5e7eb;
+  border-radius: 8px 0 0 8px;
+}
+
+.urlInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: $text;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.websiteDeleteRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.websiteDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  background: #fef2f2;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #fee2e2;
+  }
+}
+
+.websiteDeleteIcon {
+  width: 18px;
+  height: 18px;
+  color: #ef4444;
+}
+
+.addWebsiteButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid $border-strong;
+  border-radius: 8px;
+  background: #fff;
+  color: $text;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f9f9fb;
+  }
+}
+
+.addWebsiteIcon {
+  width: 20px;
+  height: 20px;
+  color: $muted-2;
+}
+
 // Multi-entry step — saved item rows
 .entryList {
   display: flex;

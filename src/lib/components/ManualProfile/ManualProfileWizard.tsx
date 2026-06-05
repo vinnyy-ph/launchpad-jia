@@ -2,14 +2,14 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Button } from "@/lib/components/ui";
-import { ChevronLeft, ChevronRight } from "@untitledui/icons";
+import { ChevronLeft, ChevronRight, PlusCircle } from "@untitledui/icons";
 import ContactInformationStep, {
   type ContactStepValue,
   createEmptyContact,
 } from "./ContactInformationStep";
 import MultiEntryStep from "./MultiEntryStep";
 import DiscardProfileModal from "./DiscardProfileModal";
-import WebsitesStep from "./WebsitesStep";
+import WebsitesStep, { createWebsite } from "./WebsitesStep";
 import SkillsStep from "./SkillsStep";
 import ReferenceModal from "./ReferenceModal";
 import IntroductionStep from "./IntroductionStep";
@@ -127,7 +127,7 @@ function assembleStructuredCV(d: WizardData): StructuredCV {
       countryCode: inferPhoneCountry(d.contact.phone),
       address: d.contact.address,
       linkedin,
-      websites: d.websites,
+      websites: d.websites.filter((website) => website.url.trim() !== ""),
     },
     experience: d.experience,
     skills: d.skills,
@@ -156,7 +156,7 @@ export default function ManualProfileWizard({
 
   const [data, setData] = useState<WizardData>(() => ({
     contact: createEmptyContact(userEmail),
-    websites: [],
+    websites: [createWebsite()],
     education: [],
     experience: [],
     skills: [],
@@ -368,7 +368,19 @@ export default function ManualProfileWizard({
           </p>
         )}
 
-        <div className={styles.footer}>
+        <div
+          className={`${styles.footer}${stepIndex === 1 ? ` ${styles.footerSpread}` : ""}`}
+        >
+          {stepIndex === 1 && (
+            <button
+              type="button"
+              className={styles.addWebsiteButton}
+              onClick={() => patch({ websites: [...data.websites, createWebsite()] })}
+            >
+              <PlusCircle className={styles.addWebsiteIcon} aria-hidden />
+              Add website
+            </button>
+          )}
           {step.hasSkip && (
             <Button label="Skip" variant="secondary" onClick={goNext} />
           )}

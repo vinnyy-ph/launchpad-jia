@@ -10,7 +10,6 @@ import CareerForm from "./CareerForm";
 import CareerLink from "./CareerLink";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCareerArchiveModal } from "@/lib/hooks/useCareerArchiveModal";
-import ArchivedBanner from "./ArchivedBanner";
 
 export default function JobDescription({ formData, setFormData, isEditing, setIsEditing, handleCancelEdit }: { formData: any, setFormData: (formData: any) => void, isEditing: boolean, setIsEditing: (isEditing: boolean) => void, handleCancelEdit: () => void }) {
     const { user } = useAppContext();
@@ -106,11 +105,6 @@ export default function JobDescription({ formData, setFormData, isEditing, setIs
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 16 }}>
-          {formData?.archived && (
-            <div style={{ marginBottom: 16, width: "100%" }}>
-              <ArchivedBanner onRestore={() => openRestore(formData)} />
-            </div>
-          )}
           <button style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid #D5D7DA", padding: "8px 16px", borderRadius: "60px", cursor: "pointer", whiteSpace: "nowrap" }} onClick={handleEdit}>
               <i className="la la-edit" style={{ marginRight: 8 }}></i>
               Edit details

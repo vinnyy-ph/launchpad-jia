@@ -38,10 +38,17 @@ export function createEmptyCertification(): CertificationSectionItem {
 interface CertificationEntryFormProps {
   value: CertificationSectionItem;
   onChange: (value: CertificationSectionItem) => void;
+  errors?: Record<string, string>;
+  onFieldBlur?: (key: string) => void;
 }
 
 // Inline Certifications form (Figma node 14567:37314).
-export default function CertificationEntryForm({ value, onChange }: CertificationEntryFormProps) {
+export default function CertificationEntryForm({
+  value,
+  onChange,
+  errors,
+  onFieldBlur,
+}: CertificationEntryFormProps) {
   function set<K extends keyof CertificationSectionItem>(field: K, fieldValue: CertificationSectionItem[K]) {
     onChange({ ...value, [field]: fieldValue });
   }
@@ -58,6 +65,8 @@ export default function CertificationEntryForm({ value, onChange }: Certificatio
         size="sm"
         placeholder="E.g. Microsoft certified network associate security"
         value={value.name}
+        error={errors?.name}
+        onBlur={() => onFieldBlur?.("name")}
         onChange={(event) => set("name", event.target.value)}
       />
 
@@ -67,6 +76,8 @@ export default function CertificationEntryForm({ value, onChange }: Certificatio
         size="sm"
         placeholder="E.g. Microsoft"
         value={value.issuingOrganization}
+        error={errors?.issuingOrganization}
+        onBlur={() => onFieldBlur?.("issuingOrganization")}
         onChange={(event) => set("issuingOrganization", event.target.value)}
       />
 
@@ -89,7 +100,7 @@ export default function CertificationEntryForm({ value, onChange }: Certificatio
         </Group>
       </LabeledField>
 
-      <LabeledField label="Expiration Date">
+      <LabeledField label="Expiration Date" error={errors?.expirationDate}>
         <Group grow gap={16} align="flex-start">
           <Select
             size="sm"
@@ -116,7 +127,7 @@ export default function CertificationEntryForm({ value, onChange }: Certificatio
         onChange={(event) => set("credentialId", event.target.value)}
       />
 
-      <LabeledField label="Credential URL" htmlFor={`cred-url-${value.id}`}>
+      <LabeledField label="Credential URL" htmlFor={`cred-url-${value.id}`} error={errors?.credentialUrl}>
         <div className={styles.urlCombo}>
           <span className={styles.urlComboTextPrefix}>https://</span>
           <input
@@ -124,6 +135,7 @@ export default function CertificationEntryForm({ value, onChange }: Certificatio
             className={styles.urlComboTextInput}
             placeholder="www.example.com"
             value={value.credentialUrl}
+            onBlur={() => onFieldBlur?.("credentialUrl")}
             onChange={(event) => set("credentialUrl", event.target.value)}
           />
         </div>

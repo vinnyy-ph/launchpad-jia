@@ -36,10 +36,17 @@ export function createEmptyAward(): AwardSectionItem {
 interface AwardEntryFormProps {
   value: AwardSectionItem;
   onChange: (value: AwardSectionItem) => void;
+  errors?: Record<string, string>;
+  onFieldBlur?: (key: string) => void;
 }
 
 // Inline Awards form (Figma node 14567:37215).
-export default function AwardEntryForm({ value, onChange }: AwardEntryFormProps) {
+export default function AwardEntryForm({
+  value,
+  onChange,
+  errors,
+  onFieldBlur,
+}: AwardEntryFormProps) {
   function set<K extends keyof AwardSectionItem>(field: K, fieldValue: AwardSectionItem[K]) {
     onChange({ ...value, [field]: fieldValue });
   }
@@ -56,6 +63,8 @@ export default function AwardEntryForm({ value, onChange }: AwardEntryFormProps)
         size="sm"
         placeholder="Enter title of award"
         value={value.title}
+        error={errors?.title}
+        onBlur={() => onFieldBlur?.("title")}
         onChange={(event) => set("title", event.target.value)}
       />
 

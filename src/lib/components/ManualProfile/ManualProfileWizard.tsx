@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/lib/components/ui";
 import { ChevronLeft, ChevronRight, PlusCircle } from "@untitledui/icons";
 import ContactInformationStep, {
@@ -31,7 +31,18 @@ import type {
   ContactWebsite,
   StructuredCV,
 } from "@/lib/utils/structuredCV";
-import { validatePhoneFormat } from "@/lib/utils/phoneValidation";
+import {
+  validateContact,
+  validateWebsite,
+  validateEducationItem,
+  validateExperienceItem,
+  validateProjectItem,
+  validateCertificationItem,
+  validateAwardItem,
+  validateReferenceItem,
+  validateIntroduction,
+  type FieldErrors,
+} from "@/lib/utils/profileValidation";
 import { api } from "@/lib/utils/apiClient";
 import { inferPhoneCountry } from "@/lib/utils/phoneInput";
 
@@ -155,6 +166,45 @@ function fullName(c: ContactStepValue): string {
     .trim();
 }
 
+// Multi-entry steps key field errors by `${itemId}.${field}` so each accordion
+// form can surface its own.
+function prefixItemErrors<T extends { id: string }>(
+  items: T[],
+  validate: (item: T) => FieldErrors,
+): FieldErrors {
+  const out: FieldErrors = {};
+  for (const item of items) {
+    const errs = validate(item);
+    for (const key in errs) out[`${item.id}.${key}`] = errs[key];
+  }
+  return out;
+}
+
+function computeStepErrors(stepIndex: number, d: WizardData): FieldErrors {
+  switch (stepIndex) {
+    case 0:
+      return validateContact(d.contact);
+    case 1:
+      return prefixItemErrors(d.websites, validateWebsite);
+    case 2:
+      return prefixItemErrors(d.education, validateEducationItem);
+    case 3:
+      return prefixItemErrors(d.experience, validateExperienceItem);
+    case 5:
+      return prefixItemErrors(d.projects, validateProjectItem);
+    case 6:
+      return prefixItemErrors(d.certifications, validateCertificationItem);
+    case 7:
+      return prefixItemErrors(d.awards, validateAwardItem);
+    case 8:
+      return prefixItemErrors(d.references, validateReferenceItem);
+    case 9:
+      return validateIntroduction(d.introduction);
+    default:
+      return {}; // Skills (4) has no required fields
+  }
+}
+
 export default function ManualProfileWizard({
   onExit,
   userEmail = "",
@@ -163,6 +213,8 @@ export default function ManualProfileWizard({
 }: ManualProfileWizardProps) {
   const [stepIndex, setStepIndex] = useState(0); // 0-based
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [touched, setTouched] = useState<Set<string>>(new Set());
+  const [showAllErrors, setShowAllErrors] = useState(false);
 
   const [data, setData] = useState<WizardData>(() => ({
     contact: createEmptyContact(userEmail),
@@ -284,6 +336,24 @@ export default function ManualProfileWizard({
     [data],
   );
 
+  // Per-step validation. A field's error shows once it's blurred (touched) or
+  // after a Next attempt reveals them all.
+  const stepErrors = useMemo(() => computeStepErrors(stepIndex, data), [stepIndex, data]);
+  const visibleErrors = useMemo(() => {
+    const out: FieldErrors = {};
+    for (const key in stepErrors) {
+      if (showAllErrors || touched.has(key)) out[key] = stepErrors[key];
+    }
+    return out;
+  }, [stepErrors, showAllErrors, touched]);
+  const markTouched = (key: string) =>
+    setTouched((current) => (current.has(key) ? current : new Set(current).add(key)));
+
+  useEffect(() => {
+    setTouched(new Set());
+    setShowAllErrors(false);
+  }, [stepIndex]);
+
   function renderStep() {
     switch (stepIndex) {
       case 0:
@@ -292,6 +362,8 @@ export default function ManualProfileWizard({
             value={data.contact}
             onChange={(contact) => patch({ contact })}
             lockEmail={Boolean(userEmail)}
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
           />
         );
       case 2:
@@ -301,8 +373,15 @@ export default function ManualProfileWizard({
             onChange={(education) => patch({ education })}
             entryNoun="education"
             entryLabel={(entry, index) => entry.school.trim() || `Education ${index + 1}`}
-            renderForm={(value, onChange) => (
-              <EducationEntryForm value={value} onChange={onChange} />
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
+            renderForm={(value, onChange, errors, onFieldBlur) => (
+              <EducationEntryForm
+                value={value}
+                onChange={onChange}
+                errors={errors}
+                onFieldBlur={onFieldBlur}
+              />
             )}
           />
         );
@@ -315,8 +394,15 @@ export default function ManualProfileWizard({
             entryLabel={(entry, index) =>
               entry.title.trim() || entry.company.trim() || `Experience ${index + 1}`
             }
-            renderForm={(value, onChange) => (
-              <ExperienceEntryForm value={value} onChange={onChange} />
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
+            renderForm={(value, onChange, errors, onFieldBlur) => (
+              <ExperienceEntryForm
+                value={value}
+                onChange={onChange}
+                errors={errors}
+                onFieldBlur={onFieldBlur}
+              />
             )}
           />
         );
@@ -327,8 +413,15 @@ export default function ManualProfileWizard({
             onChange={(projects) => patch({ projects })}
             entryNoun="project"
             entryLabel={(entry, index) => entry.name.trim() || `Project ${index + 1}`}
-            renderForm={(value, onChange) => (
-              <ProjectEntryForm value={value} onChange={onChange} />
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
+            renderForm={(value, onChange, errors, onFieldBlur) => (
+              <ProjectEntryForm
+                value={value}
+                onChange={onChange}
+                errors={errors}
+                onFieldBlur={onFieldBlur}
+              />
             )}
           />
         );
@@ -339,8 +432,15 @@ export default function ManualProfileWizard({
             onChange={(certifications) => patch({ certifications })}
             entryNoun="certification"
             entryLabel={(entry, index) => entry.name.trim() || `Certification ${index + 1}`}
-            renderForm={(value, onChange) => (
-              <CertificationEntryForm value={value} onChange={onChange} />
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
+            renderForm={(value, onChange, errors, onFieldBlur) => (
+              <CertificationEntryForm
+                value={value}
+                onChange={onChange}
+                errors={errors}
+                onFieldBlur={onFieldBlur}
+              />
             )}
           />
         );
@@ -351,13 +451,27 @@ export default function ManualProfileWizard({
             onChange={(awards) => patch({ awards })}
             entryNoun="award"
             entryLabel={(entry, index) => entry.title.trim() || `Award ${index + 1}`}
-            renderForm={(value, onChange) => (
-              <AwardEntryForm value={value} onChange={onChange} />
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
+            renderForm={(value, onChange, errors, onFieldBlur) => (
+              <AwardEntryForm
+                value={value}
+                onChange={onChange}
+                errors={errors}
+                onFieldBlur={onFieldBlur}
+              />
             )}
           />
         );
       case 1:
-        return <WebsitesStep value={data.websites} onChange={(websites) => patch({ websites })} />;
+        return (
+          <WebsitesStep
+            value={data.websites}
+            onChange={(websites) => patch({ websites })}
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
+          />
+        );
       case 4:
         return <SkillsStep value={data.skills} onChange={(skills) => patch({ skills })} />;
       case 8:
@@ -367,31 +481,31 @@ export default function ManualProfileWizard({
             onChange={(references) => patch({ references })}
             entryNoun="reference"
             entryLabel={(entry, index) => entry.name.trim() || `Reference ${index + 1}`}
-            renderForm={(value, onChange) => (
-              <ReferenceEntryForm value={value} onChange={onChange} />
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
+            renderForm={(value, onChange, errors, onFieldBlur) => (
+              <ReferenceEntryForm
+                value={value}
+                onChange={onChange}
+                errors={errors}
+                onFieldBlur={onFieldBlur}
+              />
             )}
           />
         );
       case 9:
-        return <IntroductionStep value={data.introduction} onChange={(introduction) => patch({ introduction })} />;
+        return (
+          <IntroductionStep
+            value={data.introduction}
+            onChange={(introduction) => patch({ introduction })}
+            errors={visibleErrors}
+            onFieldBlur={markTouched}
+          />
+        );
       default:
         // All 10 steps (0–9) are handled above; this is an unreachable safety fallback.
         return null;
     }
-  }
-
-  function canAdvance(i: number): boolean {
-    if (i === 0) {
-      const c = data.contact;
-      return (
-        [c.firstName, c.lastName, c.middleInitial, c.email, c.address].every(
-          (v) => v.trim() !== "",
-        ) && validatePhoneFormat(c.phone).valid
-      );
-    }
-    if (i === 9) return data.introduction.trim() !== "";
-    // Steps 2–10 use Skip / optional rows; row validation lives in the editors.
-    return true;
   }
 
   function goBack() {
@@ -407,10 +521,20 @@ export default function ManualProfileWizard({
   }
 
   function goNext() {
+    // Block + reveal all errors when the step is invalid.
+    if (Object.keys(stepErrors).length > 0) {
+      setShowAllErrors(true);
+      return;
+    }
     if (isLast) {
       handleSubmit();
       return;
     }
+    setStepIndex((current) => Math.min(TOTAL_STEPS - 1, current + 1));
+  }
+
+  // Skip bypasses validation (the step is optional); blank rows are filtered on submit.
+  function goSkip() {
     setStepIndex((current) => Math.min(TOTAL_STEPS - 1, current + 1));
   }
 
@@ -477,7 +601,7 @@ export default function ManualProfileWizard({
           )}
           <div className={styles.footerActions}>
             {step.hasSkip && (
-              <Button label="Skip" variant="secondary" onClick={goNext} />
+              <Button label="Skip" variant="secondary" onClick={goSkip} />
             )}
             <Button
               label={isLast ? (submitting ? "Submitting…" : "Submit") : "Next"}
@@ -485,7 +609,7 @@ export default function ManualProfileWizard({
               iconJsx={!isLast ? <ChevronRight width={20} height={20} /> : undefined}
               iconPosition="right"
               onClick={goNext}
-              disabled={submitting || !canAdvance(stepIndex)}
+              disabled={submitting}
             />
           </div>
         </div>

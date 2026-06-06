@@ -35,11 +35,18 @@ export function createEmptyProject(): ProjectSectionItem {
 interface ProjectEntryFormProps {
   value: ProjectSectionItem;
   onChange: (value: ProjectSectionItem) => void;
+  errors?: Record<string, string>;
+  onFieldBlur?: (key: string) => void;
 }
 
 // Inline Projects form (Figma node 14567:37352) — same fields the overlay
 // ProjectsModal captures, rendered inline inside the wizard accordion card.
-export default function ProjectEntryForm({ value, onChange }: ProjectEntryFormProps) {
+export default function ProjectEntryForm({
+  value,
+  onChange,
+  errors,
+  onFieldBlur,
+}: ProjectEntryFormProps) {
   function set<K extends keyof ProjectSectionItem>(field: K, fieldValue: ProjectSectionItem[K]) {
     onChange({ ...value, [field]: fieldValue });
   }
@@ -56,6 +63,8 @@ export default function ProjectEntryForm({ value, onChange }: ProjectEntryFormPr
         size="sm"
         placeholder="Enter project name"
         value={value.name}
+        error={errors?.name}
+        onBlur={() => onFieldBlur?.("name")}
         onChange={(event) => set("name", event.target.value)}
       />
 
@@ -65,7 +74,7 @@ export default function ProjectEntryForm({ value, onChange }: ProjectEntryFormPr
         onCheckedChange={(checked) => set("isCurrent", checked)}
       />
 
-      <LabeledField label="Start Date" withAsterisk>
+      <LabeledField label="Start Date" withAsterisk error={errors?.startDate}>
         <Group grow gap={16} align="flex-start">
           <Select
             size="sm"
@@ -84,7 +93,7 @@ export default function ProjectEntryForm({ value, onChange }: ProjectEntryFormPr
         </Group>
       </LabeledField>
 
-      <LabeledField label="End Date">
+      <LabeledField label="End Date" error={errors?.endDate}>
         <Group grow gap={16} align="flex-start">
           <Select
             size="sm"

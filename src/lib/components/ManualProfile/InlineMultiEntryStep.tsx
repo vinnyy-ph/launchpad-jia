@@ -11,11 +11,20 @@ interface HasId {
 interface InlineMultiEntryStepProps<T extends HasId> {
   items: T[];
   onChange: (items: T[]) => void;
-  renderForm: (value: T, onChange: (next: T) => void) => React.ReactNode;
+  renderForm: (
+    value: T,
+    onChange: (next: T) => void,
+    errors: Record<string, string>,
+    onFieldBlur: (key: string) => void,
+  ) => React.ReactNode;
   /** Accordion header label for an entry (e.g. the school name). */
   entryLabel: (value: T, index: number) => string;
   /** Singular noun for the delete a11y label, e.g. "education". */
   entryNoun: string;
+  /** Field errors keyed `${itemId}.${field}`. */
+  errors?: Record<string, string>;
+  /** Receives `${itemId}.${field}` when a field is blurred. */
+  onFieldBlur?: (key: string) => void;
 }
 
 // Inline multi-entry editor rendered as collapsible accordion cards (mirrors the
@@ -27,6 +36,8 @@ export default function InlineMultiEntryStep<T extends HasId>({
   renderForm,
   entryLabel,
   entryNoun,
+  errors,
+  onFieldBlur,
 }: InlineMultiEntryStepProps<T>) {
   // Collapse state keyed by id; missing/false means expanded, so new and initial
   // cards open by default and each toggles independently.
@@ -53,6 +64,14 @@ export default function InlineMultiEntryStep<T extends HasId>({
     <div className={styles.entryCards}>
       {items.map((item, index) => {
         const open = !collapsed[item.id];
+        const itemErrors: Record<string, string> = {};
+        if (errors) {
+          const prefix = `${item.id}.`;
+          for (const key in errors) {
+            if (key.startsWith(prefix)) itemErrors[key.slice(prefix.length)] = errors[key];
+          }
+        }
+        const onItemBlur = (key: string) => onFieldBlur?.(`${item.id}.${key}`);
 
         return (
           <div key={item.id} className={styles.entryCard}>
@@ -72,7 +91,7 @@ export default function InlineMultiEntryStep<T extends HasId>({
 
             {open && (
               <div className={styles.entryBody}>
-                {renderForm(item, (next) => updateRow(item.id, next))}
+                {renderForm(item, (next) => updateRow(item.id, next), itemErrors, onItemBlur)}
 
                 <div className={styles.entryDeleteRow}>
                   <button

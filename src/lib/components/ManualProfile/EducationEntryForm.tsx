@@ -39,11 +39,18 @@ export function createEmptyEducation(): EducationSectionItem {
 interface EducationEntryFormProps {
   value: EducationSectionItem;
   onChange: (value: EducationSectionItem) => void;
+  errors?: Record<string, string>;
+  onFieldBlur?: (key: string) => void;
 }
 
 // Inline Education form (Figma node 14567:37499) — the same fields the overlay
 // EducationModal captures, rendered inline inside the wizard card.
-export default function EducationEntryForm({ value, onChange }: EducationEntryFormProps) {
+export default function EducationEntryForm({
+  value,
+  onChange,
+  errors,
+  onFieldBlur,
+}: EducationEntryFormProps) {
   function set<K extends keyof EducationSectionItem>(field: K, fieldValue: EducationSectionItem[K]) {
     onChange({ ...value, [field]: fieldValue });
   }
@@ -60,6 +67,8 @@ export default function EducationEntryForm({ value, onChange }: EducationEntryFo
         size="sm"
         placeholder="E.g. Ateneo De Manila University"
         value={value.school}
+        error={errors?.school}
+        onBlur={() => onFieldBlur?.("school")}
         onChange={(event) => set("school", event.target.value)}
       />
 
@@ -99,7 +108,7 @@ export default function EducationEntryForm({ value, onChange }: EducationEntryFo
         </Group>
       </LabeledField>
 
-      <LabeledField label="Graduation Date (or expected)">
+      <LabeledField label="Graduation Date (or expected)" error={errors?.endDate}>
         <Group grow gap={16} align="flex-start">
           <Select
             size="sm"

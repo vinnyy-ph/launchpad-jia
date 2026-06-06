@@ -33,11 +33,18 @@ export function createEmptyReference(): ReferenceSectionItem {
 interface ReferenceEntryFormProps {
   value: ReferenceSectionItem;
   onChange: (value: ReferenceSectionItem) => void;
+  errors?: Record<string, string>;
+  onFieldBlur?: (key: string) => void;
 }
 
 // Inline Character References form (Figma node 14567:37249). The phone field
 // reuses the Contact step's ISO-country + dial-code pattern.
-export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFormProps) {
+export default function ReferenceEntryForm({
+  value,
+  onChange,
+  errors,
+  onFieldBlur,
+}: ReferenceEntryFormProps) {
   function set<K extends keyof ReferenceSectionItem>(field: K, fieldValue: ReferenceSectionItem[K]) {
     onChange({ ...value, [field]: fieldValue });
   }
@@ -82,6 +89,8 @@ export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFo
         size="sm"
         placeholder="Enter name of reference"
         value={value.name}
+        error={errors?.name}
+        onBlur={() => onFieldBlur?.("name")}
         onChange={(event) => set("name", event.target.value)}
       />
 
@@ -92,6 +101,8 @@ export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFo
           type="email"
           placeholder="Enter email"
           value={value.email}
+          error={errors?.email}
+          onBlur={() => onFieldBlur?.("email")}
           onChange={(event) => set("email", event.target.value)}
         />
         <Field
@@ -104,6 +115,8 @@ export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFo
           value={formatNationalNumber(nationalNumber, country)}
           sectionLeft={phoneCountrySection}
           sectionPointerEvents="auto"
+          error={errors?.phone}
+          onBlur={() => onFieldBlur?.("phone")}
           onChange={handlePhoneChange}
         />
       </Group>
@@ -114,6 +127,8 @@ export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFo
         size="sm"
         placeholder="Enter referral company"
         value={value.company}
+        error={errors?.company}
+        onBlur={() => onFieldBlur?.("company")}
         onChange={(event) => set("company", event.target.value)}
       />
 
@@ -124,6 +139,8 @@ export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFo
           size="sm"
           placeholder="Enter reference position"
           value={value.position}
+          error={errors?.position}
+          onBlur={() => onFieldBlur?.("position")}
           onChange={(event) => set("position", event.target.value)}
         />
         <Field

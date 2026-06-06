@@ -18,7 +18,6 @@ import {
   maxNationalDigits,
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
-import { validatePhoneFormat } from "@/lib/utils/phoneValidation";
 import CountrySelect from "./CountrySelect";
 import ManualPhoneVerifyModal from "./ManualPhoneVerifyModal";
 import styles from "./manual-profile.module.scss";
@@ -54,18 +53,21 @@ interface ContactInformationStepProps {
   onChange: (value: ContactStepValue) => void;
   /** When true the Google email is locked (read-only), matching the design. */
   lockEmail?: boolean;
+  errors?: Record<string, string>;
+  onFieldBlur?: (key: string) => void;
 }
 
 export default function ContactInformationStep({
   value,
   onChange,
   lockEmail = true,
+  errors,
+  onFieldBlur,
 }: ContactInformationStepProps) {
   const [country, setCountry] = useState<SupportedPhoneCountry>(() =>
     inferPhoneCountry(value.phone),
   );
   const [isVerifyOpen, setIsVerifyOpen] = useState(false);
-  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [manualMode, setManualMode] = useState<boolean>(value.addressManual);
   const [addressParts, setAddressParts] = useState<AddressParts>(value.addressParts);
 
@@ -149,6 +151,8 @@ export default function ContactInformationStep({
           size="sm"
           placeholder="First name"
           value={value.firstName}
+          error={errors?.firstName}
+          onBlur={() => onFieldBlur?.("firstName")}
           onChange={(event) => patch({ firstName: event.target.value })}
         />
 
@@ -159,6 +163,8 @@ export default function ContactInformationStep({
             size="sm"
             placeholder="Last name"
             value={value.lastName}
+            error={errors?.lastName}
+            onBlur={() => onFieldBlur?.("lastName")}
             onChange={(event) => patch({ lastName: event.target.value })}
           />
           <Field
@@ -167,6 +173,8 @@ export default function ContactInformationStep({
             size="sm"
             placeholder="M.I."
             value={value.middleInitial}
+            error={errors?.middleInitial}
+            onBlur={() => onFieldBlur?.("middleInitial")}
             onChange={(event) => patch({ middleInitial: event.target.value })}
           />
         </Group>
@@ -190,6 +198,8 @@ export default function ContactInformationStep({
             }
             sectionRightWidth={40}
             sectionRightPointerEvents="auto"
+            error={errors?.email}
+            onBlur={() => onFieldBlur?.("email")}
             onChange={(event) => patch({ email: event.target.value })}
           />
           <Field
@@ -222,11 +232,8 @@ export default function ContactInformationStep({
             sectionRightPointerEvents="auto"
             sectionRightWidth={value.isPhoneVerified ? 44 : 96}
             disabled={value.isPhoneVerified}
-            error={phoneError ?? undefined}
-            onBlur={() => {
-              const result = validatePhoneFormat(value.phone);
-              setPhoneError(result.valid ? null : result.error ?? null);
-            }}
+            error={errors?.phone}
+            onBlur={() => onFieldBlur?.("phone")}
             onChange={(event) => {
               const nationalDigits = event.target.value
                 .replace(/\D/g, "")
@@ -235,7 +242,6 @@ export default function ContactInformationStep({
                 `${dialCode}${nationalDigits}`,
                 country,
               );
-              setPhoneError(null);
               patch({
                 phone: nextPhone,
                 isPhoneVerified: value.isPhoneVerified && value.phone === nextPhone,
@@ -254,6 +260,8 @@ export default function ContactInformationStep({
               value={value.address}
               sectionLeft={<MarkerPin01 width={20} height={20} color="#717680" />}
               sectionWidth={40}
+              error={errors?.address}
+              onBlur={() => onFieldBlur?.("address")}
               onChange={(event) => patch({ address: event.target.value })}
             />
           ) : (
@@ -264,6 +272,8 @@ export default function ContactInformationStep({
                 size="sm"
                 placeholder="House/Unit no., street, barangay"
                 value={addressParts.street}
+                error={errors?.street}
+                onBlur={() => onFieldBlur?.("street")}
                 onChange={(event) => updateAddressPart("street", event.target.value)}
               />
               <Group grow align="flex-start">
@@ -273,6 +283,8 @@ export default function ContactInformationStep({
                   size="sm"
                   placeholder="City"
                   value={addressParts.city}
+                  error={errors?.city}
+                  onBlur={() => onFieldBlur?.("city")}
                   onChange={(event) => updateAddressPart("city", event.target.value)}
                 />
                 <Field
@@ -297,6 +309,8 @@ export default function ContactInformationStep({
                   size="sm"
                   placeholder="Country"
                   value={addressParts.country}
+                  error={errors?.country}
+                  onBlur={() => onFieldBlur?.("country")}
                   onChange={(event) => updateAddressPart("country", event.target.value)}
                 />
               </Group>

@@ -20,9 +20,16 @@ export function createWebsite(): ContactWebsite {
 interface WebsitesStepProps {
   value: ContactWebsite[];
   onChange: (value: ContactWebsite[]) => void;
+  errors?: Record<string, string>;
+  onFieldBlur?: (key: string) => void;
 }
 
-export default function WebsitesStep({ value, onChange }: WebsitesStepProps) {
+export default function WebsitesStep({
+  value,
+  onChange,
+  errors,
+  onFieldBlur,
+}: WebsitesStepProps) {
   // Collapse state keyed by website id; a missing/false entry means expanded, so
   // new and initial cards open by default and each card toggles independently.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -69,7 +76,11 @@ export default function WebsitesStep({ value, onChange }: WebsitesStepProps) {
             {open && (
               <div className={styles.websiteBody}>
                 <Group grow gap={16} align="flex-start">
-                  <LabeledField label="URL" htmlFor={`url-${website.id}`}>
+                  <LabeledField
+                    label="URL"
+                    htmlFor={`url-${website.id}`}
+                    error={errors?.[`${website.id}.url`]}
+                  >
                     <div className={styles.urlCombo}>
                       <span className={styles.urlComboTextPrefix}>https://</span>
                       <input
@@ -77,6 +88,7 @@ export default function WebsitesStep({ value, onChange }: WebsitesStepProps) {
                         className={styles.urlComboTextInput}
                         placeholder="www.website.com"
                         value={website.url}
+                        onBlur={() => onFieldBlur?.(`${website.id}.url`)}
                         onChange={(event) => update(website.id, { url: event.target.value })}
                       />
                     </div>

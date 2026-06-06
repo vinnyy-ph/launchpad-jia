@@ -49,11 +49,18 @@ export function createEmptyExperience(): ExperienceSectionItem {
 interface ExperienceEntryFormProps {
   value: ExperienceSectionItem;
   onChange: (value: ExperienceSectionItem) => void;
+  errors?: Record<string, string>;
+  onFieldBlur?: (key: string) => void;
 }
 
 // Inline Experience form (Figma node 14567:37419) — same fields the overlay
 // ExperienceModal captures, rendered inline inside the wizard accordion card.
-export default function ExperienceEntryForm({ value, onChange }: ExperienceEntryFormProps) {
+export default function ExperienceEntryForm({
+  value,
+  onChange,
+  errors,
+  onFieldBlur,
+}: ExperienceEntryFormProps) {
   function set<K extends keyof ExperienceSectionItem>(field: K, fieldValue: ExperienceSectionItem[K]) {
     onChange({ ...value, [field]: fieldValue });
   }
@@ -70,6 +77,8 @@ export default function ExperienceEntryForm({ value, onChange }: ExperienceEntry
         size="sm"
         placeholder="What is your title?"
         value={value.title}
+        error={errors?.title}
+        onBlur={() => onFieldBlur?.("title")}
         onChange={(event) => set("title", event.target.value)}
       />
 
@@ -80,6 +89,8 @@ export default function ExperienceEntryForm({ value, onChange }: ExperienceEntry
           size="sm"
           placeholder="E.g. Google, Inc."
           value={value.company}
+          error={errors?.company}
+          onBlur={() => onFieldBlur?.("company")}
           onChange={(event) => set("company", event.target.value)}
         />
         <Select
@@ -116,7 +127,7 @@ export default function ExperienceEntryForm({ value, onChange }: ExperienceEntry
         onCheckedChange={(checked) => set("isCurrentRole", checked)}
       />
 
-      <LabeledField label="Start Date" withAsterisk>
+      <LabeledField label="Start Date" withAsterisk error={errors?.startDate}>
         <Group grow gap={16} align="flex-start">
           <Select
             size="sm"
@@ -135,7 +146,7 @@ export default function ExperienceEntryForm({ value, onChange }: ExperienceEntry
         </Group>
       </LabeledField>
 
-      <LabeledField label="End Date" withAsterisk>
+      <LabeledField label="End Date" withAsterisk error={errors?.endDate}>
         <Group grow gap={16} align="flex-start">
           <Select
             size="sm"

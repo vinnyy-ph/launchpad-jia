@@ -16,6 +16,7 @@ import CertificationEntryForm, { createEmptyCertification } from "./Certificatio
 import AwardEntryForm, { createEmptyAward } from "./AwardEntryForm";
 import ReferenceEntryForm, { createEmptyReference } from "./ReferenceEntryForm";
 import DiscardProfileModal from "./DiscardProfileModal";
+import ResumeDraftModal from "./ResumeDraftModal";
 import CvUploadBanner from "./CvUploadBanner";
 import WebsitesStep, { createWebsite } from "./WebsitesStep";
 import SkillsStep from "./SkillsStep";
@@ -45,6 +46,12 @@ import {
 } from "@/lib/utils/profileValidation";
 import { api } from "@/lib/utils/apiClient";
 import { inferPhoneCountry } from "@/lib/utils/phoneInput";
+import {
+  draftKey,
+  parseDraft,
+  serializeDraft,
+  type ProfileDraft,
+} from "@/lib/utils/profileDraft";
 
 interface StepDef {
   title: string;
@@ -239,6 +246,17 @@ export default function ManualProfileWizard({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const draftStorageKey = draftKey(userEmail);
+  const [pendingDraft, setPendingDraft] = useState<ProfileDraft<WizardData> | null>(null);
+
+  function clearDraft() {
+    try {
+      window.localStorage.removeItem(draftStorageKey);
+    } catch {
+      /* ignore disabled storage */
+    }
+  }
+
   function patch(p: Partial<WizardData>) {
     setData((d) => ({ ...d, ...p }));
   }
@@ -264,6 +282,7 @@ export default function ManualProfileWizard({
         cvData: { structuredCV },
         fileInfo: null,
       });
+      clearDraft();
       (onSubmitted ?? onExit)();
     } catch {
       setSubmitError("Something went wrong saving your profile. Please try again.");
@@ -353,6 +372,53 @@ export default function ManualProfileWizard({
     setTouched(new Set());
     setShowAllErrors(false);
   }, [stepIndex]);
+
+  // ----- Draft persistence -----
+  // On mount, offer to resume a saved draft (Resume / Start over).
+  useEffect(() => {
+    const existing = parseDraft<WizardData>(
+      typeof window !== "undefined" ? window.localStorage.getItem(draftStorageKey) : null,
+    );
+    if (existing) setPendingDraft(existing);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save on every change once dirty (not while the resume prompt is open).
+  useEffect(() => {
+    if (!isDirty || pendingDraft) return;
+    try {
+      window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+    } catch {
+      /* ignore quota / disabled storage */
+    }
+  }, [data, stepIndex, isDirty, pendingDraft, draftStorageKey]);
+
+  // Final silent save on tab close/reload (no native prompt — resume is offered on return).
+  useEffect(() => {
+    const onBeforeUnload = () => {
+      if (isDirty) {
+        try {
+          window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+        } catch {
+          /* ignore */
+        }
+      }
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [isDirty, data, stepIndex, draftStorageKey]);
+
+  // Browser Back while editing → show the discard prompt instead of leaving.
+  useEffect(() => {
+    if (!isDirty) return;
+    window.history.pushState(null, "", window.location.href);
+    const onPop = () => {
+      setShowDiscard(true);
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [isDirty]);
 
   function renderStep() {
     switch (stepIndex) {
@@ -543,8 +609,34 @@ export default function ManualProfileWizard({
       <DiscardProfileModal
         opened={showDiscard}
         onGoBack={() => setShowDiscard(false)}
-        onSaveExit={onExit}
-        onExitWithoutSaving={onExit}
+        onSaveExit={() => {
+          try {
+            window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+          } catch {
+            /* ignore */
+          }
+          onExit();
+        }}
+        onExitWithoutSaving={() => {
+          clearDraft();
+          onExit();
+        }}
+      />
+
+      <ResumeDraftModal
+        opened={pendingDraft !== null}
+        savedAt={pendingDraft?.savedAt}
+        onResume={() => {
+          if (pendingDraft) {
+            setData(pendingDraft.data);
+            setStepIndex(pendingDraft.stepIndex);
+          }
+          setPendingDraft(null);
+        }}
+        onStartOver={() => {
+          clearDraft();
+          setPendingDraft(null);
+        }}
       />
 
       {onUploadCv && !bannerDismissed && (

@@ -22,16 +22,6 @@ import WebsitesStep, { createWebsite } from "./WebsitesStep";
 import SkillsStep from "./SkillsStep";
 import IntroductionStep from "./IntroductionStep";
 import styles from "./manual-profile.module.scss";
-import type {
-  ExperienceSectionItem,
-  EducationSectionItem,
-  ProjectSectionItem,
-  CertificationSectionItem,
-  AwardSectionItem,
-  ReferenceSectionItem,
-  ContactWebsite,
-  StructuredCV,
-} from "@/lib/utils/structuredCV";
 import {
   validateContact,
   validateWebsite,
@@ -45,13 +35,19 @@ import {
   type FieldErrors,
 } from "@/lib/utils/profileValidation";
 import { api } from "@/lib/utils/apiClient";
-import { inferPhoneCountry } from "@/lib/utils/phoneInput";
 import {
   draftKey,
   parseDraft,
   serializeDraft,
   type ProfileDraft,
 } from "@/lib/utils/profileDraft";
+import {
+  assembleStructuredCV,
+  INITIAL_SECTION_STATUS,
+  type MultiEntrySection,
+  type ProfileSectionStatus,
+  type WizardData,
+} from "@/lib/utils/assembleProfile";
 
 interface StepDef {
   title: string;
@@ -116,53 +112,12 @@ const STEPS: StepDef[] = [
 
 const TOTAL_STEPS = STEPS.length;
 
-interface WizardData {
-  contact: ContactStepValue;
-  websites: ContactWebsite[];
-  education: EducationSectionItem[];
-  experience: ExperienceSectionItem[];
-  skills: string[];
-  projects: ProjectSectionItem[];
-  certifications: CertificationSectionItem[];
-  awards: AwardSectionItem[];
-  references: ReferenceSectionItem[];
-  introduction: string;
-}
-
 interface ManualProfileWizardProps {
   onExit: () => void;
   userEmail?: string;
   onSubmitted?: () => void;
   /** When provided, shows the "Already have a CV?" banner that bails to upload. */
   onUploadCv?: () => void;
-}
-
-// Pure helpers — assembled outside the component to avoid re-creation on renders.
-function assembleStructuredCV(d: WizardData): StructuredCV {
-  const linkedin = d.websites.find((w) => w.type === "Linkedin")?.url ?? "";
-  return {
-    introduction: d.introduction,
-    contactInfo: {
-      email: d.contact.email,
-      phone: d.contact.phone,
-      isPhoneVerified: d.contact.isPhoneVerified,
-      countryCode: inferPhoneCountry(d.contact.phone),
-      address: d.contact.address,
-      linkedin,
-      websites: d.websites.filter((website) => website.url.trim() !== ""),
-    },
-    experience: d.experience.filter(
-      (entry) => entry.title.trim() !== "" || entry.company.trim() !== "",
-    ),
-    skills: d.skills,
-    education: d.education.filter((entry) => entry.school.trim() !== ""),
-    projects: d.projects.filter((entry) => entry.name.trim() !== ""),
-    certifications: d.certifications.filter(
-      (entry) => entry.name.trim() !== "" || entry.issuingOrganization.trim() !== "",
-    ),
-    awards: d.awards.filter((entry) => entry.title.trim() !== ""),
-    references: d.references.filter((entry) => entry.name.trim() !== ""),
-  };
 }
 
 function fullName(c: ContactStepValue): string {
@@ -212,6 +167,17 @@ function computeStepErrors(stepIndex: number, d: WizardData): FieldErrors {
   }
 }
 
+// The multi-entry step indices → their section key (used to track Skip/submit intent).
+const STEP_SECTION: Record<number, MultiEntrySection> = {
+  1: "websites",
+  2: "education",
+  3: "experience",
+  5: "projects",
+  6: "certifications",
+  7: "awards",
+  8: "references",
+};
+
 export default function ManualProfileWizard({
   onExit,
   userEmail = "",
@@ -222,6 +188,7 @@ export default function ManualProfileWizard({
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [showAllErrors, setShowAllErrors] = useState(false);
+  const [sectionStatus, setSectionStatus] = useState<ProfileSectionStatus>(INITIAL_SECTION_STATUS);
 
   const [data, setData] = useState<WizardData>(() => ({
     contact: createEmptyContact(userEmail),
@@ -275,7 +242,7 @@ export default function ManualProfileWizard({
         setStepIndex(0);
         return;
       }
-      const structuredCV = assembleStructuredCV(data);
+      const structuredCV = assembleStructuredCV(data, sectionStatus);
       await api.post("/api/whitecloak/store-cv", {
         name: fullName(data.contact),
         email: data.contact.email,
@@ -371,6 +338,11 @@ export default function ManualProfileWizard({
   useEffect(() => {
     setTouched(new Set());
     setShowAllErrors(false);
+    // Re-entering a section resets its intent so a fresh Next/Skip re-establishes it.
+    const section = STEP_SECTION[stepIndex];
+    if (section) {
+      setSectionStatus((s) => (s[section] === "untouched" ? s : { ...s, [section]: "untouched" }));
+    }
   }, [stepIndex]);
 
   // ----- Draft persistence -----
@@ -592,6 +564,8 @@ export default function ManualProfileWizard({
       setShowAllErrors(true);
       return;
     }
+    const section = STEP_SECTION[stepIndex];
+    if (section) setSectionStatus((s) => ({ ...s, [section]: "submitted" }));
     if (isLast) {
       handleSubmit();
       return;
@@ -599,8 +573,11 @@ export default function ManualProfileWizard({
     setStepIndex((current) => Math.min(TOTAL_STEPS - 1, current + 1));
   }
 
-  // Skip bypasses validation (the step is optional); blank rows are filtered on submit.
+  // Skip = "this section isn't part of my CV": mark it skipped (dropped at assemble)
+  // without destroying the entries — they're still there if the user navigates back.
   function goSkip() {
+    const section = STEP_SECTION[stepIndex];
+    if (section) setSectionStatus((s) => ({ ...s, [section]: "skipped" }));
     setStepIndex((current) => Math.min(TOTAL_STEPS - 1, current + 1));
   }
 

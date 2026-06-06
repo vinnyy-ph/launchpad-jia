@@ -106,8 +106,9 @@ export type RecruiterEvaluation = {
   };
 };
 
-export const employerAppURL = !process.env.NEXT_PUBLIC_EMPLOYER_APP_DOMAIN.includes("localhost")
-  ? `https://${process.env.NEXT_PUBLIC_EMPLOYER_APP_DOMAIN}`
+const employerAppDomain = process.env.NEXT_PUBLIC_EMPLOYER_APP_DOMAIN || "";
+export const employerAppURL = employerAppDomain && !employerAppDomain.includes("localhost")
+  ? `https://${employerAppDomain}`
   : "http://localhost:3000";
 
 export function adjustNameVisibility(nameVisibility: NameVisibility, name: string) {

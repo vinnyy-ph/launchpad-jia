@@ -22,3 +22,20 @@ export function sanitizeRichText(html: string): string {
         ALLOWED_TAGS.has(tag.toLowerCase()) ? `<${slash}${tag.toLowerCase()}>` : "",
     );
 }
+
+// Plain-text extraction for length/required checks and for feeding stored
+// rich-text (Descriptions) to the LLM as clean prose. String-based, no DOM.
+export function htmlToPlainText(html: string): string {
+  if (!html) return "";
+
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}

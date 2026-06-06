@@ -213,6 +213,7 @@ export default function PhoneVerificationModal({
                 </span>
                 <span className={styles.phoneVerificationSubtitle}>
                   We&apos;ve sent a 6-digit verification code to{" "}
+                  <br />
                   <span className={styles.phoneVerificationMaskedNumber}>
                     {maskedMobileNumber || getMaskedMobileNumber(mobileNumber)}
                   </span>

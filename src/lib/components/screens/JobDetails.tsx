@@ -743,6 +743,7 @@ export default function ({ params }) {
                   </span>
                   <span className={modalStyles.phoneVerificationSubtitle}>
                     We&apos;ve sent a 6-digit verification code to{" "}
+                    <br />
                     <span className={modalStyles.phoneVerificationMaskedNumber}>
                       {maskedMobileNumber || getMaskedMobileNumber(mobileNumber)}
                     </span>

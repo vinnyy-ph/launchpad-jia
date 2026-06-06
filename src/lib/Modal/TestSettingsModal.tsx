@@ -47,7 +47,7 @@ export default function TestSettingsModal({ settings }) {
     if (settings) {
       axios({
         method: "POST",
-        url: "http://localhost:3000/api/ephemeral-key",
+        url: "/api/ephemeral-key",
         data: {
           instructions: settings.instructions,
           turn_detection: settings.turn_detection,

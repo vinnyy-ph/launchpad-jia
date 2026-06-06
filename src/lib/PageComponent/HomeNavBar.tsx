@@ -181,7 +181,7 @@ export default function HomeNavBar({
             }}
           >
             <a
-              href={`${process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN.includes("localhost") ? "http" : "https"}://${process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN}`}
+              href={`${process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN?.includes("localhost") ? "http" : "https"}://${process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN}`}
               target="_blank"
               className="navbar-links"
             >

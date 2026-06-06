@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   if (!code)
     return NextResponse.json({ error: "No code in query" }, { status: 400 });
 
-  const redirectUri = "https://jia-alpha.vercel.app/api/linkedin/callback";
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/linkedin/callback`;
   const tokenRes = await axios.post(
     "https://www.linkedin.com/oauth/v2/accessToken",
     new URLSearchParams({

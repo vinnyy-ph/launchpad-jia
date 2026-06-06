@@ -19,6 +19,11 @@ export function extractSubdomain(hostname: string): string | null {
   const applicantDomain = process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN || '';
   const baseDomain = applicantDomain.split(':')[0];
 
+  // No base domain configured, or host IS the base domain (e.g. a
+  // multi-part *.vercel.app deployment domain) — no org subdomain.
+  if (!baseDomain) return null;
+  if (hostWithoutPort === baseDomain) return null;
+
   if (!hostWithoutPort.includes(baseDomain)) return null;
 
   const parts = hostWithoutPort.split('.');

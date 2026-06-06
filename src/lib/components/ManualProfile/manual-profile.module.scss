@@ -51,14 +51,24 @@ $verified: #1570ef;
   // Focus = gradient border (background-clip trick: solid fill on padding-box +
   // gradient on border-box → a true gradient border that keeps the radius).
   // :focus (not :focus-visible) so it also shows on mouse-click/typing.
+  // Kill argon's global grey focus ring (globals.scss) on every wizard control,
+  // including the url combo's inner input.
   input:focus,
   [role="combobox"]:focus {
-    // !important beats the DS border + argon's global `input:focus` ring (globals.scss).
+    box-shadow: none !important;
+  }
+
+  // Gradient focus border (background-clip trick: solid fill on padding-box +
+  // gradient on border-box → a true gradient border that keeps the radius).
+  // !important beats the DS border. Skip the url combo's inner input — its wrapper
+  // (.urlCombo) owns the border via :focus-within, so letting the inner input draw
+  // its own gradient broke the combo's outline.
+  input:focus:not(.urlComboTextInput),
+  [role="combobox"]:focus {
     border-color: transparent !important;
     background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
     background-origin: border-box;
     background-clip: padding-box, border-box;
-    box-shadow: none !important;
   }
 
   // Argon's global `button {}` paints every bare <button> with a drop shadow;

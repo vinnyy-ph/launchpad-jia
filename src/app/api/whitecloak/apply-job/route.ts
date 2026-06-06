@@ -56,7 +56,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
   // opting out of the legacy Firebase phone gate via env (default keeps it on);
   // set PHONE_VERIFICATION_REQUIRED=false in dev/demo to apply without it.
   const phoneVerificationRequired =
-    process.env.PHONE_VERIFICATION_REQUIRED !== "false";
+    process.env.NEXT_PUBLIC_PHONE_VERIFICATION_REQUIRED !== "false";
 
   if (phoneVerificationRequired && !hasVerifiedMobileNumber) {
     return NextResponse.json(

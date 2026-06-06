@@ -122,6 +122,11 @@ export default function () {
   }
 
   async function isPhoneVerificationCompleteFromServer() {
+    // T5: mobile verification is a paid feature and out of scope. When disabled,
+    // treat the gate as satisfied so applicants are never blocked.
+    if (process.env.NEXT_PUBLIC_PHONE_VERIFICATION_REQUIRED === "false") {
+      return true;
+    }
     try {
       const response = await api.post("/api/whitecloak/fetch-cv");
       return isPhoneVerificationComplete(response?.data);

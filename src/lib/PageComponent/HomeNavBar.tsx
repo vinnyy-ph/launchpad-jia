@@ -93,19 +93,19 @@ export default function HomeNavBar({
                     }}
                     onClick={toggleMobileMenu}
                   >
-                    <a href="/#features" className="mobile-nav-link">
+                    <a href={`${pathConstants.employerLanding}#features`} className="mobile-nav-link">
                       About
                     </a>
-                    <a href="/#strengths" className="mobile-nav-link">
+                    <a href={`${pathConstants.employerLanding}#strengths`} className="mobile-nav-link">
                       Features
                     </a>
-                    <a href="/#testimonials" className="mobile-nav-link">
+                    <a href={`${pathConstants.employerLanding}#testimonials`} className="mobile-nav-link">
                       Testimonials
                     </a>
-                    <a href="/#faqs" className="mobile-nav-link">
+                    <a href={`${pathConstants.employerLanding}#faqs`} className="mobile-nav-link">
                       FAQs
                     </a>
-                    <a href="/#contact-us" className="mobile-nav-link">
+                    <a href={`${pathConstants.employerLanding}#contact-us`} className="mobile-nav-link">
                       Talk to Us
                     </a>
                     <a href="/developer" className="mobile-nav-link">
@@ -126,7 +126,7 @@ export default function HomeNavBar({
                       Login
                     </a>
                     <a
-                      href="/?reasonForInquiry=Book_a_Demo#contact-us"
+                      href={`${pathConstants.employerLanding}?reasonForInquiry=Book_a_Demo#contact-us`}
                       className="mobile-nav-link"
                       style={{
                         background:
@@ -156,13 +156,13 @@ export default function HomeNavBar({
                 window.location.href = "/";
               }}
             />
-            <a href="/#features" className="navbar-links">
+            <a href={`${pathConstants.employerLanding}#features`} className="navbar-links">
               About
             </a>
-            <a href="/#strengths" className="navbar-links">
+            <a href={`${pathConstants.employerLanding}#strengths`} className="navbar-links">
               Features
             </a>
-            <a href="/#testimonials" className="navbar-links">
+            <a href={`${pathConstants.employerLanding}#testimonials`} className="navbar-links">
               Testimonials
             </a>
             <a href="/developer" className="navbar-links">
@@ -191,7 +191,7 @@ export default function HomeNavBar({
               Login
             </a>
             <a
-              href="/?reasonForInquiry=Book_a_Demo#contact-us"
+              href={`${pathConstants.employerLanding}?reasonForInquiry=Book_a_Demo#contact-us`}
               className="navbar-request-demo-btn"
             >
               Book a Demo

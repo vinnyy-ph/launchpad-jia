@@ -112,6 +112,16 @@ export function middleware(request: NextRequest) {
     return res;
   }
 
+  // Employer landing page (src/app/page.tsx). On single-domain deploys "/"
+  // is rewritten to the applicant job portal, so the employer landing is
+  // exposed at /employers instead (pathConstants.employer points here).
+  if (pathname === "/employers") {
+    url.pathname = "/";
+    const res = NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    res.headers.set('Content-Security-Policy', csp);
+    return res;
+  }
+
   const employerAppDomain = process.env.NEXT_PUBLIC_EMPLOYER_APP_DOMAIN || "";
   const applicantAppDomain = process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN || "";
   const adminAppDomain = process.env.NEXT_PUBLIC_ADMIN_APP_DOMAIN || "";

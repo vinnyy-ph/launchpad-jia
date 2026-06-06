@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { validateEmail } from "../Utils";
+import { pathConstants } from "@/lib/utils/constantsV2";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -164,7 +165,7 @@ export default function Footer() {
                 <span
                   className="link"
                   onClick={() => {
-                    window.location.href = "/#about";
+                    window.location.href = `${pathConstants.employerLanding}#about`;
                   }}
                 >
                   About Us
@@ -172,7 +173,7 @@ export default function Footer() {
                 <span
                 className="link"
                   onClick={() => {
-                    window.location.href = "/#features";
+                    window.location.href = `${pathConstants.employerLanding}#features`;
                   }}
                 >
                   Features
@@ -215,7 +216,7 @@ export default function Footer() {
                 </span>
                 <span className="link"
                   onClick={() => {
-                    window.location.href = "/#faqs";
+                    window.location.href = `${pathConstants.employerLanding}#faqs`;
                   }}
                 >
                   FAQ
@@ -223,7 +224,7 @@ export default function Footer() {
                 <span
                 className="link"
                   onClick={() => {
-                    window.location.href = "/#contact-us";
+                    window.location.href = `${pathConstants.employerLanding}#contact-us`;
                   }}
                 >
                   Contact Us

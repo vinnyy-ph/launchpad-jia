@@ -24,6 +24,9 @@ export const pathConstants = {
   // employer landing page lives at /employers there (see middleware.ts).
   employer:
     applicantUrl === employerUrl ? `${employerUrl}/employers` : employerUrl,
+  // Path of the employer landing page on this deployment, for in-app links
+  // to its sections (#contact-us, #faqs, ...).
+  employerLanding: applicantUrl === employerUrl ? "/employers" : "/",
   whitecloak: "https://www.whitecloak.com",
   home: originPath,
   jobOpenings: jobOpeningsOriginPath,

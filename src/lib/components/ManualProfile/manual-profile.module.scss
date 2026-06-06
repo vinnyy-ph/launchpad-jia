@@ -1235,3 +1235,46 @@ $verified: #1570ef;
   height: 20px;
   color: #414651;
 }
+
+// ----- Introduction step (rich-text + Generate states) -----
+.introStep {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.introEditorWrap {
+  position: relative;
+}
+
+// Dim + lock the editor while the AI is writing.
+.introGenerating {
+  .introEditorInner {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.introGenOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 14px;
+  color: $text;
+}
+
+.introHint {
+  color: $muted-2;
+  font-size: 13px;
+  margin: 6px 0 0;
+}
+
+.fieldError {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 2px 0 0;
+}

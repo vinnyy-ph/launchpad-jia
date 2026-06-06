@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/lib/components/ui";
-import { ChevronLeft, ChevronRight, PlusCircle } from "@untitledui/icons";
+import { ChevronLeft, ChevronRight, PlusCircle, Stars02 } from "@untitledui/icons";
 import ContactInformationStep, {
   type ContactStepValue,
   createEmptyContact,
@@ -21,6 +21,8 @@ import CvUploadBanner from "./CvUploadBanner";
 import WebsitesStep, { createWebsite } from "./WebsitesStep";
 import SkillsStep from "./SkillsStep";
 import IntroductionStep from "./IntroductionStep";
+import ReplaceIntroductionModal from "./ReplaceIntroductionModal";
+import { useGenerateIntroduction } from "./useGenerateIntroduction";
 import styles from "./manual-profile.module.scss";
 import {
   validateContact,
@@ -48,6 +50,8 @@ import {
   type ProfileSectionStatus,
   type WizardData,
 } from "@/lib/utils/assembleProfile";
+import { hasProfileContentForIntro } from "@/lib/utils/introductionAI";
+import { htmlToPlainText } from "@/lib/utils/sanitizeRichText";
 
 interface StepDef {
   title: string;
@@ -202,6 +206,16 @@ export default function ManualProfileWizard({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const {
+    generating: generatingIntro,
+    error: generateError,
+    generate: generateIntro,
+    reset: resetGenerate,
+  } = useGenerateIntroduction();
+  const [introGenId, setIntroGenId] = useState(0);
+  const [introHint, setIntroHint] = useState<string | null>(null);
+  const [showReplaceIntro, setShowReplaceIntro] = useState(false);
+
   const draftStorageKey = draftKey(userEmail);
   const [pendingDraft, setPendingDraft] = useState<ProfileDraft<WizardData> | null>(null);
 
@@ -323,6 +337,35 @@ export default function ManualProfileWizard({
   }, [stepErrors, showAllErrors, touched]);
   const markTouched = (key: string) =>
     setTouched((current) => (current.has(key) ? current : new Set(current).add(key)));
+
+  async function runGenerateIntro() {
+    setIntroHint(null);
+    resetGenerate();
+    const profile = assembleStructuredCV(data, sectionStatus);
+    if (!hasProfileContentForIntro(profile)) {
+      setIntroHint(
+        "Add some experience or skills first so Jia can write your introduction.",
+      );
+      return;
+    }
+    const html = await generateIntro(profile);
+    if (html) {
+      patch({ introduction: html });
+      setIntroGenId((n) => n + 1);
+      markTouched("introduction");
+    }
+  }
+
+  function handleGenerateIntroClick() {
+    if (generatingIntro) return;
+    setIntroHint(null);
+    // Confirm before overwriting text the user already has in the editor.
+    if (htmlToPlainText(data.introduction).trim() !== "") {
+      setShowReplaceIntro(true);
+      return;
+    }
+    runGenerateIntro();
+  }
 
   useEffect(() => {
     setTouched(new Set());
@@ -524,6 +567,10 @@ export default function ManualProfileWizard({
             onChange={(introduction) => patch({ introduction })}
             errors={visibleErrors}
             onFieldBlur={markTouched}
+            genId={introGenId}
+            generating={generatingIntro}
+            generateError={generateError}
+            generateHint={introHint}
           />
         );
       default:
@@ -600,6 +647,15 @@ export default function ManualProfileWizard({
         }}
       />
 
+      <ReplaceIntroductionModal
+        opened={showReplaceIntro}
+        onConfirm={() => {
+          setShowReplaceIntro(false);
+          runGenerateIntro();
+        }}
+        onCancel={() => setShowReplaceIntro(false)}
+      />
+
       {onUploadCv && !bannerDismissed && (
         <CvUploadBanner
           onUploadCv={onUploadCv}
@@ -641,7 +697,9 @@ export default function ManualProfileWizard({
         )}
 
         <div
-          className={`${styles.footer}${footerAdd ? ` ${styles.footerSpread}` : ""}`}
+          className={`${styles.footer}${
+            footerAdd || isLast ? ` ${styles.footerSpread}` : ""
+          }`}
         >
           {footerAdd && (
             <Button
@@ -650,6 +708,22 @@ export default function ManualProfileWizard({
               iconJsx={<PlusCircle className={styles.footerAddIcon} aria-hidden />}
               iconPosition="left"
               onClick={footerAdd.onAdd}
+            />
+          )}
+          {isLast && (
+            <Button
+              label={generatingIntro ? "Generating…" : "Generate Introduction"}
+              variant="primary"
+              iconJsx={
+                generatingIntro ? (
+                  <span className={styles.spinner} aria-hidden />
+                ) : (
+                  <Stars02 width={20} height={20} aria-hidden />
+                )
+              }
+              iconPosition="left"
+              onClick={handleGenerateIntroClick}
+              disabled={generatingIntro || submitting}
             />
           )}
           <div className={styles.footerActions}>
@@ -662,7 +736,7 @@ export default function ManualProfileWizard({
               iconJsx={!isLast ? <ChevronRight width={20} height={20} /> : undefined}
               iconPosition="right"
               onClick={goNext}
-              disabled={submitting}
+              disabled={submitting || generatingIntro}
             />
           </div>
         </div>

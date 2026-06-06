@@ -1,11 +1,19 @@
 import {
   assembleStructuredCV,
   INITIAL_SECTION_STATUS,
+  nextSectionStatus,
+  STEP_SECTION,
   type ProfileSectionStatus,
   type WizardData,
 } from "../assembleProfile";
 import type { ContactStepValue } from "@/lib/components/ManualProfile/ContactInformationStep";
 import type { ContactWebsite, ExperienceSectionItem } from "@/lib/utils/structuredCV";
+
+// NOTE: full wizard→Submit integration (drive a Skip, assert the section drops from
+// the store-cv payload) is intentionally not unit-tested here — assembleStructuredCV
+// plus the STEP_SECTION / nextSectionStatus wiring below cover the logic without
+// rendering the wizard. When an e2e harness for the wizard is added, also assert
+// skipped-section drops on Submit.
 
 const contact: ContactStepValue = {
   firstName: "K",
@@ -122,5 +130,42 @@ describe("assembleStructuredCV", () => {
 
   it("INITIAL_SECTION_STATUS is all untouched", () => {
     expect(Object.values(INITIAL_SECTION_STATUS).every((s) => s === "untouched")).toBe(true);
+  });
+});
+
+describe("STEP_SECTION mapping", () => {
+  it("maps the multi-entry steps to their sections (off-by-one guard)", () => {
+    expect(STEP_SECTION).toEqual({
+      1: "websites",
+      2: "education",
+      3: "experience",
+      5: "projects",
+      6: "certifications",
+      7: "awards",
+      8: "references",
+    });
+  });
+});
+
+describe("nextSectionStatus", () => {
+  const base = INITIAL_SECTION_STATUS;
+
+  it("submit → submitted, skip → skipped, enter → untouched for the step's section", () => {
+    expect(nextSectionStatus(base, 3, "submit").experience).toBe("submitted");
+    expect(nextSectionStatus(base, 3, "skip").experience).toBe("skipped");
+    const skipped = nextSectionStatus(base, 3, "skip");
+    expect(nextSectionStatus(skipped, 3, "enter").experience).toBe("untouched");
+  });
+
+  it("only touches the step's own section", () => {
+    const after = nextSectionStatus(base, 3, "skip");
+    expect(after.projects).toBe("untouched");
+    expect(after.websites).toBe("untouched");
+  });
+
+  it("is a no-op (same ref) for non-section steps (Contact/Skills/Intro)", () => {
+    expect(nextSectionStatus(base, 0, "submit")).toBe(base);
+    expect(nextSectionStatus(base, 4, "skip")).toBe(base);
+    expect(nextSectionStatus(base, 9, "submit")).toBe(base);
   });
 });

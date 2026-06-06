@@ -65,6 +65,37 @@ export const INITIAL_SECTION_STATUS: ProfileSectionStatus = {
   references: "untouched",
 };
 
+// The multi-entry step indices → their section key. The wizard's only forward
+// navigation is Next/Skip, so this mapping + nextSectionStatus fully describe how
+// a section's intent gets set. (Revisit if a jump-to-step path is ever added.)
+export const STEP_SECTION: Record<number, MultiEntrySection> = {
+  1: "websites",
+  2: "education",
+  3: "experience",
+  5: "projects",
+  6: "certifications",
+  7: "awards",
+  8: "references",
+};
+
+export type SectionAction = "submit" | "skip" | "enter";
+
+// Pure status transition for the section at `stepIndex`: submit → submitted,
+// skip → skipped, enter (re-entry) → untouched. No-op (same ref) for non-section
+// steps or when already at the target.
+export function nextSectionStatus(
+  status: ProfileSectionStatus,
+  stepIndex: number,
+  action: SectionAction,
+): ProfileSectionStatus {
+  const section = STEP_SECTION[stepIndex];
+  if (!section) return status;
+  const target: SectionStatus =
+    action === "submit" ? "submitted" : action === "skip" ? "skipped" : "untouched";
+  if (status[section] === target) return status;
+  return { ...status, [section]: target };
+}
+
 const isValid = (errs: FieldErrors) => Object.keys(errs).length === 0;
 
 // Uniform keep rule for every multi-entry section:

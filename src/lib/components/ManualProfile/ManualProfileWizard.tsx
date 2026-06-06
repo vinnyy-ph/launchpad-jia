@@ -44,7 +44,7 @@ import {
 import {
   assembleStructuredCV,
   INITIAL_SECTION_STATUS,
-  type MultiEntrySection,
+  nextSectionStatus,
   type ProfileSectionStatus,
   type WizardData,
 } from "@/lib/utils/assembleProfile";
@@ -166,17 +166,6 @@ function computeStepErrors(stepIndex: number, d: WizardData): FieldErrors {
       return {}; // Skills (4) has no required fields
   }
 }
-
-// The multi-entry step indices → their section key (used to track Skip/submit intent).
-const STEP_SECTION: Record<number, MultiEntrySection> = {
-  1: "websites",
-  2: "education",
-  3: "experience",
-  5: "projects",
-  6: "certifications",
-  7: "awards",
-  8: "references",
-};
 
 export default function ManualProfileWizard({
   onExit,
@@ -339,10 +328,7 @@ export default function ManualProfileWizard({
     setTouched(new Set());
     setShowAllErrors(false);
     // Re-entering a section resets its intent so a fresh Next/Skip re-establishes it.
-    const section = STEP_SECTION[stepIndex];
-    if (section) {
-      setSectionStatus((s) => (s[section] === "untouched" ? s : { ...s, [section]: "untouched" }));
-    }
+    setSectionStatus((s) => nextSectionStatus(s, stepIndex, "enter"));
   }, [stepIndex]);
 
   // ----- Draft persistence -----
@@ -564,8 +550,7 @@ export default function ManualProfileWizard({
       setShowAllErrors(true);
       return;
     }
-    const section = STEP_SECTION[stepIndex];
-    if (section) setSectionStatus((s) => ({ ...s, [section]: "submitted" }));
+    setSectionStatus((s) => nextSectionStatus(s, stepIndex, "submit"));
     if (isLast) {
       handleSubmit();
       return;
@@ -576,8 +561,7 @@ export default function ManualProfileWizard({
   // Skip = "this section isn't part of my CV": mark it skipped (dropped at assemble)
   // without destroying the entries — they're still there if the user navigates back.
   function goSkip() {
-    const section = STEP_SECTION[stepIndex];
-    if (section) setSectionStatus((s) => ({ ...s, [section]: "skipped" }));
+    setSectionStatus((s) => nextSectionStatus(s, stepIndex, "skip"));
     setStepIndex((current) => Math.min(TOTAL_STEPS - 1, current + 1));
   }
 

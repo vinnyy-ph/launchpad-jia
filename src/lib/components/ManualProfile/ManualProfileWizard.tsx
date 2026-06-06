@@ -11,15 +11,15 @@ import MultiEntryStep from "./MultiEntryStep";
 import InlineMultiEntryStep from "./InlineMultiEntryStep";
 import EducationEntryForm, { createEmptyEducation } from "./EducationEntryForm";
 import ExperienceEntryForm, { createEmptyExperience } from "./ExperienceEntryForm";
+import ProjectEntryForm, { createEmptyProject } from "./ProjectEntryForm";
+import CertificationEntryForm, { createEmptyCertification } from "./CertificationEntryForm";
+import AwardEntryForm, { createEmptyAward } from "./AwardEntryForm";
+import ReferenceEntryForm, { createEmptyReference } from "./ReferenceEntryForm";
 import DiscardProfileModal from "./DiscardProfileModal";
 import CvUploadBanner from "./CvUploadBanner";
 import WebsitesStep, { createWebsite } from "./WebsitesStep";
 import SkillsStep from "./SkillsStep";
-import ReferenceModal from "./ReferenceModal";
 import IntroductionStep from "./IntroductionStep";
-import ProjectsModal from "@/lib/components/screens/ProjectsModal";
-import CertificationModal from "@/lib/components/screens/CertificationModal";
-import AwardModal from "@/lib/components/screens/AwardModal";
 import styles from "./manual-profile.module.scss";
 import type {
   ExperienceSectionItem,
@@ -138,10 +138,12 @@ function assembleStructuredCV(d: WizardData): StructuredCV {
     ),
     skills: d.skills,
     education: d.education.filter((entry) => entry.school.trim() !== ""),
-    projects: d.projects,
-    certifications: d.certifications,
-    awards: d.awards,
-    references: d.references,
+    projects: d.projects.filter((entry) => entry.name.trim() !== ""),
+    certifications: d.certifications.filter(
+      (entry) => entry.name.trim() !== "" || entry.issuingOrganization.trim() !== "",
+    ),
+    awards: d.awards.filter((entry) => entry.title.trim() !== ""),
+    references: d.references.filter((entry) => entry.name.trim() !== ""),
   };
 }
 
@@ -168,10 +170,10 @@ export default function ManualProfileWizard({
     education: [createEmptyEducation()],
     experience: [createEmptyExperience()],
     skills: [],
-    projects: [],
-    certifications: [],
-    awards: [],
-    references: [],
+    projects: [createEmptyProject()],
+    certifications: [createEmptyCertification()],
+    awards: [createEmptyAward()],
+    references: [createEmptyReference()],
     introduction: "",
   }));
 
@@ -224,24 +226,49 @@ export default function ManualProfileWizard({
 
   // Inline multi-entry steps surface an "Add <entry>" button in the footer that
   // appends a blank entry to the relevant list.
-  const footerAdd: { label: string; onAdd: () => void } | null =
-    stepIndex === 1
-      ? {
+  function resolveFooterAdd(): { label: string; onAdd: () => void } | null {
+    switch (stepIndex) {
+      case 1:
+        return {
           label: "Add website",
           onAdd: () => patch({ websites: [...data.websites, createWebsite()] }),
-        }
-      : stepIndex === 2
-        ? {
-            label: "Add education",
-            onAdd: () => patch({ education: [...data.education, createEmptyEducation()] }),
-          }
-        : stepIndex === 3
-          ? {
-              label: "Add experience",
-              onAdd: () =>
-                patch({ experience: [...data.experience, createEmptyExperience()] }),
-            }
-          : null;
+        };
+      case 2:
+        return {
+          label: "Add education",
+          onAdd: () => patch({ education: [...data.education, createEmptyEducation()] }),
+        };
+      case 3:
+        return {
+          label: "Add experience",
+          onAdd: () => patch({ experience: [...data.experience, createEmptyExperience()] }),
+        };
+      case 5:
+        return {
+          label: "Add project",
+          onAdd: () => patch({ projects: [...data.projects, createEmptyProject()] }),
+        };
+      case 6:
+        return {
+          label: "Add certification",
+          onAdd: () =>
+            patch({ certifications: [...data.certifications, createEmptyCertification()] }),
+        };
+      case 7:
+        return {
+          label: "Add award",
+          onAdd: () => patch({ awards: [...data.awards, createEmptyAward()] }),
+        };
+      case 8:
+        return {
+          label: "Add reference",
+          onAdd: () => patch({ references: [...data.references, createEmptyReference()] }),
+        };
+      default:
+        return null;
+    }
+  }
+  const footerAdd = resolveFooterAdd();
 
   const progressPct = ((stepIndex + 1) / TOTAL_STEPS) * 100;
   // Reveal only the left slice of the full gradient, proportional to progress.
@@ -297,24 +324,42 @@ export default function ManualProfileWizard({
         );
       case 5:
         return (
-          <MultiEntryStep items={data.projects} onChange={(projects) => patch({ projects })}
-            EditorModal={ProjectsModal}
-            rowLabel={(p) => p.name || "Project"}
-            addLabel="Add project" />
+          <InlineMultiEntryStep
+            items={data.projects}
+            onChange={(projects) => patch({ projects })}
+            createEmpty={createEmptyProject}
+            entryNoun="project"
+            entryLabel={(entry, index) => entry.name.trim() || `Project ${index + 1}`}
+            renderForm={(value, onChange) => (
+              <ProjectEntryForm value={value} onChange={onChange} />
+            )}
+          />
         );
       case 6:
         return (
-          <MultiEntryStep items={data.certifications} onChange={(certifications) => patch({ certifications })}
-            EditorModal={CertificationModal}
-            rowLabel={(c) => c.name || "Certificate"}
-            addLabel="Add certification" />
+          <InlineMultiEntryStep
+            items={data.certifications}
+            onChange={(certifications) => patch({ certifications })}
+            createEmpty={createEmptyCertification}
+            entryNoun="certification"
+            entryLabel={(entry, index) => entry.name.trim() || `Certification ${index + 1}`}
+            renderForm={(value, onChange) => (
+              <CertificationEntryForm value={value} onChange={onChange} />
+            )}
+          />
         );
       case 7:
         return (
-          <MultiEntryStep items={data.awards} onChange={(awards) => patch({ awards })}
-            EditorModal={AwardModal}
-            rowLabel={(a) => a.title || "Award"}
-            addLabel="Add award" />
+          <InlineMultiEntryStep
+            items={data.awards}
+            onChange={(awards) => patch({ awards })}
+            createEmpty={createEmptyAward}
+            entryNoun="award"
+            entryLabel={(entry, index) => entry.title.trim() || `Award ${index + 1}`}
+            renderForm={(value, onChange) => (
+              <AwardEntryForm value={value} onChange={onChange} />
+            )}
+          />
         );
       case 1:
         return <WebsitesStep value={data.websites} onChange={(websites) => patch({ websites })} />;
@@ -322,10 +367,16 @@ export default function ManualProfileWizard({
         return <SkillsStep value={data.skills} onChange={(skills) => patch({ skills })} />;
       case 8:
         return (
-          <MultiEntryStep items={data.references} onChange={(references) => patch({ references })}
-            EditorModal={ReferenceModal}
-            rowLabel={(r) => r.name || "Reference"}
-            addLabel="Add reference" />
+          <InlineMultiEntryStep
+            items={data.references}
+            onChange={(references) => patch({ references })}
+            createEmpty={createEmptyReference}
+            entryNoun="reference"
+            entryLabel={(entry, index) => entry.name.trim() || `Reference ${index + 1}`}
+            renderForm={(value, onChange) => (
+              <ReferenceEntryForm value={value} onChange={onChange} />
+            )}
+          />
         );
       case 9:
         return <IntroductionStep value={data.introduction} onChange={(introduction) => patch({ introduction })} />;

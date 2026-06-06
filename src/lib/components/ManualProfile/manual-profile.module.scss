@@ -965,6 +965,53 @@ $verified: #1570ef;
   gap: 16px;
 }
 
+// Default inline-form column (fields are direct children of the card, gap 24).
+.entryColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// Compound URL input: muted "https://" prefix + editable segment (Credential URL).
+.urlComboField {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid $border-strong;
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: #6172f3;
+    box-shadow: 0 0 0 3px rgba(97, 114, 243, 0.15);
+  }
+}
+
+.urlComboPrefix {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  color: $muted-2;
+  font-size: 14px;
+  white-space: nowrap;
+  border-right: 1px solid $border-strong;
+}
+
+.urlComboInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: $text;
+
+  &::placeholder {
+    color: #a4a7ae;
+  }
+}
+
 // Shared inline-form helpers (used by Education, Experience, …).
 .fieldGroup {
   display: flex;

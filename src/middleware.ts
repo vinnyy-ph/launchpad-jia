@@ -187,6 +187,9 @@ export function middleware(request: NextRequest) {
 
   if (
     host.includes(employerAppDomain) &&
+    // Single-domain deploys serve both portals from one host; redirecting to
+    // the applicant domain would loop back onto the same URL.
+    employerAppDomain !== applicantAppDomain &&
     !host.startsWith(adminAppDomain) &&
     !host.includes("localhost") &&
     (pathname.startsWith("/dashboard") || pathname.startsWith("/job-openings") || pathname.startsWith("/login"))

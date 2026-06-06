@@ -1,16 +1,18 @@
 .uploadCVContainer {
   width: 100%;
-  max-width: 855px;
+  max-width: 1000px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 40px;
   justify-self: center;
   padding: 48px 16px 40px 16px;
+
   .uploadCVHeader {
     display: flex;
     align-items: center;
     gap: 24px;
+
     .companyLogoCard {
       flex-shrink: 0;
       box-sizing: border-box;
@@ -23,6 +25,7 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+
       img {
         width: 100%;
         height: 100%;
@@ -31,28 +34,34 @@
         object-fit: contain;
       }
     }
+
     .textContainer {
       display: flex;
       flex-direction: column;
       gap: 4px;
+
       .tag,
       .name {
         font-weight: 500;
         font-size: 16px;
         line-height: 24px;
       }
+
       .tag {
         color: var(--Text-text-secondary, #414651);
       }
+
       .title {
         font-weight: 700;
         font-size: 24px;
         line-height: 32px;
         color: var(--Text-text-primary, #181d27);
       }
+
       .name {
         color: var(--Text-text-tertiary, #717680);
       }
+
       .description {
         cursor: pointer;
         font-weight: 500;
@@ -63,79 +72,89 @@
       }
     }
   }
+
   .stepContainer {
     display: flex;
     flex-direction: column;
     gap: 16px;
+
     .step {
       display: flex;
       gap: 32px;
+
       .stepBar {
         width: 100%;
         max-width: 300px;
         align-items: center;
         display: flex;
         gap: 32px;
+
         &:last-of-type {
           width: unset;
         }
+
         img {
           $size: 20px;
           height: $size;
           width: $size;
         }
+
         hr {
           height: 6px;
           width: 100%;
           border: unset;
           border-radius: 10px;
           margin: 0;
+
           &.pending {
             background: #d9d9d9;
           }
+
           &.completed {
-            background: linear-gradient(
-              90deg,
-              #fccec0 0%,
-              #ebacc9 33%,
-              #ceb6da 66%,
-              #9fcaed 100%
-            );
+            background: linear-gradient(90deg,
+                #fccec0 0%,
+                #ebacc9 33%,
+                #ceb6da 66%,
+                #9fcaed 100%);
           }
+
           &.in_progress {
-            background: linear-gradient(
-                  90deg,
-                  #fccec0 0%,
-                  #ebacc9 33%,
-                  #ceb6da 66%,
-                  #9fcaed 100%
-                )
-                0 0 / 50% 100% no-repeat,
+            background: linear-gradient(90deg,
+                #fccec0 0%,
+                #ebacc9 33%,
+                #ceb6da 66%,
+                #9fcaed 100%) 0 0 / 50% 100% no-repeat,
               #d9d9d9;
           }
         }
       }
+
       .stepDetails {
         width: 100%;
         max-width: 300px;
         font-weight: 700;
         font-size: 14px;
         line-height: 20px;
+
         &:last-of-type {
           width: unset;
         }
+
         &.pending {
           color: var(--Text-text-placeholder, #a4a7ae);
         }
+
         &.in_progress {
           color: var(--Text-text-primary, #181d27);
         }
       }
     }
   }
+
   .cvManageContainer {
     display: flex;
     gap: 24px;
+
     .cvContainer {
       border: 1px solid var(--Border-primary, #e9eaeb);
       border-radius: 12px;
@@ -145,10 +164,12 @@
       flex-direction: column;
       align-items: flex-start;
       padding: 24px;
+
       img {
         width: 56px;
         height: 56px;
       }
+
       button {
         width: 100%;
         margin: 36px 0 16px 0;
@@ -163,19 +184,23 @@
         white-space: nowrap;
         cursor: pointer;
         transition: background 0.15s ease;
+
         &:hover {
           background: #0f131a;
         }
+
         &:disabled,
         &.disabled {
           background: #e5e5e5;
           color: #9ca3af;
           cursor: not-allowed;
+
           &:hover {
             background: #e5e5e5;
           }
         }
       }
+
       span {
         font-weight: 500;
         font-size: 14px;
@@ -184,22 +209,23 @@
       }
     }
   }
+
   .cvDetailsContainer {
     display: flex;
     flex-direction: column;
     gap: 16px;
+
     .gradient {
       width: 100%;
-      background: linear-gradient(
-        90deg,
-        rgba(159, 202, 237, 0.5) 0%,
-        rgba(206, 182, 218, 0.5) 34%,
-        rgba(235, 172, 201, 0.5) 67%,
-        rgba(252, 206, 192, 0.5) 100%
-      );
+      background: linear-gradient(90deg,
+          rgba(159, 202, 237, 0.5) 0%,
+          rgba(206, 182, 218, 0.5) 34%,
+          rgba(235, 172, 201, 0.5) 67%,
+          rgba(252, 206, 192, 0.5) 100%);
       border-radius: 24px;
       box-sizing: border-box;
       padding: 8px 0 0 0;
+
       .cvDetailsCard {
         background: var(--Surface-dashboard-bg_light, #f8f9fc);
         border-radius: 24px;
@@ -209,6 +235,7 @@
         flex-direction: column;
         gap: 12px;
         padding: 12px 8px 8px 8px;
+
         .sectionTitle {
           align-items: center;
           display: flex;
@@ -218,6 +245,7 @@
           font-size: 18px;
           line-height: 28px;
           color: var(--Text-text-primary, #181d27);
+
           .editIcon {
             $size: 36px;
             height: $size;
@@ -232,12 +260,14 @@
             margin: 0 0 0 auto;
           }
         }
+
         .detailsContainer {
           background: var(--Surface-white, #ffffff);
           border-radius: 16px;
           box-shadow: 0px 0px 2px 0px #00103529 inset;
           box-sizing: border-box;
           padding: 24px;
+
           .fileTitle {
             align-items: center;
             display: flex;
@@ -247,26 +277,31 @@
             line-height: 20px;
             color: var(--Text-text-secondary, #414651);
           }
+
           .loadingContainer {
             align-items: center;
             display: flex;
             gap: 24px;
             margin: 12px 0 0 0;
+
             img {
               height: 89.6px;
               width: 114px;
               object-fit: cover;
             }
+
             .textContainer {
               display: flex;
               flex-direction: column;
               gap: 4px;
+
               .title {
                 font-weight: 700;
                 font-size: 16px;
                 line-height: 24px;
                 color: var(--Text-text-secondary, #414651);
               }
+
               .description {
                 font-weight: 500;
                 font-size: 14px;
@@ -275,42 +310,51 @@
               }
             }
           }
+
           .sectionDetails {
             font-weight: 500;
             font-size: 14px;
             line-height: 20px;
             color: var(--Text-text-tertiary, #717680);
+
             &.withDetails {
               color: #6a6a6a;
+
               p {
                 margin: revert;
               }
             }
+
             p {
               margin: 0;
             }
           }
+
           textarea {
             height: 300px !important;
           }
         }
       }
     }
+
     button {
       align-self: flex-end;
       margin: 32px 0 0 0;
       padding: 10px 48.5px;
     }
   }
+
   .cvScreeningContainer {
     align-items: center;
     display: flex;
     flex-direction: column;
+
     img {
       height: 89.6px;
       width: 114px;
       object-fit: cover;
     }
+
     .title {
       margin: 12px 0 4px 0;
       font-weight: 700;
@@ -319,6 +363,7 @@
       text-align: center;
       color: var(--Text-text-secondary, #414651);
     }
+
     .description {
       font-weight: 500;
       font-size: 14px;
@@ -327,6 +372,7 @@
       color: var(--Text-text-tertiary, #717680);
     }
   }
+
   .cvResultContainer {
     align-items: center;
     border: 1px solid var(--Border-primary, #e9eaeb);
@@ -336,6 +382,7 @@
     flex-direction: column;
     padding: 40px;
     gap: 16px;
+
     img {
       $size: 100px;
       height: $size;
@@ -344,6 +391,7 @@
       object-fit: contain;
       display: block;
     }
+
     .title {
       margin: 0;
       font-weight: 700;
@@ -352,6 +400,7 @@
       text-align: center;
       color: var(--Text-text-primary, #181d27);
     }
+
     .description {
       font-weight: 500;
       font-size: 18px;
@@ -359,10 +408,12 @@
       text-align: center;
       color: var(--Text-text-tertiary, #717680);
       margin: 0;
+
       &.bold {
         font-weight: 700;
       }
     }
+
     .whatsNextContainer {
       display: flex;
       flex-direction: column;
@@ -370,6 +421,7 @@
       align-self: stretch;
       gap: 16px;
       margin: 16px 0 0 0;
+
       .whatsNextTitle {
         align-self: center;
         font-weight: 700;
@@ -378,6 +430,7 @@
         text-align: center;
         color: var(--Text-text-primary, #181d27);
       }
+
       .whatsNextContent {
         display: flex;
         flex-direction: column;
@@ -385,6 +438,7 @@
         align-self: stretch;
         gap: 4px;
       }
+
       .whatsNextBold {
         font-weight: 700;
         font-size: 16px;
@@ -392,6 +446,7 @@
         text-align: center;
         color: var(--Text-text-secondary, #414651);
       }
+
       .whatsNextDescription {
         font-weight: 500;
         font-size: 16px;
@@ -400,19 +455,23 @@
         color: var(--Text-text-secondary, #414651);
       }
     }
+
     .buttonContainer {
       display: flex;
       gap: 16px;
       margin: 8px 0 0 0;
+
       button {
         padding: 10px 18px;
       }
     }
+
     .screeningPointsContainer {
       display: flex;
       flex-direction: column;
       align-self: stretch;
       margin: 16px 0 0 0;
+
       .screeningPointsRow {
         display: flex;
         flex-direction: column;
@@ -422,12 +481,14 @@
         padding: 20px 40px;
         background: #FAFAFA;
         border-radius: 20px;
+
         .screeningPointsColumn {
           display: flex;
           flex-direction: column;
           align-self: stretch;
           gap: 10px;
           width: 100%;
+
           .screeningPointsTitle {
             font-weight: 700;
             font-size: 18px;
@@ -435,10 +496,12 @@
             text-align: left;
             color: var(--Text-text-secondary, #414651);
           }
+
           .screeningPointsList {
             display: flex;
             flex-direction: column;
             gap: 0;
+
             .screeningPoint {
               font-weight: 500;
               font-size: 16px;
@@ -448,6 +511,7 @@
               display: block;
               white-space: pre-line;
               margin-bottom: 0;
+
               &:not(:last-child) {
                 margin-bottom: 8px;
               }
@@ -457,6 +521,7 @@
       }
     }
   }
+
   .preScreeningContainer {
     display: flex;
     flex-direction: column;
@@ -464,16 +529,19 @@
     justify-content: flex-start;
     height: 100%;
     width: 100%;
+
     .title {
       font-weight: 700;
       font-size: 18px;
       color: #181D27;
     }
+
     .description {
       font-weight: 500;
       font-size: 14px;
       color: #717680;
     }
+
     .questionContainer {
       display: flex;
       flex-direction: column;
@@ -481,12 +549,14 @@
       width: 100%;
       margin-top: 16px;
     }
+
     .gradientContainer {
       width: 100%;
       background: linear-gradient(270deg, #9fcaed -0.44%, #ceb6da 32.7%, #ebacc9 65.85%, #fccec0 100%);
       border-radius: 16px;
       padding-top: 12px;
       box-sizing: border-box;
+
       .cardContainer {
         display: flex;
         flex-direction: column;
@@ -520,6 +590,7 @@
           border: 1px solid #D5D7DA;
           box-sizing: border-box;
           height: fit-content;
+
           .dropDownAnswerContainer {
             display: flex;
             align-items: center;
@@ -536,11 +607,11 @@
           .answerInput {
             box-sizing: border-box;
             width: 100%;
-        
+
             &.longAnswer {
               width: 100%;
             }
-        
+
             &.shortAnswer {
               max-width: 320px;
               width: 100%;
@@ -549,17 +620,20 @@
         }
       }
     }
+
     button {
       align-self: flex-end;
       margin: 32px 0 0 0;
       padding: 10px 48.5px;
     }
+
     .disabled {
       background: #D5D7DA;
       cursor: not-allowed;
       border: 1px solid #D5D7DA;
     }
   }
+
   .dropdownContainer {
     background: #ffffff;
     border: 1px solid var(--Neutral-200, #ebebf5);
@@ -569,11 +643,13 @@
     flex-direction: column;
     position: absolute;
     z-index: 1;
+
     .searchContainer {
       border-bottom: 1px solid var(--Neutral-200, #ebebf5);
       box-sizing: border-box;
       padding: 12px 16px;
       position: relative;
+
       img {
         left: 30px;
         position: absolute;
@@ -581,6 +657,7 @@
         transform: translateY(-50%);
       }
     }
+
     span {
       max-width: unset;
       align-items: center;
@@ -594,28 +671,34 @@
       font-size: 14px;
       line-height: 20px;
       color: var(--Input-text-primary, #181d27);
+
       &:hover {
         background: var(--BG---gray, #f9fbfc);
       }
+
       &.active {
         background: var(--BG---gray, #f9fbfc);
         font-weight: 700;
       }
+
       img {
         margin: 0 0 0 auto;
       }
     }
   }
+
   .checkboxContainer {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 8px;
+
     input {
       width: 16px;
       height: 16px;
     }
   }
+
   .rangeInputContainer {
     display: flex;
     align-items: center;
@@ -629,6 +712,7 @@
       align-items: flex-start;
       gap: 4px;
       width: 50%;
+
       span {
         font-size: 14px;
         font-weight: 500;
@@ -651,48 +735,60 @@
   .uploadCVContainer {
     max-width: unset;
     padding: 48px 16px;
+
     .uploadCVHeader {
       box-sizing: border-box;
       flex-direction: column;
       align-items: flex-start;
       gap: 16px;
       padding: 0 8px;
+
       .companyLogoCard {
         width: 88px;
         height: 88px;
       }
     }
+
     .stepContainer {
       .step {
         gap: 0;
+
         .stepBar {
           max-width: unset;
           gap: 0;
+
           hr {
             border-radius: 0;
           }
         }
+
         .stepDetails {
           max-width: unset;
+
           &:last-of-type {
             width: 100%;
           }
+
           &:nth-of-type(2) {
             text-align: center;
           }
+
           &:last-of-type {
             text-align: right;
           }
         }
       }
     }
+
     .cvManageContainer {
       flex-direction: column;
       gap: 24px;
+
       .cvContainer {
         padding: 32px;
       }
     }
+
     .cvDetailsContainer {
       button {
         width: 100%;
@@ -700,25 +796,30 @@
         padding: 10px 0;
       }
     }
+
     .cvResultContainer {
       padding: 32px;
+
       .screeningPointsContainer {
         .screeningPointsRow {
           padding: 20px;
           gap: 12px;
         }
       }
+
       .buttonContainer {
         width: 100%;
         flex-direction: column;
         gap: 12px;
         margin: 24px 0 0 0;
+
         button {
           width: 100%;
           padding: 10px 0;
         }
       }
     }
+
     .preScreeningContainer {
       .gradientContainer {
         .cardContainer {
@@ -726,8 +827,10 @@
             font-size: 14px;
             margin-left: 0;
           }
+
           .answerContainer {
             padding: 8px;
+
             .dropDownAnswerContainer {
               padding: 8px;
               min-width: unset;
@@ -743,6 +846,7 @@
           }
         }
       }
+
       button {
         width: 100%;
         align-self: unset;

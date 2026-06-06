@@ -51,7 +51,14 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
   const hasVerifiedMobileNumber =
     isPhoneVerified && !!verifiedPhoneNumber;
 
-  if (!hasVerifiedMobileNumber) {
+  // T5: SMS/Firebase mobile verification is a paid feature and is out of scope —
+  // the manual profile flow validates phone format + uniqueness instead. Allow
+  // opting out of the legacy Firebase phone gate via env (default keeps it on);
+  // set PHONE_VERIFICATION_REQUIRED=false in dev/demo to apply without it.
+  const phoneVerificationRequired =
+    process.env.PHONE_VERIFICATION_REQUIRED !== "false";
+
+  if (phoneVerificationRequired && !hasVerifiedMobileNumber) {
     return NextResponse.json(
       {
         error: "phone_verification_required",

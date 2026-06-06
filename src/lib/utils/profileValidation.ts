@@ -3,6 +3,7 @@
 // of small tested validators (cf. careerValidation.ts) and reuses phone format.
 
 import { validatePhoneFormat } from "./phoneValidation";
+import { htmlToPlainText } from "./sanitizeRichText";
 import type {
   AwardSectionItem,
   CertificationSectionItem,
@@ -148,6 +149,6 @@ export function validateReferenceItem(x: ReferenceSectionItem): FieldErrors {
 
 export function validateIntroduction(value: string): FieldErrors {
   const e: FieldErrors = {};
-  if (!value.trim()) e.introduction = REQUIRED_MESSAGE;
+  if (!htmlToPlainText(value).trim()) e.introduction = REQUIRED_MESSAGE;
   return e;
 }

@@ -1,4 +1,5 @@
 import styles from "@/lib/styles/screens/manageCV.module.scss";
+import RichText from "@/lib/components/ManualProfile/RichText";
 
 type IntroductionSectionContentProps = {
   buildingCV: boolean;
@@ -11,6 +12,8 @@ export default function IntroductionSectionContent({
   loading,
   value,
 }: IntroductionSectionContentProps) {
+  const hasValue = Boolean(value && value.trim());
+
   return (
     <div
       className={styles.sectionDetails}
@@ -18,11 +21,13 @@ export default function IntroductionSectionContent({
     >
       {buildingCV || loading ? (
         <div className={styles.loading} />
+      ) : hasValue ? (
+        // Stored intro may be rich-text HTML (manual flow) or plain text (CV
+        // upload). RichText sanitises both at the display boundary.
+        <RichText html={value as string} />
       ) : (
         <span style={{ whiteSpace: "pre-wrap" }}>
-          {value && value.trim()
-            ? value.trim()
-            : "Upload your CV to auto-fill this section."}
+          Upload your CV to auto-fill this section.
         </span>
       )}
     </div>

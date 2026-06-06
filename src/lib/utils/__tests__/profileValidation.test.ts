@@ -238,4 +238,12 @@ describe("validateIntroduction", () => {
     expect(validateIntroduction("hi")).toEqual({});
     expect(validateIntroduction("   ").introduction).toBeDefined();
   });
+
+  it("treats tag-only HTML as empty (required)", () => {
+    expect(validateIntroduction("<p></p>").introduction).toBeTruthy();
+  });
+
+  it("accepts HTML with real text", () => {
+    expect(validateIntroduction("<p>hi</p>").introduction).toBeUndefined();
+  });
 });

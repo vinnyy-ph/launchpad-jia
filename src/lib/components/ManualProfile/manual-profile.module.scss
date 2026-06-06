@@ -22,7 +22,8 @@ $verified: #1570ef;
   --field-control-h: 36px;      // single-line control height (= DS sm)
   --field-radius: 8px;
   --field-border: #d5d7da;
-  --field-focus: #6172f3;       // 2px brand focus
+  --field-focus: #6172f3;       // (legacy single-color fallback)
+  --field-focus-gradient: linear-gradient(90deg, #9fcaed, #ceb6da, #ebacc9, #fccec0);
   --field-bg: #fff;
   --field-bg-disabled: #f9f9fb;
   --field-pad-x: 12px;
@@ -47,9 +48,17 @@ $verified: #1570ef;
   // Unified Figma focus (#6172f3) for DS inputs + the Select trigger. The trigger
   // is a <button>, but the button-focus reset below only nulls box-shadow/outline,
   // not border-color — so this border focus survives.
-  input:focus-visible,
-  [role="combobox"]:focus-visible {
-    border-color: var(--field-focus);
+  // Focus = gradient border (background-clip trick: solid fill on padding-box +
+  // gradient on border-box → a true gradient border that keeps the radius).
+  // :focus (not :focus-visible) so it also shows on mouse-click/typing.
+  input:focus,
+  [role="combobox"]:focus {
+    // !important beats the DS border + argon's global `input:focus` ring (globals.scss).
+    border-color: transparent !important;
+    background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: none !important;
   }
 
   // Argon's global `button {}` paints every bare <button> with a drop shadow;
@@ -553,6 +562,8 @@ $verified: #1570ef;
   --field-label-gap: 6px;
   --field-label-color: #414651;
   --field-focus: #6172f3;
+  --field-bg: #fff;
+  --field-focus-gradient: linear-gradient(90deg, #9fcaed, #ceb6da, #ebacc9, #fccec0);
 
   label {
     margin-bottom: 0;
@@ -563,8 +574,12 @@ $verified: #1570ef;
     line-height: 20px;
   }
 
-  input:focus-visible {
-    border-color: var(--field-focus);
+  input:focus {
+    border-color: transparent !important;
+    background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: none !important;
   }
 
   // Same argon global-button shadow reset for the portaled verify modal
@@ -977,8 +992,10 @@ $verified: #1570ef;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus-within {
-    border-color: var(--field-focus);
-    box-shadow: 0 0 0 3px rgba(97, 114, 243, 0.15);
+    border-color: transparent;
+    background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
   }
 }
 
@@ -1164,8 +1181,10 @@ $verified: #1570ef;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus-within {
-    border-color: var(--field-focus);
-    box-shadow: 0 0 0 3px rgba(97, 114, 243, 0.15);
+    border-color: transparent;
+    background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
   }
 }
 

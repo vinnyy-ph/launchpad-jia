@@ -1,0 +1,1280 @@
+// Manual Profile wizard (T5) — "Create a Profile Manually" flow.
+// Mirrors the Figma "Create a Profile Manually" frames.
+
+$text: #181d27;
+$muted: #535862;
+$muted-2: #717680;
+$border: #e9eaeb;
+$border-strong: #d5d7da;
+$danger: #f04438;
+$verified: #1570ef;
+
+.wizard {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  // ----- One source of truth for field sizing (matched to Figma) -----
+  --field-label-gap: 6px;       // label → control (Figma spacing-sm)
+  --field-control-h: 36px;      // single-line control height (= DS sm)
+  --field-radius: 8px;
+  --field-border: #d5d7da;
+  --field-focus: #6172f3;       // (legacy single-color fallback)
+  --field-focus-gradient: linear-gradient(90deg, #9fcaed, #ceb6da, #ebacc9, #fccec0);
+  --field-bg: #fff;
+  --field-bg-disabled: #f9f9fb;
+  --field-pad-x: 12px;
+  --field-label-color: #414651;
+  --field-placeholder: #a4a7ae;
+  --col-gap: 16px;              // 2-up columns inside an entry card
+
+  // Kill Bootstrap's global `label { margin-bottom: .5rem }` (the ghost 8px).
+  // 0,1,1 beats Bootstrap's 0,0,1 — no !important. Every DS label now = native 6px.
+  label {
+    margin-bottom: 0;
+  }
+
+  // DS size=sm shrinks labels to 13/18, but Figma's field label is text-sm 14/20.
+  // The [class] attribute lifts specificity over DS `.size-sm .label` so every
+  // label — DS Field, DS Select, LabeledField — is a uniform Figma 14/20.
+  label[class] {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  // Unified Figma focus (#6172f3) for DS inputs + the Select trigger. The trigger
+  // is a <button>, but the button-focus reset below only nulls box-shadow/outline,
+  // not border-color — so this border focus survives.
+  // Focus = gradient border (background-clip trick: solid fill on padding-box +
+  // gradient on border-box → a true gradient border that keeps the radius).
+  // :focus (not :focus-visible) so it also shows on mouse-click/typing.
+  // Kill argon's global grey focus ring (globals.scss) on every wizard control,
+  // including the url combo's inner input.
+  input:focus,
+  [role="combobox"]:focus {
+    box-shadow: none !important;
+  }
+
+  // Gradient focus border (background-clip trick: solid fill on padding-box +
+  // gradient on border-box → a true gradient border that keeps the radius).
+  // !important beats the DS border. Skip the url combo's inner input — its wrapper
+  // (.urlCombo) owns the border via :focus-within, so letting the inner input draw
+  // its own gradient broke the combo's outline.
+  input:focus:not(.urlComboTextInput),
+  [role="combobox"]:focus {
+    border-color: transparent !important;
+    background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+
+  // Argon's global `button {}` paints every bare <button> with a drop shadow;
+  // neutralise it on our custom triggers (accordion headers, dropdowns, icon
+  // buttons). Menus/cards are <div>s, so they keep their own shadows.
+  // Also kill argon's `button:focus { outline: 5px auto }` focus ring.
+  button {
+    box-shadow: none;
+
+    &:focus,
+    &:focus-visible,
+    &:active {
+      // Global rule sets `button:focus { box-shadow: 0 0 0 3px ... !important }`,
+      // so !important + higher specificity is required to beat it.
+      outline: none !important;
+      box-shadow: none !important;
+    }
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: $muted-2;
+    cursor: pointer;
+    border-radius: 8px;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .title {
+    flex: 1;
+    font-size: 24px;
+    font-weight: 700;
+    color: $text;
+    line-height: 32px;
+  }
+
+  .stepCount {
+    font-size: 14px;
+    font-weight: 500;
+    color: #a4a7ae;
+  }
+}
+
+.card {
+  border-radius: 24px;
+  padding: 32px;
+  background: #fff;
+  // Figma: no solid border — a faint inset hairline instead.
+  box-shadow: inset 0 0 2px 0 rgba(0, 16, 53, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.progressTrack {
+  position: relative;
+  height: 6px;
+  border-radius: 99px;
+  background: #d9d9d9;
+  overflow: hidden;
+}
+
+.progressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: 99px;
+  background-image: linear-gradient(90deg,
+      #fccec0 0%,
+      #ebacc9 33%,
+      #ceb6da 66%,
+      #9fcaed 100%);
+  background-repeat: no-repeat;
+  background-position: left center;
+  transition: width 0.35s ease;
+}
+
+.sectionHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 30px;
+    color: $text;
+    margin: 0;
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: $muted-2;
+    margin: 0;
+  }
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.manualAddressLink {
+  align-self: flex-start;
+  margin-top: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #444ce7;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.addressBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.addressManualFields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.submitError {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.footerSpread {
+  justify-content: space-between;
+}
+
+// Groups Skip + Next together on the right when a footer "Add" button is present.
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.placeholder {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $muted-2;
+  font-size: 14px;
+  border: 1px dashed $border-strong;
+  border-radius: 12px;
+}
+
+// ----- Websites step: accordion of website sub-cards -----
+.websitesList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.websiteCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.websiteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+
+  // No button focus ring/shadow (argon adds one to bare <button>s).
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+.websiteHeaderLabel {
+  font-size: 15px;
+  font-weight: 500;
+  color: $text;
+  line-height: 1.4;
+}
+
+.websiteChevron {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: $muted-2;
+}
+
+.websiteBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 24px;
+  // Divider that visually separates the header bar from the content region.
+  border-top: 1px solid #e5e7eb;
+}
+
+.websiteDeleteRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.websiteDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  background: #fef2f2;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #fee2e2;
+  }
+}
+
+.websiteDeleteIcon {
+  width: 18px;
+  height: 18px;
+  color: #ef4444;
+}
+
+.addWebsiteButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid $border-strong;
+  border-radius: 8px;
+  background: #fff;
+  color: $text;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f9f9fb;
+  }
+}
+
+.addWebsiteIcon {
+  width: 20px;
+  height: 20px;
+  color: $muted-2;
+}
+
+// Multi-entry step — saved item rows
+.entryList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.entryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: 1px solid $border-strong;
+  border-radius: 8px;
+  padding: 12px 16px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: $text;
+  line-height: 1.4;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f9f9f9;
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: $muted-2;
+    margin-left: 8px;
+  }
+}
+
+// Phone field inline section (country select + verify / verified)
+.phoneCountry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 12px;
+  color: $text;
+  font-size: 14px;
+}
+
+// Verified state greys the whole left group to match the disabled input.
+.phoneCountryDisabled {
+
+  .countryCode,
+  .phoneDial {
+    color: #a4a7ae;
+  }
+}
+
+// Custom country dropdown (replaces the native <select>).
+.countrySelect {
+  position: relative;
+  display: inline-flex;
+}
+
+.countryTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: $text;
+  line-height: 1;
+  border-radius: 6px;
+
+  &:focus-visible {
+    outline: 2px solid rgba(17, 24, 39, 0.25);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    color: #a4a7ae;
+  }
+}
+
+.countryCode {
+  font-weight: 400;
+}
+
+.countryChevron {
+  width: 14px;
+  height: 14px;
+  color: $muted-2;
+  transition: transform 0.15s ease;
+}
+
+.countryChevronOpen {
+  transform: rotate(180deg);
+}
+
+.countryMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 60;
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.countryOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: $text;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.countryOptionSelected {
+  background: #f9fafb;
+}
+
+.countryOptionHighlighted {
+  background: #f3f4f6;
+}
+
+.countryOptionName {
+  flex: 1;
+}
+
+.countryOptionDial {
+  color: $muted-2;
+  white-space: nowrap;
+}
+
+.countryOptionCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  color: $text;
+}
+
+// Bold, uneditable dial-code prefix shown before the editable national number.
+.phoneDial {
+  font-weight: 400;
+  font-size: 14px;
+  color: #181d27;
+  white-space: nowrap;
+  padding-right: 6px;
+}
+
+.verifyButton {
+  border: 1px solid $border-strong;
+  border-radius: 999px;
+  background: #fff;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 600;
+  height: 26px;
+  padding: 0 14px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9f9f9;
+  }
+}
+
+.verifiedTick {
+  width: 20px;
+  height: 20px;
+}
+
+// ----- Phone verification modal -----
+.verifyForm {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 8px 12px 4px;
+
+  // Same Figma field tokens + Bootstrap label reset for the portaled modal.
+  --field-label-gap: 6px;
+  --field-label-color: #414651;
+  --field-focus: #6172f3;
+  --field-bg: #fff;
+  --field-focus-gradient: linear-gradient(90deg, #9fcaed, #ceb6da, #ebacc9, #fccec0);
+
+  label {
+    margin-bottom: 0;
+  }
+
+  label[class] {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  input:focus {
+    border-color: transparent !important;
+    background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: none !important;
+  }
+
+  // Same argon global-button shadow reset for the portaled verify modal
+  // (it renders outside .wizard).
+  button {
+    box-shadow: none;
+
+    &:focus,
+    &:focus-visible,
+    &:active {
+      // Global rule sets `button:focus { box-shadow: 0 0 0 3px ... !important }`,
+      // so !important + higher specificity is required to beat it.
+      outline: none !important;
+      box-shadow: none !important;
+    }
+  }
+}
+
+.verifyClose {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  border: none;
+  background: transparent;
+  color: #98a2b3;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.verifyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid $border;
+  border-radius: 12px;
+  color: $text;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.verifyCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.verifyHeading {
+  font-size: 17px;
+  font-weight: 700;
+  color: $text;
+}
+
+.verifySub {
+  font-size: 13px;
+  color: $muted;
+  max-width: 320px;
+}
+
+.verifyMasked {
+  color: $text;
+  font-weight: 600;
+}
+
+.verifyFieldFull {
+  width: 100%;
+}
+
+// Figma 6-box OTP: even square cells, centered, contained in the modal.
+.otpInput {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.otpBox {
+  box-sizing: border-box;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  color: #111827;
+  outline: none;
+  -moz-appearance: textfield;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: #d5d7da;
+    font-weight: 500;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &:focus,
+  &:focus-visible {
+    border-color: #111827;
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.08);
+  }
+}
+
+.otpBoxError {
+  border-color: #fda29b;
+  color: #f04438;
+
+  &:focus {
+    border-color: #fda29b;
+    box-shadow: 0 0 0 4px rgba(240, 68, 56, 0.1);
+  }
+}
+
+.otpHint {
+  font-size: 12px;
+  color: $muted-2;
+}
+
+.resendRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: $muted;
+}
+
+.resendTimer {
+  color: $text;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.resendButton {
+  border: none;
+  background: none;
+  padding: 0;
+  font-weight: 600;
+  color: $verified;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sparkles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 0;
+
+  span {
+    font-size: 18px;
+    color: #f4a9b8;
+    animation: sparklePulse 1s ease-in-out infinite;
+
+    &:nth-child(2) {
+      font-size: 24px;
+      animation-delay: 0.15s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+@keyframes sparklePulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.actionsRow {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.verifyConfirmField {
+  position: relative;
+  width: 100%;
+}
+
+.verifyConfirmBadge {
+  width: 20px;
+  height: 20px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ----- "Already have a CV?" upload banner (above the wizard header) -----
+.cvBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px 12px 32px;
+  border: 1px dashed #fccec0;
+  border-radius: 12px;
+  // Exact Figma banner fill (node 14567:37539): 45° 4-stop wash at 15% alpha.
+  background: linear-gradient(45deg,
+      rgba(252, 206, 192, 0.15) 0%,
+      rgba(235, 172, 201, 0.15) 33%,
+      rgba(206, 182, 218, 0.15) 66%,
+      rgba(159, 202, 237, 0.15) 100%);
+}
+
+// Title + body sit on a single line (Figma is one 64px-tall row).
+.cvBannerText {
+  // Kill the global Bootstrap/argon reboot `p { margin-bottom: 1rem }` that
+  // otherwise pushes this <p> off-center in the align-items:center banner.
+  margin: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  color: $text;
+}
+
+.cvBannerTitle {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cvBannerBody {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.cvBannerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// svg icons inherit no color from the DS Button (it only colors `span`), so set
+// size + color here the way the other untitledui icons in this module do.
+.cvBannerUploadIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #414651;
+}
+
+// ----- Inline multi-entry steps as accordion cards (Education, etc.) -----
+// Mirrors the Websites step's collapsible cards.
+.entryCards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.entryCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.entryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+.entryHeaderLabel {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: $text;
+}
+
+.entryChevron {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: $muted-2;
+}
+
+.entryBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 24px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.entryDeleteRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.entryDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  background: #fef2f2;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #fee2e2;
+  }
+}
+
+.entryDeleteIcon {
+  width: 18px;
+  height: 18px;
+  color: #ef4444;
+}
+
+// Inline Education form (Figma 14567:37499)
+.eduForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// Experience form is tighter per its Figma (sub-card gap 16).
+.expForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// Default inline-form column (fields are direct children of the card, gap 24).
+.entryColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// ----- Rich-text Description editor (B/I/U/S + lists) -----
+.richEditor {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(10, 13, 18, 0.05);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: transparent;
+    background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+}
+
+.richContent {
+  min-height: 160px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 20px;
+  color: $text;
+  outline: none;
+
+  &:empty::before {
+    content: attr(data-placeholder);
+    color: #a4a7ae;
+    pointer-events: none;
+  }
+
+  p {
+    margin: 0 0 8px;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 8px;
+    padding-left: 22px;
+  }
+}
+
+.richToolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-top: 1px solid $border;
+}
+
+.richToolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: $muted-2;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    background: #f5f5f7;
+    color: $text;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// Rendered Description HTML (lists / inline formatting) in the CV section views.
+.richTextView {
+  ul,
+  ol {
+    margin: 4px 0;
+    padding-left: 20px;
+  }
+}
+
+.charCount {
+  margin: 0;
+  font-size: 12px;
+  color: $muted-2;
+  text-align: right;
+}
+
+// ----- Skills step: removable chips -----
+.skillChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+// One rounded-rectangle chip: text + inline × (not a pill, not a separate badge).
+.skillChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #d5d9eb;
+  border-radius: 10px;
+  background: #fcfcfd;
+  font-size: 14px;
+  line-height: 20px;
+  color: #515985;
+  white-space: nowrap;
+}
+
+.skillChipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #717bbc;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: #515985;
+  }
+}
+
+.skillChipRemoveIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.cvBannerClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: $muted-2;
+  cursor: pointer;
+  border-radius: 8px;
+  opacity: 0.7;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.03);
+  }
+}
+
+// ----- Shared labeled-field wrapper (LabeledField.tsx) -----
+.labeledField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-label-gap);
+  min-width: 0;
+}
+
+.labeledFieldLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--field-label-color);
+}
+
+.labeledFieldAsterisk {
+  color: #d92d20;
+}
+
+.labeledFieldError {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: #d92d20;
+}
+
+// Unified compound URL input (https:// prefix + editable segment). One height,
+// one border, one focus — used by Websites + Certifications via LabeledField.
+.urlCombo {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--field-control-h);
+  box-sizing: border-box;
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  background: var(--field-bg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: transparent;
+    background-image: linear-gradient(var(--field-bg), var(--field-bg)), var(--field-focus-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+}
+
+.urlComboTextPrefix {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--field-pad-x);
+  background: var(--field-bg-disabled);
+  color: var(--field-placeholder);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  border-right: 1px solid var(--field-border);
+  border-radius: var(--field-radius) 0 0 var(--field-radius);
+}
+
+.urlComboTextInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px var(--field-pad-x);
+  font-size: 14px;
+  line-height: 20px;
+  color: #181d27;
+
+  &::placeholder {
+    color: var(--field-placeholder);
+  }
+}
+
+// The DS Button colors only its <span>; an svg `iconJsx` inherits no color and
+// renders invisible on the white secondary button. Set size + color here (same
+// pattern as .cvBannerUploadIcon) so the footer "Add" plus-circle shows.
+.footerAddIcon {
+  width: 20px;
+  height: 20px;
+  color: #414651;
+}
+
+// ----- Introduction step (rich-text + Generate states) -----
+.introStep {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.introEditorWrap {
+  position: relative;
+}
+
+// Dim + lock the editor while the AI is writing.
+.introGenerating {
+  .introEditorInner {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.introGenOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 14px;
+  color: $text;
+}
+
+.introHint {
+  color: $muted-2;
+  font-size: 13px;
+  margin: 6px 0 0;
+}
+
+.fieldError {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 2px 0 0;
+}

@@ -1,5 +1,6 @@
 .profileSetupContainer {
-  width: 100%; max-width: 855px;
+  width: 100%;
+  max-width: 1000px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -40,6 +41,7 @@
       width: 100%;
 
       @media (max-width: 600px) {
+
         // Fade-out effect on the right (fixed position)
         &::after {
           content: '';
@@ -88,7 +90,7 @@
         }
 
         // Prevent flex items from shrinking and set max width
-        > * {
+        >* {
           flex-shrink: 0;
           max-width: 140px;
         }
@@ -140,13 +142,11 @@
 
       .gradient {
         width: 100%;
-        background: linear-gradient(
-          90deg,
-          rgba(159, 202, 237, 0.5) 0%,
-          rgba(206, 182, 218, 0.5) 34%,
-          rgba(235, 172, 201, 0.5) 67%,
-          rgba(252, 206, 192, 0.5) 100%
-        );
+        background: linear-gradient(90deg,
+            rgba(159, 202, 237, 0.5) 0%,
+            rgba(206, 182, 218, 0.5) 34%,
+            rgba(235, 172, 201, 0.5) 67%,
+            rgba(252, 206, 192, 0.5) 100%);
         border-radius: 24px;
         box-sizing: border-box;
         padding: 8px 0 0 0;
@@ -391,16 +391,19 @@
                 width: 114px;
                 object-fit: cover;
               }
+
               .textContainer {
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
+
                 .title {
                   font-weight: 700;
                   font-size: 16px;
                   line-height: 24px;
                   color: var(--Text-text-secondary, #414651);
                 }
+
                 .description {
                   font-weight: 500;
                   font-size: 14px;
@@ -488,7 +491,7 @@
         }
       }
 
-      > button {
+      >button {
         align-self: flex-end;
         width: fit-content;
         margin: 24px 0 16px 0;
@@ -512,7 +515,7 @@
 }
 
 .goalSetting {
-  .detailsContainer > p {
+  .detailsContainer>p {
     margin: 0 0 20px 0;
   }
 
@@ -694,7 +697,7 @@
   gap: 12px;
   margin: 24px 0 16px 0;
 
-  > button {
+  >button {
     width: fit-content;
     padding: 10px 48.5px;
     margin: 0;
@@ -711,13 +714,13 @@
   justify-content: space-between;
   gap: 12px;
 
-  > button:last-child {
+  >button:last-child {
     width: fit-content;
     padding: 10px 48.5px;
     margin: 0;
   }
 
-  > button {
+  >button {
     flex-shrink: 0;
   }
 }
@@ -920,7 +923,7 @@
 .embeddedEducationRoot {
   width: 100%;
 
-  > * {
+  >* {
     width: 100%;
   }
 }

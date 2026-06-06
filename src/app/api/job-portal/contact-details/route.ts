@@ -84,9 +84,13 @@ export const PATCH = withAuth(async (request: AuthenticatedRequest) => {
   const isPhoneVerified =
     applicantCV?.structuredCV?.contactInfo?.isPhoneVerified === true;
 
+  // T5: skip the verified-mobile requirement when verification is disabled.
+  const phoneVerificationRequired =
+    process.env.NEXT_PUBLIC_PHONE_VERIFICATION_REQUIRED !== "false";
+
   if (
-    !mobileNumberForVerificationCheck ||
-    !isPhoneVerified
+    phoneVerificationRequired &&
+    (!mobileNumberForVerificationCheck || !isPhoneVerified)
   ) {
     return NextResponse.json(
       { error: "A verified mobile number is required before saving contact details." },

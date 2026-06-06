@@ -3,6 +3,7 @@
 import styles from "@/lib/styles/screens/manageCV.module.scss";
 import { assetConstants } from "@/lib/utils/constantsV2";
 import { EducationItem } from "./EducationModal";
+import RichText from "@/lib/components/ManualProfile/RichText";
 import { useEffect, useState } from "react";
 import { GraduationHat01 } from "@untitledui/icons";
 
@@ -293,7 +294,7 @@ export default function EducationSectionContent({
                     lineHeight: "1.5",
                   }}
                 >
-                  {edu.description}
+                  <RichText html={edu.description} />
                 </div>
               )}
             </div>

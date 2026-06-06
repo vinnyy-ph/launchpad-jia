@@ -47,6 +47,7 @@ import {
   buildStructuredCVFromDigitalCV,
   normalizeStructuredCVInput,
 } from "@/lib/utils/structuredCV";
+import ManualProfileWizard from "@/lib/components/ManualProfile/ManualProfileWizard";
 
 const PHONE_VERIFICATION_RECAPTCHA_ID = "upload-cv-recaptcha-container";
 
@@ -55,6 +56,7 @@ export default function () {
   const { user, setModalType } = useAppContext();
   const lockedEmail = typeof user?.email === "string" ? user.email.trim() : "";
   const [buildingCV, setBuildingCV] = useState(false);
+  const [showManualWizard, setShowManualWizard] = useState(false);
   const [currentStep, setCurrentStep] = useState(null);
   const [digitalCV, setDigitalCV] = useState(null);
   const [showSkillModal, setShowSkillModal] = useState(false);
@@ -171,6 +173,11 @@ export default function () {
   }
 
   async function isPhoneVerificationCompleteFromServer() {
+    // T5: mobile verification is a paid feature and out of scope. When disabled,
+    // treat the gate as satisfied so the manual-profile / CV page never blocks.
+    if (process.env.NEXT_PUBLIC_PHONE_VERIFICATION_REQUIRED === "false") {
+      return true;
+    }
     try {
       const response = await api.post("/api/whitecloak/fetch-cv");
       return isPhoneVerificationComplete(response?.data);
@@ -1542,10 +1549,14 @@ export default function () {
 
         {interview && (
           <div className={styles.uploadCVContainer}>
-            {!screeningResult && (
+            {!screeningResult && !showManualWizard && (
               <div className={styles.uploadCVHeader}>
-                {interview.organization && interview.organization.image && (
-                  <img alt="" src={interview.organization.image} />
+                {interview.organization && (
+                  <div className={styles.companyLogoCard}>
+                    {interview.organization.image && (
+                      <img alt="" src={interview.organization.image} />
+                    )}
+                  </div>
                 )}
                 <div className={styles.textContainer}>
                   <span className={styles.tag}>You're applying for</span>
@@ -1562,7 +1573,7 @@ export default function () {
               </div>
             )}
 
-            {!screeningResult && (
+            {!screeningResult && !showManualWizard && (
               <div className={styles.stepContainer}>
                 <div className={styles.step}>
                   {step.map((_, index) => (
@@ -1611,10 +1622,39 @@ export default function () {
               </div>
             )}
 
-            {currentStep == step[0] && (
+            {currentStep == step[0] && showManualWizard && (
+              <ManualProfileWizard
+                userEmail={lockedEmail}
+                onExit={() => setShowManualWizard(false)}
+                onUploadCv={() => {
+                  setShowManualWizard(false);
+                  handleUploadCV();
+                }}
+                onSubmitted={async () => {
+                  setShowManualWizard(false);
+                  // Refresh the candidate's CV so "Review Current CV" reflects
+                  // the newly saved profile without requiring a full page reload.
+                  const refreshed = await fetchPersistedCV();
+                  setDigitalCV(refreshed);
+                }}
+              />
+            )}
+
+            {currentStep == step[0] && !showManualWizard && (
               <>
                 {!buildingCV && !userCV && !file && (
                   <div className={styles.cvManageContainer}>
+                    <div className={styles.cvContainer}>
+                      <img alt="" src="/iconsV3/create-profile.svg" />
+                      <button onClick={() => setShowManualWizard(true)}>
+                        Create a Profile Manually
+                      </button>
+                      <span>
+                        Quickstart your job application by creating your own CV
+                        from scratch.
+                      </span>
+                    </div>
+
                     <div
                       className={styles.cvContainer}
                       onDragOver={handleDragOver}

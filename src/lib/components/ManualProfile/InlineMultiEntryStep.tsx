@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronDown, ChevronUp, Trash02 } from "@untitledui/icons";
 import styles from "./manual-profile.module.scss";
 
@@ -11,7 +11,6 @@ interface HasId {
 interface InlineMultiEntryStepProps<T extends HasId> {
   items: T[];
   onChange: (items: T[]) => void;
-  createEmpty: () => T;
   renderForm: (value: T, onChange: (next: T) => void) => React.ReactNode;
   /** Accordion header label for an entry (e.g. the school name). */
   entryLabel: (value: T, index: number) => string;
@@ -25,7 +24,6 @@ interface InlineMultiEntryStepProps<T extends HasId> {
 export default function InlineMultiEntryStep<T extends HasId>({
   items,
   onChange,
-  createEmpty,
   renderForm,
   entryLabel,
   entryNoun,
@@ -33,14 +31,6 @@ export default function InlineMultiEntryStep<T extends HasId>({
   // Collapse state keyed by id; missing/false means expanded, so new and initial
   // cards open by default and each toggles independently.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-
-  // Always keep at least one card on screen (e.g. after deleting the last one).
-  useEffect(() => {
-    if (items.length === 0) {
-      onChange([createEmpty()]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items.length]);
 
   function updateRow(id: string, next: T) {
     onChange(items.map((item) => (item.id === id ? next : item)));

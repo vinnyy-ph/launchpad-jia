@@ -189,6 +189,7 @@ export default function ManualPhoneVerifyModal({
               <Field
                 label="Mobile Number"
                 withAsterisk
+                size="sm"
                 type="tel"
                 inputMode="numeric"
                 placeholder="987 654 3210"
@@ -301,6 +302,7 @@ export default function ManualPhoneVerifyModal({
               <Field
                 label="Mobile Number"
                 withAsterisk
+                size="sm"
                 type="tel"
                 value={formatNationalNumber(nationalNumber, country)}
                 disabled

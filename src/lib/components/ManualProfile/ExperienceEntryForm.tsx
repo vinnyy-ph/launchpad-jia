@@ -1,7 +1,9 @@
 "use client";
 
-import { Checkbox, Field, Select, Textarea } from "@/lib/components/ui";
+import { Checkbox, Field, Group, Select } from "@/lib/components/ui";
 import type { ExperienceSectionItem } from "@/lib/utils/structuredCV";
+import LabeledField from "./LabeledField";
+import RichTextField from "./RichTextField";
 import styles from "./manual-profile.module.scss";
 
 const MONTHS = [
@@ -23,8 +25,6 @@ const MONTH_OPTIONS = MONTHS.map((m) => ({ value: m, label: m }));
 const YEAR_OPTIONS = YEARS.map((y) => ({ value: y, label: y }));
 const EMPLOYMENT_TYPE_OPTIONS = EMPLOYMENT_TYPES.map((t) => ({ value: t, label: t }));
 const WORK_SETUP_OPTIONS = WORK_SETUPS.map((s) => ({ value: s, label: s }));
-
-const DESCRIPTION_MAX = 2000;
 
 export function createEmptyExperience(): ExperienceSectionItem {
   return {
@@ -62,54 +62,53 @@ export default function ExperienceEntryForm({ value, onChange }: ExperienceEntry
     onChange({ ...value, [type]: { ...value[type], [field]: fieldValue } });
   }
 
-  const charactersLeft = DESCRIPTION_MAX - (value.description?.length ?? 0);
-
   return (
     <div className={styles.expForm}>
       <Field
         label="Job Title"
         withAsterisk
+        size="sm"
         placeholder="What is your title?"
         value={value.title}
         onChange={(event) => set("title", event.target.value)}
       />
 
-      <div className={styles.fieldGrid}>
+      <Group grow gap={16} align="flex-start">
         <Field
           label="Company or Organization"
           withAsterisk
+          size="sm"
           placeholder="E.g. Google, Inc."
           value={value.company}
           onChange={(event) => set("company", event.target.value)}
         />
-        <div className={styles.fieldGroup}>
-          <span className={styles.fieldGroupLabel}>Employment Type</span>
-          <Select
-            data={EMPLOYMENT_TYPE_OPTIONS}
-            placeholder="Select employment type"
-            value={value.employmentType || null}
-            onChange={(next) => set("employmentType", next ?? "")}
-          />
-        </div>
-      </div>
+        <Select
+          label="Employment Type"
+          size="sm"
+          data={EMPLOYMENT_TYPE_OPTIONS}
+          placeholder="Select employment type"
+          value={value.employmentType || null}
+          onChange={(next) => set("employmentType", next ?? "")}
+        />
+      </Group>
 
-      <div className={styles.fieldGrid}>
+      <Group grow gap={16} align="flex-start">
         <Field
           label="Address"
+          size="sm"
           placeholder="E.g. Manila, Philippines"
           value={value.location}
           onChange={(event) => set("location", event.target.value)}
         />
-        <div className={styles.fieldGroup}>
-          <span className={styles.fieldGroupLabel}>Work Setup</span>
-          <Select
-            data={WORK_SETUP_OPTIONS}
-            placeholder="Select"
-            value={value.workSetup || null}
-            onChange={(next) => set("workSetup", next ?? "")}
-          />
-        </div>
-      </div>
+        <Select
+          label="Work Setup"
+          size="sm"
+          data={WORK_SETUP_OPTIONS}
+          placeholder="Select"
+          value={value.workSetup || null}
+          onChange={(next) => set("workSetup", next ?? "")}
+        />
+      </Group>
 
       <Checkbox
         label="I am currently working in this role"
@@ -117,32 +116,29 @@ export default function ExperienceEntryForm({ value, onChange }: ExperienceEntry
         onCheckedChange={(checked) => set("isCurrentRole", checked)}
       />
 
-      <div className={styles.fieldGroup}>
-        <span className={styles.fieldGroupLabel}>
-          Start Date<span className={styles.fieldAsterisk}>*</span>
-        </span>
-        <div className={styles.fieldGrid}>
+      <LabeledField label="Start Date" withAsterisk>
+        <Group grow gap={16} align="flex-start">
           <Select
+            size="sm"
             data={MONTH_OPTIONS}
             placeholder="Month"
             value={value.startDate.month || null}
             onChange={(next) => setDate("startDate", "month", next ?? "")}
           />
           <Select
+            size="sm"
             data={YEAR_OPTIONS}
             placeholder="Year"
             value={value.startDate.year || null}
             onChange={(next) => setDate("startDate", "year", next ?? "")}
           />
-        </div>
-      </div>
+        </Group>
+      </LabeledField>
 
-      <div className={styles.fieldGroup}>
-        <span className={styles.fieldGroupLabel}>
-          End Date<span className={styles.fieldAsterisk}>*</span>
-        </span>
-        <div className={styles.fieldGrid}>
+      <LabeledField label="End Date" withAsterisk>
+        <Group grow gap={16} align="flex-start">
           <Select
+            size="sm"
             data={MONTH_OPTIONS}
             placeholder="Month"
             value={value.endDate.month || null}
@@ -150,29 +146,23 @@ export default function ExperienceEntryForm({ value, onChange }: ExperienceEntry
             onChange={(next) => setDate("endDate", "month", next ?? "")}
           />
           <Select
+            size="sm"
             data={YEAR_OPTIONS}
             placeholder="Year"
             value={value.endDate.year || null}
             disabled={value.isCurrentRole}
             onChange={(next) => setDate("endDate", "year", next ?? "")}
           />
-        </div>
-      </div>
+        </Group>
+      </LabeledField>
 
-      <div className={styles.descriptionField}>
-        <Textarea
-          id={`exp-desc-${value.id}`}
-          label="Description"
-          placeholder="List your major duties and success, highlighting specific projects"
-          value={value.description}
-          maxLength={DESCRIPTION_MAX}
-          autosize
-          minRows={6}
-          maxRows={12}
-          onChange={(event) => set("description", event.target.value)}
-        />
-        <p className={styles.charCount}>{charactersLeft} characters left</p>
-      </div>
+      <RichTextField
+        id={`exp-desc-${value.id}`}
+        label="Description"
+        placeholder="List your major duties and success, highlighting specific projects"
+        value={value.description}
+        onChange={(html) => set("description", html)}
+      />
     </div>
   );
 }

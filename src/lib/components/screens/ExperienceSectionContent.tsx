@@ -3,6 +3,7 @@
 import styles from "@/lib/styles/screens/manageCV.module.scss";
 import { assetConstants } from "@/lib/utils/constantsV2";
 import { ExperienceItem } from "./ExperienceModal";
+import RichText from "@/lib/components/ManualProfile/RichText";
 import { Badge } from "@/lib/components/ui";
 import { Building05 } from "@untitledui/icons";
 import { useEffect, useState } from "react";
@@ -386,7 +387,7 @@ export default function ExperienceSectionContent({
                         lineHeight: "1.5",
                       }}
                     >
-                      {exp.description}
+                      <RichText html={exp.description} />
                     </div>
                   )}
                 </div>
@@ -567,7 +568,7 @@ export default function ExperienceSectionContent({
                               lineHeight: "1.5",
                             }}
                           >
-                            {exp.description}
+                            <RichText html={exp.description} />
                           </div>
                         )}
                       </div>

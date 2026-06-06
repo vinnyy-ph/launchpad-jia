@@ -146,6 +146,7 @@ export default function ContactInformationStep({
         <Field
           label="First Name"
           withAsterisk
+          size="sm"
           placeholder="First name"
           value={value.firstName}
           onChange={(event) => patch({ firstName: event.target.value })}
@@ -155,6 +156,7 @@ export default function ContactInformationStep({
           <Field
             label="Last Name"
             withAsterisk
+            size="sm"
             placeholder="Last name"
             value={value.lastName}
             onChange={(event) => patch({ lastName: event.target.value })}
@@ -162,6 +164,7 @@ export default function ContactInformationStep({
           <Field
             label="Middle Initial"
             withAsterisk
+            size="sm"
             placeholder="M.I."
             value={value.middleInitial}
             onChange={(event) => patch({ middleInitial: event.target.value })}
@@ -172,6 +175,7 @@ export default function ContactInformationStep({
           <Field
             label="Email"
             withAsterisk
+            size="sm"
             type="email"
             placeholder="your.email@example.com"
             value={value.email}
@@ -191,6 +195,7 @@ export default function ContactInformationStep({
           <Field
             label="Mobile number"
             withAsterisk
+            size="sm"
             type="tel"
             inputMode="numeric"
             placeholder="987 654 3210"
@@ -244,6 +249,7 @@ export default function ContactInformationStep({
             <Field
               label="Address"
               withAsterisk
+              size="sm"
               placeholder="Search address"
               value={value.address}
               sectionLeft={<MarkerPin01 width={20} height={20} color="#717680" />}
@@ -255,6 +261,7 @@ export default function ContactInformationStep({
               <Field
                 label="Street Address"
                 withAsterisk
+                size="sm"
                 placeholder="House/Unit no., street, barangay"
                 value={addressParts.street}
                 onChange={(event) => updateAddressPart("street", event.target.value)}
@@ -263,12 +270,14 @@ export default function ContactInformationStep({
                 <Field
                   label="City / Municipality"
                   withAsterisk
+                  size="sm"
                   placeholder="City"
                   value={addressParts.city}
                   onChange={(event) => updateAddressPart("city", event.target.value)}
                 />
                 <Field
                   label="Province / Region"
+                  size="sm"
                   placeholder="Province"
                   value={addressParts.province}
                   onChange={(event) => updateAddressPart("province", event.target.value)}
@@ -277,6 +286,7 @@ export default function ContactInformationStep({
               <Group grow align="flex-start">
                 <Field
                   label="Postal Code"
+                  size="sm"
                   placeholder="Postal code"
                   value={addressParts.postal}
                   onChange={(event) => updateAddressPart("postal", event.target.value)}
@@ -284,6 +294,7 @@ export default function ContactInformationStep({
                 <Field
                   label="Country"
                   withAsterisk
+                  size="sm"
                   placeholder="Country"
                   value={addressParts.country}
                   onChange={(event) => updateAddressPart("country", event.target.value)}

@@ -8,7 +8,6 @@ function renderStep(items: EducationSectionItem[], onChange = jest.fn()) {
     <InlineMultiEntryStep
       items={items}
       onChange={onChange}
-      createEmpty={createEmptyEducation}
       entryNoun="education"
       entryLabel={(entry, index) => entry.school.trim() || `Education ${index + 1}`}
       renderForm={(value, change) => (
@@ -20,10 +19,10 @@ function renderStep(items: EducationSectionItem[], onChange = jest.fn()) {
 }
 
 describe("Education inline accordion step", () => {
-  it("seeds one entry when there are none", () => {
+  it("does not re-seed when items is empty (deleting the last entry leaves it empty)", () => {
     const { onChange } = renderStep([]);
-    const seeded = onChange.mock.calls.at(-1)?.[0] as EducationSectionItem[];
-    expect(seeded).toHaveLength(1);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText(/school/i)).not.toBeInTheDocument();
   });
 
   it("renders the entry form expanded with the School field", () => {

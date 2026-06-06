@@ -1,7 +1,9 @@
 "use client";
 
-import { Field, Group, Select, Textarea } from "@/lib/components/ui";
+import { Field, Group, Select } from "@/lib/components/ui";
 import type { EducationSectionItem } from "@/lib/utils/structuredCV";
+import LabeledField from "./LabeledField";
+import RichTextField from "./RichTextField";
 import styles from "./manual-profile.module.scss";
 
 const MONTHS = [
@@ -16,8 +18,6 @@ const YEARS = Array.from({ length: 50 }, (_, i) =>
 
 const MONTH_OPTIONS = MONTHS.map((m) => ({ value: m, label: m }));
 const YEAR_OPTIONS = YEARS.map((y) => ({ value: y, label: y }));
-
-const DESCRIPTION_MAX = 2000;
 
 export function createEmptyEducation(): EducationSectionItem {
   return {
@@ -52,13 +52,12 @@ export default function EducationEntryForm({ value, onChange }: EducationEntryFo
     onChange({ ...value, [type]: { ...value[type], [field]: fieldValue } });
   }
 
-  const charactersLeft = DESCRIPTION_MAX - (value.description?.length ?? 0);
-
   return (
     <div className={styles.eduForm}>
       <Field
         label="School"
         withAsterisk
+        size="sm"
         placeholder="E.g. Ateneo De Manila University"
         value={value.school}
         onChange={(event) => set("school", event.target.value)}
@@ -67,68 +66,65 @@ export default function EducationEntryForm({ value, onChange }: EducationEntryFo
       <Group grow gap={16} align="flex-start">
         <Field
           label="Degree"
+          size="sm"
           placeholder="E.g. Bachelor of Science"
           value={value.degree}
           onChange={(event) => set("degree", event.target.value)}
         />
         <Field
           label="Field of Study"
+          size="sm"
           placeholder="E.g. Management Engineering"
           value={value.fieldOfStudy}
           onChange={(event) => set("fieldOfStudy", event.target.value)}
         />
       </Group>
 
-      <div className={styles.fieldGroup}>
-        <span className={styles.fieldGroupLabel}>Start Date</span>
-        <div className={styles.fieldGrid}>
+      <LabeledField label="Start Date">
+        <Group grow gap={16} align="flex-start">
           <Select
+            size="sm"
             data={MONTH_OPTIONS}
             placeholder="Month"
             value={value.startDate.month || null}
             onChange={(next) => setDate("startDate", "month", next ?? "")}
           />
           <Select
+            size="sm"
             data={YEAR_OPTIONS}
             placeholder="Year"
             value={value.startDate.year || null}
             onChange={(next) => setDate("startDate", "year", next ?? "")}
           />
-        </div>
-      </div>
+        </Group>
+      </LabeledField>
 
-      <div className={styles.fieldGroup}>
-        <span className={styles.fieldGroupLabel}>Graduation Date (or expected)</span>
-        <div className={styles.fieldGrid}>
+      <LabeledField label="Graduation Date (or expected)">
+        <Group grow gap={16} align="flex-start">
           <Select
+            size="sm"
             data={MONTH_OPTIONS}
             placeholder="Month"
             value={value.endDate.month || null}
             onChange={(next) => setDate("endDate", "month", next ?? "")}
           />
           <Select
+            size="sm"
             data={YEAR_OPTIONS}
             placeholder="Year"
             value={value.endDate.year || null}
             onChange={(next) => setDate("endDate", "year", next ?? "")}
           />
-        </div>
-      </div>
+        </Group>
+      </LabeledField>
 
-      <div className={styles.descriptionField}>
-        <Textarea
-          id={`edu-desc-${value.id}`}
-          label="Description"
-          placeholder="List your awards, activities, societies etc."
-          value={value.description}
-          maxLength={DESCRIPTION_MAX}
-          autosize
-          minRows={6}
-          maxRows={12}
-          onChange={(event) => set("description", event.target.value)}
-        />
-        <p className={styles.charCount}>{charactersLeft} characters left</p>
-      </div>
+      <RichTextField
+        id={`edu-desc-${value.id}`}
+        label="Description"
+        placeholder="List your awards, activities, societies etc."
+        value={value.description}
+        onChange={(html) => set("description", html)}
+      />
     </div>
   );
 }

@@ -24,6 +24,7 @@ export default function SkillsStep({
     <div>
       <Field
         label="Add Skill"
+        size="sm"
         placeholder="Enter skill (ex. Project Management)"
         value={draft}
         onChange={(event) =>

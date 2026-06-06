@@ -8,7 +8,6 @@ function renderStep(items: AwardSectionItem[], onChange = jest.fn()) {
     <InlineMultiEntryStep
       items={items}
       onChange={onChange}
-      createEmpty={createEmptyAward}
       entryNoun="award"
       entryLabel={(entry, index) => entry.title.trim() || `Award ${index + 1}`}
       renderForm={(value, change) => (

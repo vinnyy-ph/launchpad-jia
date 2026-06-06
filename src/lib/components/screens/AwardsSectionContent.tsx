@@ -1,5 +1,6 @@
 import { assetConstants } from "@/lib/utils/constantsV2";
 import { AwardItem } from "./AwardModal";
+import RichText from "@/lib/components/ManualProfile/RichText";
 
 type AwardsSectionContentProps = {
   value?: string;
@@ -83,7 +84,7 @@ export default function AwardsSectionContent({
 
             {award.description && (
               <div style={{ fontSize: "14px", color: "#344054", lineHeight: "24px", whiteSpace: "pre-wrap" }}>
-                {award.description}
+                <RichText html={award.description} />
               </div>
             )}
           </div>

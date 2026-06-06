@@ -10,7 +10,6 @@ function renderStep(items: CertificationSectionItem[], onChange = jest.fn()) {
     <InlineMultiEntryStep
       items={items}
       onChange={onChange}
-      createEmpty={createEmptyCertification}
       entryNoun="certification"
       entryLabel={(entry, index) => entry.name.trim() || `Certification ${index + 1}`}
       renderForm={(value, change) => (

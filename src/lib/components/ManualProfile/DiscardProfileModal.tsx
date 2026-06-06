@@ -22,7 +22,11 @@ export default function DiscardProfileModal({
       <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
         <Button label="Go back" variant="secondary" onClick={onGoBack} />
         <Button label="Save & Exit" variant="primary" onClick={onSaveExit} />
-        <button type="button" onClick={onExitWithoutSaving}>Exit without Saving</button>
+        <Button
+          label="Exit without Saving"
+          variant="tertiary"
+          onClick={onExitWithoutSaving}
+        />
       </div>
     </Modal>
   );

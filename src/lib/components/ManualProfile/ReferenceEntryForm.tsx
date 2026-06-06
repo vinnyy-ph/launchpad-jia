@@ -79,14 +79,16 @@ export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFo
       <Field
         label="Name"
         withAsterisk
+        size="sm"
         placeholder="Enter name of reference"
         value={value.name}
         onChange={(event) => set("name", event.target.value)}
       />
 
-      <Group grow gap={24} align="flex-start">
+      <Group grow gap={16} align="flex-start">
         <Field
           label="Email"
+          size="sm"
           type="email"
           placeholder="Enter email"
           value={value.email}
@@ -95,6 +97,7 @@ export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFo
         <Field
           label="Phone number"
           withAsterisk
+          size="sm"
           type="tel"
           inputMode="numeric"
           placeholder="000 000 0000"
@@ -108,21 +111,24 @@ export default function ReferenceEntryForm({ value, onChange }: ReferenceEntryFo
       <Field
         label="Company"
         withAsterisk
+        size="sm"
         placeholder="Enter referral company"
         value={value.company}
         onChange={(event) => set("company", event.target.value)}
       />
 
-      <Group grow gap={24} align="flex-start">
+      <Group grow gap={16} align="flex-start">
         <Field
           label="Position"
           withAsterisk
+          size="sm"
           placeholder="Enter reference position"
           value={value.position}
           onChange={(event) => set("position", event.target.value)}
         />
         <Field
           label="Relation"
+          size="sm"
           placeholder="Enter nature of relation"
           value={value.relation}
           onChange={(event) => set("relation", event.target.value)}

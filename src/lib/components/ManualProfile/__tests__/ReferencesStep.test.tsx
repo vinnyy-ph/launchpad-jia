@@ -8,7 +8,6 @@ function renderStep(items: ReferenceSectionItem[], onChange = jest.fn()) {
     <InlineMultiEntryStep
       items={items}
       onChange={onChange}
-      createEmpty={createEmptyReference}
       entryNoun="reference"
       entryLabel={(entry, index) => entry.name.trim() || `Reference ${index + 1}`}
       renderForm={(value, change) => (

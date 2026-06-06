@@ -17,6 +17,41 @@ $verified: #1570ef;
   flex-direction: column;
   gap: 20px;
 
+  // ----- One source of truth for field sizing (matched to Figma) -----
+  --field-label-gap: 6px;       // label → control (Figma spacing-sm)
+  --field-control-h: 36px;      // single-line control height (= DS sm)
+  --field-radius: 8px;
+  --field-border: #d5d7da;
+  --field-focus: #6172f3;       // 2px brand focus
+  --field-bg: #fff;
+  --field-bg-disabled: #f9f9fb;
+  --field-pad-x: 12px;
+  --field-label-color: #414651;
+  --field-placeholder: #a4a7ae;
+  --col-gap: 16px;              // 2-up columns inside an entry card
+
+  // Kill Bootstrap's global `label { margin-bottom: .5rem }` (the ghost 8px).
+  // 0,1,1 beats Bootstrap's 0,0,1 — no !important. Every DS label now = native 6px.
+  label {
+    margin-bottom: 0;
+  }
+
+  // DS size=sm shrinks labels to 13/18, but Figma's field label is text-sm 14/20.
+  // The [class] attribute lifts specificity over DS `.size-sm .label` so every
+  // label — DS Field, DS Select, LabeledField — is a uniform Figma 14/20.
+  label[class] {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  // Unified Figma focus (#6172f3) for DS inputs + the Select trigger. The trigger
+  // is a <button>, but the button-focus reset below only nulls box-shadow/outline,
+  // not border-color — so this border focus survives.
+  input:focus-visible,
+  [role="combobox"]:focus-visible {
+    border-color: var(--field-focus);
+  }
+
   // Argon's global `button {}` paints every bare <button> with a drop shadow;
   // neutralise it on our custom triggers (accordion headers, dropdowns, icon
   // buttons). Menus/cards are <div>s, so they keep their own shadows.
@@ -258,66 +293,6 @@ $verified: #1570ef;
   padding: 20px 24px 24px;
   // Divider that visually separates the header bar from the content region.
   border-top: 1px solid #e5e7eb;
-}
-
-.websiteRow {
-  display: flex;
-  gap: 24px;
-}
-
-.websiteCol {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.websiteFieldLabel {
-  font-size: 14px;
-  color: $muted;
-}
-
-// Compound URL input: tinted "https://" prefix + editable segment.
-.urlField {
-  display: flex;
-  align-items: stretch;
-  border: 1px solid $border-strong;
-  border-radius: 8px;
-  background: #fff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-
-  &:focus-within {
-    border-color: #fca5a5;
-    box-shadow: 0 0 0 3px rgba(252, 165, 165, 0.2);
-  }
-}
-
-.urlPrefix {
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  background: #f9fafb;
-  color: #9ca3af;
-  font-size: 14px;
-  white-space: nowrap;
-  border-right: 1px solid #e5e7eb;
-  border-radius: 8px 0 0 8px;
-}
-
-.urlInput {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 10px 14px;
-  font-size: 14px;
-  color: $text;
-
-  &::placeholder {
-    color: #9ca3af;
-  }
 }
 
 .websiteDeleteRow {
@@ -573,6 +548,24 @@ $verified: #1570ef;
   align-items: center;
   gap: 18px;
   padding: 8px 12px 4px;
+
+  // Same Figma field tokens + Bootstrap label reset for the portaled modal.
+  --field-label-gap: 6px;
+  --field-label-color: #414651;
+  --field-focus: #6172f3;
+
+  label {
+    margin-bottom: 0;
+  }
+
+  label[class] {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  input:focus-visible {
+    border-color: var(--field-focus);
+  }
 
   // Same argon global-button shadow reset for the portaled verify modal
   // (it renders outside .wizard).
@@ -972,75 +965,89 @@ $verified: #1570ef;
   gap: 24px;
 }
 
-// Compound URL input: muted "https://" prefix + editable segment (Credential URL).
-.urlComboField {
+// ----- Rich-text Description editor (B/I/U/S + lists) -----
+.richEditor {
   display: flex;
-  align-items: stretch;
-  border: 1px solid $border-strong;
+  flex-direction: column;
+  border: 1px solid var(--field-border);
   border-radius: 8px;
   background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(10, 13, 18, 0.05);
+  overflow: hidden;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus-within {
-    border-color: #6172f3;
+    border-color: var(--field-focus);
     box-shadow: 0 0 0 3px rgba(97, 114, 243, 0.15);
   }
 }
 
-.urlComboPrefix {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  color: $muted-2;
+.richContent {
+  min-height: 160px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 10px 14px;
   font-size: 14px;
-  white-space: nowrap;
-  border-right: 1px solid $border-strong;
-}
-
-.urlComboInput {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 8px 12px;
-  font-size: 14px;
+  line-height: 20px;
   color: $text;
+  outline: none;
 
-  &::placeholder {
+  &:empty::before {
+    content: attr(data-placeholder);
     color: #a4a7ae;
+    pointer-events: none;
+  }
+
+  p {
+    margin: 0 0 8px;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 8px;
+    padding-left: 22px;
   }
 }
 
-// Shared inline-form helpers (used by Education, Experience, …).
-.fieldGroup {
+.richToolbar {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-top: 1px solid $border;
 }
 
-.fieldGroupLabel {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  color: #414651;
+.richToolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: $muted-2;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    background: #f5f5f7;
+    color: $text;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
-.fieldAsterisk {
-  margin-left: 2px;
-  color: #d92d20;
-}
-
-.fieldGrid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.descriptionField {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+// Rendered Description HTML (lists / inline formatting) in the CV section views.
+.richTextView {
+  ul,
+  ol {
+    margin: 4px 0;
+    padding-left: 20px;
+  }
 }
 
 .charCount {
@@ -1116,4 +1123,86 @@ $verified: #1570ef;
     opacity: 1;
     background: rgba(0, 0, 0, 0.03);
   }
+}
+
+// ----- Shared labeled-field wrapper (LabeledField.tsx) -----
+.labeledField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-label-gap);
+  min-width: 0;
+}
+
+.labeledFieldLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--field-label-color);
+}
+
+.labeledFieldAsterisk {
+  color: #d92d20;
+}
+
+.labeledFieldError {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: #d92d20;
+}
+
+// Unified compound URL input (https:// prefix + editable segment). One height,
+// one border, one focus — used by Websites + Certifications via LabeledField.
+.urlCombo {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--field-control-h);
+  box-sizing: border-box;
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  background: var(--field-bg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--field-focus);
+    box-shadow: 0 0 0 3px rgba(97, 114, 243, 0.15);
+  }
+}
+
+.urlComboTextPrefix {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--field-pad-x);
+  background: var(--field-bg-disabled);
+  color: var(--field-placeholder);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  border-right: 1px solid var(--field-border);
+  border-radius: var(--field-radius) 0 0 var(--field-radius);
+}
+
+.urlComboTextInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px var(--field-pad-x);
+  font-size: 14px;
+  line-height: 20px;
+  color: #181d27;
+
+  &::placeholder {
+    color: var(--field-placeholder);
+  }
+}
+
+// The DS Button colors only its <span>; an svg `iconJsx` inherits no color and
+// renders invisible on the white secondary button. Set size + color here (same
+// pattern as .cvBannerUploadIcon) so the footer "Add" plus-circle shows.
+.footerAddIcon {
+  width: 20px;
+  height: 20px;
+  color: #414651;
 }

@@ -1,5 +1,6 @@
 import { assetConstants } from "@/lib/utils/constantsV2";
 import { ProjectItem } from "./ProjectsModal";
+import RichText from "@/lib/components/ManualProfile/RichText";
 
 type ProjectsSectionContentProps = {
   value?: string;
@@ -105,7 +106,7 @@ export default function ProjectsSectionContent({
               {proj.startDate.year} — {proj.isCurrent ? "Present" : proj.endDate.year}
             </div>
             <div style={{ fontSize: "14px", color: "#344054", lineHeight: "24px", whiteSpace: "pre-wrap" }}>
-              {proj.description}
+              <RichText html={proj.description} />
             </div>
           </div>
         </div>

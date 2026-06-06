@@ -8,7 +8,6 @@ function renderStep(items: ProjectSectionItem[], onChange = jest.fn()) {
     <InlineMultiEntryStep
       items={items}
       onChange={onChange}
-      createEmpty={createEmptyProject}
       entryNoun="project"
       entryLabel={(entry, index) => entry.name.trim() || `Project ${index + 1}`}
       renderForm={(value, change) => (

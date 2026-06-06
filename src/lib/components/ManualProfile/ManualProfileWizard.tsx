@@ -299,7 +299,6 @@ export default function ManualProfileWizard({
           <InlineMultiEntryStep
             items={data.education}
             onChange={(education) => patch({ education })}
-            createEmpty={createEmptyEducation}
             entryNoun="education"
             entryLabel={(entry, index) => entry.school.trim() || `Education ${index + 1}`}
             renderForm={(value, onChange) => (
@@ -312,7 +311,6 @@ export default function ManualProfileWizard({
           <InlineMultiEntryStep
             items={data.experience}
             onChange={(experience) => patch({ experience })}
-            createEmpty={createEmptyExperience}
             entryNoun="experience"
             entryLabel={(entry, index) =>
               entry.title.trim() || entry.company.trim() || `Experience ${index + 1}`
@@ -327,7 +325,6 @@ export default function ManualProfileWizard({
           <InlineMultiEntryStep
             items={data.projects}
             onChange={(projects) => patch({ projects })}
-            createEmpty={createEmptyProject}
             entryNoun="project"
             entryLabel={(entry, index) => entry.name.trim() || `Project ${index + 1}`}
             renderForm={(value, onChange) => (
@@ -340,7 +337,6 @@ export default function ManualProfileWizard({
           <InlineMultiEntryStep
             items={data.certifications}
             onChange={(certifications) => patch({ certifications })}
-            createEmpty={createEmptyCertification}
             entryNoun="certification"
             entryLabel={(entry, index) => entry.name.trim() || `Certification ${index + 1}`}
             renderForm={(value, onChange) => (
@@ -353,7 +349,6 @@ export default function ManualProfileWizard({
           <InlineMultiEntryStep
             items={data.awards}
             onChange={(awards) => patch({ awards })}
-            createEmpty={createEmptyAward}
             entryNoun="award"
             entryLabel={(entry, index) => entry.title.trim() || `Award ${index + 1}`}
             renderForm={(value, onChange) => (
@@ -370,7 +365,6 @@ export default function ManualProfileWizard({
           <InlineMultiEntryStep
             items={data.references}
             onChange={(references) => patch({ references })}
-            createEmpty={createEmptyReference}
             entryNoun="reference"
             entryLabel={(entry, index) => entry.name.trim() || `Reference ${index + 1}`}
             renderForm={(value, onChange) => (
@@ -473,14 +467,13 @@ export default function ManualProfileWizard({
           className={`${styles.footer}${footerAdd ? ` ${styles.footerSpread}` : ""}`}
         >
           {footerAdd && (
-            <button
-              type="button"
-              className={styles.addWebsiteButton}
+            <Button
+              label={footerAdd.label}
+              variant="secondary"
+              iconJsx={<PlusCircle className={styles.footerAddIcon} aria-hidden />}
+              iconPosition="left"
               onClick={footerAdd.onAdd}
-            >
-              <PlusCircle className={styles.addWebsiteIcon} aria-hidden />
-              {footerAdd.label}
-            </button>
+            />
           )}
           <div className={styles.footerActions}>
             {step.hasSkip && (
@@ -489,7 +482,7 @@ export default function ManualProfileWizard({
             <Button
               label={isLast ? (submitting ? "Submitting…" : "Submit") : "Next"}
               variant="primary"
-              iconJsx={!isLast ? <ChevronRight /> : undefined}
+              iconJsx={!isLast ? <ChevronRight width={20} height={20} /> : undefined}
               iconPosition="right"
               onClick={goNext}
               disabled={submitting || !canAdvance(stepIndex)}

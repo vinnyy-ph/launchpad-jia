@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Select } from "@/lib/components/ui";
+import { useState } from "react";
+import { Group, Select } from "@/lib/components/ui";
 import { ChevronDown, ChevronUp, Trash02 } from "@untitledui/icons";
 import type { ContactWebsite } from "@/lib/utils/structuredCV";
+import LabeledField from "./LabeledField";
 import styles from "./manual-profile.module.scss";
 
 const WEBSITE_TYPES = ["Linkedin", "Personal", "Company", "Portfolio", "Blog"];
@@ -25,14 +26,6 @@ export default function WebsitesStep({ value, onChange }: WebsitesStepProps) {
   // Collapse state keyed by website id; a missing/false entry means expanded, so
   // new and initial cards open by default and each card toggles independently.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-
-  // Always keep at least one card on screen (e.g. after deleting the last one).
-  useEffect(() => {
-    if (value.length === 0) {
-      onChange([createWebsite()]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value.length]);
 
   function update(id: string, patch: Partial<ContactWebsite>) {
     onChange(value.map((website) => (website.id === id ? { ...website, ...patch } : website)));
@@ -75,33 +68,29 @@ export default function WebsitesStep({ value, onChange }: WebsitesStepProps) {
 
             {open && (
               <div className={styles.websiteBody}>
-                <div className={styles.websiteRow}>
-                  <div className={styles.websiteCol}>
-                    <label className={styles.websiteFieldLabel} htmlFor={`url-${website.id}`}>
-                      URL
-                    </label>
-                    <div className={styles.urlField}>
-                      <span className={styles.urlPrefix}>https://</span>
+                <Group grow gap={16} align="flex-start">
+                  <LabeledField label="URL" htmlFor={`url-${website.id}`}>
+                    <div className={styles.urlCombo}>
+                      <span className={styles.urlComboTextPrefix}>https://</span>
                       <input
                         id={`url-${website.id}`}
-                        className={styles.urlInput}
+                        className={styles.urlComboTextInput}
                         placeholder="www.website.com"
                         value={website.url}
                         onChange={(event) => update(website.id, { url: event.target.value })}
                       />
                     </div>
-                  </div>
+                  </LabeledField>
 
-                  <div className={styles.websiteCol}>
-                    <label className={styles.websiteFieldLabel}>Website Type</label>
-                    <Select
-                      data={WEBSITE_TYPES}
-                      value={website.type || null}
-                      placeholder="Select a website type"
-                      onChange={(next) => update(website.id, { type: next ?? "" })}
-                    />
-                  </div>
-                </div>
+                  <Select
+                    label="Website Type"
+                    size="sm"
+                    data={WEBSITE_TYPES}
+                    value={website.type || null}
+                    placeholder="Select a website type"
+                    onChange={(next) => update(website.id, { type: next ?? "" })}
+                  />
+                </Group>
 
                 <div className={styles.websiteDeleteRow}>
                   <button

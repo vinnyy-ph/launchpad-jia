@@ -10,7 +10,6 @@ function renderStep(items: ExperienceSectionItem[], onChange = jest.fn()) {
     <InlineMultiEntryStep
       items={items}
       onChange={onChange}
-      createEmpty={createEmptyExperience}
       entryNoun="experience"
       entryLabel={(entry, index) =>
         entry.title.trim() || entry.company.trim() || `Experience ${index + 1}`

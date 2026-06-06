@@ -9,15 +9,21 @@ const domainToUrl = (domain: string | undefined, fallback: string) =>
     ? `${domain.includes("localhost") ? "http" : "https"}://${domain}`
     : fallback;
 
+const applicantUrl = domainToUrl(
+  process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN,
+  "https://www.hellojia.ai"
+);
+const employerUrl = domainToUrl(
+  process.env.NEXT_PUBLIC_EMPLOYER_APP_DOMAIN,
+  "https://www.hirejia.ai"
+);
+
 export const pathConstants = {
-  employee: domainToUrl(
-    process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN,
-    "https://www.hellojia.ai"
-  ),
-  employer: domainToUrl(
-    process.env.NEXT_PUBLIC_EMPLOYER_APP_DOMAIN,
-    "https://www.hirejia.ai"
-  ),
+  employee: applicantUrl,
+  // Single-domain deploys rewrite "/" to the applicant job portal, so the
+  // employer landing page lives at /employers there (see middleware.ts).
+  employer:
+    applicantUrl === employerUrl ? `${employerUrl}/employers` : employerUrl,
   whitecloak: "https://www.whitecloak.com",
   home: originPath,
   jobOpenings: jobOpeningsOriginPath,

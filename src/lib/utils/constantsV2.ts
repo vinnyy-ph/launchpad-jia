@@ -2,9 +2,22 @@ const originPath = "/";
 const jobOpeningsOriginPath = "/job-openings";
 const dashboardOriginPath = "/dashboard";
 
+// Derive portal URLs from the deployment's domain env vars, falling back to
+// the legacy production domains when unset.
+const domainToUrl = (domain: string | undefined, fallback: string) =>
+  domain
+    ? `${domain.includes("localhost") ? "http" : "https"}://${domain}`
+    : fallback;
+
 export const pathConstants = {
-  employee: "https://www.hellojia.ai",
-  employer: "https://www.hirejia.ai",
+  employee: domainToUrl(
+    process.env.NEXT_PUBLIC_APPLICANT_APP_DOMAIN,
+    "https://www.hellojia.ai"
+  ),
+  employer: domainToUrl(
+    process.env.NEXT_PUBLIC_EMPLOYER_APP_DOMAIN,
+    "https://www.hirejia.ai"
+  ),
   whitecloak: "https://www.whitecloak.com",
   home: originPath,
   jobOpenings: jobOpeningsOriginPath,

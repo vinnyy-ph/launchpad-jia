@@ -83,7 +83,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       <div>
         <p>Dear ${cvData.name || "Applicant"},</p>
         <p>Your CV has been successfully uploaded and is now under review.</p>
-        <p>You can manage your CV here: <a href="https://jia-alpha.vercel.app/applicant/manage-cv">Manage CV</a></p>
+        <p>You can manage your CV here: <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/applicant/manage-cv">Manage CV</a></p>
       </div>
     `,
   });

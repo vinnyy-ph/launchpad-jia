@@ -8,14 +8,14 @@ import {
 } from "@/lib/utils/phoneInput";
 import styles from "./manual-profile.module.scss";
 
-// Display metadata kept local so the shared PHONE_COUNTRY_OPTIONS stays unchanged.
-// `iso` is the flagcdn country code (UK uses the ISO "gb").
-const COUNTRY_META: Record<SupportedPhoneCountry, { name: string; iso: string }> = {
-  PH: { name: "Philippines", iso: "ph" },
-  US: { name: "United States", iso: "us" },
-  SG: { name: "Singapore", iso: "sg" },
-  AU: { name: "Australia", iso: "au" },
-  UK: { name: "United Kingdom", iso: "gb" },
+// Display names kept local so the shared PHONE_COUNTRY_OPTIONS stays unchanged.
+// Figma shows the country as its ISO code text (e.g. "PH") — no flag.
+const COUNTRY_META: Record<SupportedPhoneCountry, { name: string }> = {
+  PH: { name: "Philippines" },
+  US: { name: "United States" },
+  SG: { name: "Singapore" },
+  AU: { name: "Australia" },
+  UK: { name: "United Kingdom" },
 };
 
 interface CountrySelectProps {
@@ -23,17 +23,6 @@ interface CountrySelectProps {
   onChange: (next: SupportedPhoneCountry) => void;
   /** Read-only display (no popover) — used on the confirm step. */
   disabled?: boolean;
-}
-
-function FlagIcon({ country }: { country: SupportedPhoneCountry }) {
-  return (
-    <img
-      className={styles.countryFlag}
-      src={`https://flagcdn.com/${COUNTRY_META[country].iso}.svg`}
-      alt=""
-      aria-hidden
-    />
-  );
 }
 
 // Custom country dropdown for the mobile-number field. Replaces the native
@@ -142,7 +131,6 @@ export default function CountrySelect({
         }}
         onKeyDown={handleKeyDown}
       >
-        <FlagIcon country={value} />
         <span className={styles.countryCode}>{value}</span>
         {!disabled && (
           <ChevronDown
@@ -171,7 +159,6 @@ export default function CountrySelect({
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => selectCountry(option.code)}
               >
-                <FlagIcon country={option.code} />
                 <span className={styles.countryOptionName}>{meta.name}</span>
                 <span className={styles.countryOptionDial}>{option.dialCode}</span>
                 <span className={styles.countryOptionCheck}>

@@ -8,13 +8,15 @@ import ContactInformationStep, {
   createEmptyContact,
 } from "./ContactInformationStep";
 import MultiEntryStep from "./MultiEntryStep";
+import InlineMultiEntryStep from "./InlineMultiEntryStep";
+import EducationEntryForm, { createEmptyEducation } from "./EducationEntryForm";
+import ExperienceEntryForm, { createEmptyExperience } from "./ExperienceEntryForm";
 import DiscardProfileModal from "./DiscardProfileModal";
+import CvUploadBanner from "./CvUploadBanner";
 import WebsitesStep, { createWebsite } from "./WebsitesStep";
 import SkillsStep from "./SkillsStep";
 import ReferenceModal from "./ReferenceModal";
 import IntroductionStep from "./IntroductionStep";
-import EducationModal from "@/lib/components/screens/EducationModal";
-import ExperienceModal from "@/lib/components/screens/ExperienceModal";
 import ProjectsModal from "@/lib/components/screens/ProjectsModal";
 import CertificationModal from "@/lib/components/screens/CertificationModal";
 import AwardModal from "@/lib/components/screens/AwardModal";
@@ -62,7 +64,7 @@ const STEPS: StepDef[] = [
   {
     title: "Skills",
     subtitle:
-      "Highlight the skills, tools, and technologies you use in your work.",
+      "Highlight the skills, tools, and technologies you use in your work. Jia automatically extracts skills from your CV. You can add more relevant skills if needed.",
   },
   {
     title: "Projects",
@@ -113,6 +115,8 @@ interface ManualProfileWizardProps {
   onExit: () => void;
   userEmail?: string;
   onSubmitted?: () => void;
+  /** When provided, shows the "Already have a CV?" banner that bails to upload. */
+  onUploadCv?: () => void;
 }
 
 // Pure helpers — assembled outside the component to avoid re-creation on renders.
@@ -129,9 +133,11 @@ function assembleStructuredCV(d: WizardData): StructuredCV {
       linkedin,
       websites: d.websites.filter((website) => website.url.trim() !== ""),
     },
-    experience: d.experience,
+    experience: d.experience.filter(
+      (entry) => entry.title.trim() !== "" || entry.company.trim() !== "",
+    ),
     skills: d.skills,
-    education: d.education,
+    education: d.education.filter((entry) => entry.school.trim() !== ""),
     projects: d.projects,
     certifications: d.certifications,
     awards: d.awards,
@@ -151,14 +157,16 @@ export default function ManualProfileWizard({
   onExit,
   userEmail = "",
   onSubmitted,
+  onUploadCv,
 }: ManualProfileWizardProps) {
   const [stepIndex, setStepIndex] = useState(0); // 0-based
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const [data, setData] = useState<WizardData>(() => ({
     contact: createEmptyContact(userEmail),
     websites: [createWebsite()],
-    education: [],
-    experience: [],
+    education: [createEmptyEducation()],
+    experience: [createEmptyExperience()],
     skills: [],
     projects: [],
     certifications: [],
@@ -214,6 +222,27 @@ export default function ManualProfileWizard({
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === TOTAL_STEPS - 1;
 
+  // Inline multi-entry steps surface an "Add <entry>" button in the footer that
+  // appends a blank entry to the relevant list.
+  const footerAdd: { label: string; onAdd: () => void } | null =
+    stepIndex === 1
+      ? {
+          label: "Add website",
+          onAdd: () => patch({ websites: [...data.websites, createWebsite()] }),
+        }
+      : stepIndex === 2
+        ? {
+            label: "Add education",
+            onAdd: () => patch({ education: [...data.education, createEmptyEducation()] }),
+          }
+        : stepIndex === 3
+          ? {
+              label: "Add experience",
+              onAdd: () =>
+                patch({ experience: [...data.experience, createEmptyExperience()] }),
+            }
+          : null;
+
   const progressPct = ((stepIndex + 1) / TOTAL_STEPS) * 100;
   // Reveal only the left slice of the full gradient, proportional to progress.
   const progressFillStyle = {
@@ -240,17 +269,31 @@ export default function ManualProfileWizard({
         );
       case 2:
         return (
-          <MultiEntryStep items={data.education} onChange={(education) => patch({ education })}
-            EditorModal={EducationModal}
-            rowLabel={(e) => `${e.degree || "Degree"}: ${e.school || "School-name"}`}
-            addLabel="Add education" />
+          <InlineMultiEntryStep
+            items={data.education}
+            onChange={(education) => patch({ education })}
+            createEmpty={createEmptyEducation}
+            entryNoun="education"
+            entryLabel={(entry, index) => entry.school.trim() || `Education ${index + 1}`}
+            renderForm={(value, onChange) => (
+              <EducationEntryForm value={value} onChange={onChange} />
+            )}
+          />
         );
       case 3:
         return (
-          <MultiEntryStep items={data.experience} onChange={(experience) => patch({ experience })}
-            EditorModal={ExperienceModal}
-            rowLabel={(x) => `${x.title || "Job Title"}: ${x.company || "Company"}`}
-            addLabel="Add experience" />
+          <InlineMultiEntryStep
+            items={data.experience}
+            onChange={(experience) => patch({ experience })}
+            createEmpty={createEmptyExperience}
+            entryNoun="experience"
+            entryLabel={(entry, index) =>
+              entry.title.trim() || entry.company.trim() || `Experience ${index + 1}`
+            }
+            renderForm={(value, onChange) => (
+              <ExperienceEntryForm value={value} onChange={onChange} />
+            )}
+          />
         );
       case 5:
         return (
@@ -335,6 +378,13 @@ export default function ManualProfileWizard({
         onExitWithoutSaving={onExit}
       />
 
+      {onUploadCv && !bannerDismissed && (
+        <CvUploadBanner
+          onUploadCv={onUploadCv}
+          onDismiss={() => setBannerDismissed(true)}
+        />
+      )}
+
       <div className={styles.header}>
         <button
           type="button"
@@ -369,29 +419,31 @@ export default function ManualProfileWizard({
         )}
 
         <div
-          className={`${styles.footer}${stepIndex === 1 ? ` ${styles.footerSpread}` : ""}`}
+          className={`${styles.footer}${footerAdd ? ` ${styles.footerSpread}` : ""}`}
         >
-          {stepIndex === 1 && (
+          {footerAdd && (
             <button
               type="button"
               className={styles.addWebsiteButton}
-              onClick={() => patch({ websites: [...data.websites, createWebsite()] })}
+              onClick={footerAdd.onAdd}
             >
               <PlusCircle className={styles.addWebsiteIcon} aria-hidden />
-              Add website
+              {footerAdd.label}
             </button>
           )}
-          {step.hasSkip && (
-            <Button label="Skip" variant="secondary" onClick={goNext} />
-          )}
-          <Button
-            label={isLast ? (submitting ? "Submitting…" : "Submit") : "Next"}
-            variant="primary"
-            iconJsx={!isLast ? <ChevronRight /> : undefined}
-            iconPosition="right"
-            onClick={goNext}
-            disabled={submitting || !canAdvance(stepIndex)}
-          />
+          <div className={styles.footerActions}>
+            {step.hasSkip && (
+              <Button label="Skip" variant="secondary" onClick={goNext} />
+            )}
+            <Button
+              label={isLast ? (submitting ? "Submitting…" : "Submit") : "Next"}
+              variant="primary"
+              iconJsx={!isLast ? <ChevronRight /> : undefined}
+              iconPosition="right"
+              onClick={goNext}
+              disabled={submitting || !canAdvance(stepIndex)}
+            />
+          </div>
         </div>
       </div>
     </div>

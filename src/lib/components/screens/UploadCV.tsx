@@ -1621,6 +1621,10 @@ export default function () {
               <ManualProfileWizard
                 userEmail={lockedEmail}
                 onExit={() => setShowManualWizard(false)}
+                onUploadCv={() => {
+                  setShowManualWizard(false);
+                  handleUploadCV();
+                }}
                 onSubmitted={async () => {
                   setShowManualWizard(false);
                   // Refresh the candidate's CV so "Review Current CV" reflects

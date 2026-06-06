@@ -1,7 +1,9 @@
 "use client";
+
 import { useState } from "react";
 import { Field } from "@/lib/components/ui";
-import { SkillTag } from "@/lib/components/CandidateComponents/SkillTag";
+import { XClose } from "@untitledui/icons";
+import styles from "./manual-profile.module.scss";
 
 export default function SkillsStep({
   value,
@@ -13,8 +15,8 @@ export default function SkillsStep({
   const [draft, setDraft] = useState("");
 
   function add() {
-    const s = draft.trim();
-    if (s && !value.includes(s)) onChange([...value, s]);
+    const skill = draft.trim();
+    if (skill && !value.includes(skill)) onChange([...value, skill]);
     setDraft("");
   }
 
@@ -24,24 +26,27 @@ export default function SkillsStep({
         label="Add Skill"
         placeholder="Enter skill (ex. Project Management)"
         value={draft}
-        onChange={(e) => setDraft((e as React.ChangeEvent<HTMLInputElement>).target.value)}
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
+        onChange={(event) =>
+          setDraft((event as React.ChangeEvent<HTMLInputElement>).target.value)
+        }
+        onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
             add();
           }
         }}
       />
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
-        {value.map((s) => (
-          <span key={s} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-            <SkillTag label={s} />
+      <div className={styles.skillChips}>
+        {value.map((skill) => (
+          <span key={skill} className={styles.skillChip}>
+            {skill}
             <button
               type="button"
-              aria-label={`Remove ${s}`}
-              onClick={() => onChange(value.filter((x) => x !== s))}
+              className={styles.skillChipRemove}
+              aria-label={`Remove ${skill}`}
+              onClick={() => onChange(value.filter((item) => item !== skill))}
             >
-              x
+              <XClose className={styles.skillChipRemoveIcon} aria-hidden />
             </button>
           </span>
         ))}

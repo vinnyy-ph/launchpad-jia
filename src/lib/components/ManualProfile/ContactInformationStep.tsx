@@ -115,8 +115,16 @@ export default function ContactInformationStep({
   }
 
   const phoneCountrySection = (
-    <span className={styles.phoneCountry}>
-      <CountrySelect value={country} onChange={handleCountryChange} />
+    <span
+      className={`${styles.phoneCountry}${
+        value.isPhoneVerified ? ` ${styles.phoneCountryDisabled}` : ""
+      }`}
+    >
+      <CountrySelect
+        value={country}
+        onChange={handleCountryChange}
+        disabled={value.isPhoneVerified}
+      />
       <span className={styles.phoneDial}>{dialCode}</span>
     </span>
   );
@@ -143,7 +151,7 @@ export default function ContactInformationStep({
           onChange={(event) => patch({ firstName: event.target.value })}
         />
 
-        <Group grow align="flex-start">
+        <Group grow gap={24} align="flex-start">
           <Field
             label="Last Name"
             withAsterisk
@@ -160,7 +168,7 @@ export default function ContactInformationStep({
           />
         </Group>
 
-        <Group grow align="flex-start">
+        <Group grow gap={24} align="flex-start">
           <Field
             label="Email"
             withAsterisk
@@ -181,13 +189,13 @@ export default function ContactInformationStep({
             onChange={(event) => patch({ email: event.target.value })}
           />
           <Field
-            label="Mobile Number"
+            label="Mobile number"
+            withAsterisk
             type="tel"
             inputMode="numeric"
             placeholder="987 654 3210"
             value={formatNationalNumber(nationalNumber, country)}
             sectionLeft={phoneCountrySection}
-            sectionDivider
             sectionPointerEvents="auto"
             sectionRight={
               value.isPhoneVerified ? (
@@ -236,9 +244,9 @@ export default function ContactInformationStep({
             <Field
               label="Address"
               withAsterisk
-              placeholder="123 Street, City, Country"
+              placeholder="Search address"
               value={value.address}
-              sectionLeft={<MarkerPin01 width={18} height={18} color="#717680" />}
+              sectionLeft={<MarkerPin01 width={20} height={20} color="#717680" />}
               sectionWidth={40}
               onChange={(event) => patch({ address: event.target.value })}
             />

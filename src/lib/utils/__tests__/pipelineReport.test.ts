@@ -2,6 +2,7 @@ import {
   getReportStages, getFormattedStages, getStageCounts,
   groupByParentChild, buildPipelineReportParams, getExtraColumnValue,
   combineTimelineStages, relativeTimeShort, csvEscape, isoDateOnly,
+  mergeEnabledState,
 } from "../pipelineReport";
 
 const career = (over: any = {}) => ({
@@ -167,6 +168,32 @@ describe("getExtraColumnValue", () => {
     expect(getExtraColumnValue(career({ headcount: "5" }), "Headcount")).toBe("5");
     expect(getExtraColumnValue(career({ notes: undefined }), "Notes")).toBe("-");
     expect(getExtraColumnValue(career({ notes: "urgent req" }), "Notes")).toBe("urgent req");
+  });
+});
+
+describe("mergeEnabledState (Customize Columns persistence)", () => {
+  it("carries existing enabled flags onto fresh stages/substages by label", () => {
+    const { stages: fresh } = getReportStages([career()]);
+    const existing = [{
+      ...fresh[0],
+      enabled: false,
+      substages: fresh[0].substages.map((s, i) => ({ ...s, enabled: i !== 0 })),
+    }];
+    const merged = mergeEnabledState(fresh, existing);
+    expect(merged[0].enabled).toBe(false);
+    expect(merged[0].substages.map((s) => s.enabled)).toEqual([false, true]);
+  });
+  it("keeps fetched defaults for stages/substages without an existing match", () => {
+    const { stages: fresh } = getReportStages([career()]);
+    expect(mergeEnabledState(fresh, [])[0].enabled).toBe(true);
+    const renamed = [{ ...fresh[0], label: "Different Stage", enabled: false }];
+    expect(mergeEnabledState(fresh, renamed)[0].enabled).toBe(true);
+  });
+  it("is driven by the fresh list: existing-only stages do not reappear", () => {
+    const { stages: fresh } = getReportStages([career()]);
+    const ghost = { ...fresh[0], label: "Gone Stage" };
+    const merged = mergeEnabledState(fresh, [ghost, ...fresh]);
+    expect(merged.map((s) => s.label)).toEqual(fresh.map((s) => s.label));
   });
 });
 

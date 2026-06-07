@@ -106,6 +106,28 @@ export function getReportStages(careers: any[]): { stages: StageDescriptor[]; of
   return { stages, offerStages };
 }
 
+// Reconciles freshly fetched stage descriptors with the user's Customize Columns
+// selections: enabled flags are label-matched from `existing` onto `fresh`; stages and
+// substages without a match (first fetch, or stages newly present after a filter/page
+// change) keep their fetched default (enabled). Used by the table fetch (selections
+// persist across page/filter/sort changes) and the export path (export honors the table).
+export function mergeEnabledState(fresh: StageDescriptor[], existing: StageDescriptor[]): StageDescriptor[] {
+  return fresh.map((stage) => {
+    const existingStage = existing.find((s) => s.label === stage.label);
+    return {
+      ...stage,
+      enabled: existingStage ? existingStage.enabled : stage.enabled,
+      substages: stage.substages.map((substage) => {
+        const existingSubstage = existingStage?.substages.find((s) => s.label === substage.label);
+        return {
+          ...substage,
+          enabled: existingSubstage ? existingSubstage.enabled : substage.enabled,
+        };
+      }),
+    };
+  });
+}
+
 const isPerStage = (type: string) => type === "Show per stage";
 
 // Port of getTableData() lines 296-339 (column descriptor building). Pure.

@@ -16,7 +16,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams, csvEscape, isoDateOnly, type ColumnVisibility } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams, csvEscape, isoDateOnly, mergeEnabledState, type ColumnVisibility } from "@/lib/utils/pipelineReport";
 
 // Display-only header rename (the underlying stage key stays "Human Interview" so
 // stage matching, exports, and the API contract are unaffected); sortable header set.
@@ -113,16 +113,15 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 setPipelineReport(response.data.careers)
                 setTotalCareers(response.data.totalCareers);
                 const { stages, offerStages } = getReportStages(response.data.careers);
-                // NOTE: every fetch (page/filter change) rebuilds stage columns from the new
-                // result set and resets type/dropped/otherColumns to defaults — pre-T3 behavior,
-                // kept intact (see recommendations: persisting customizations across fetches).
-                setColumnVisibility({
-                    type: "Show per stage",
-                    includeDroppedCandidates: false,
-                    stages: stages,
-                    offerStages: offerStages,
-                    otherColumns: { "Created Date": false, "Headcount": false, "Notes": false },
-                });
+                // Persist the user's Customize Columns selections across page/filter/sort
+                // changes: type/dropped/otherColumns carry over, and stage/substage enabled
+                // flags are label-merged onto the freshly fetched lists (stages new to the
+                // result set default to enabled). Previously every fetch reset everything.
+                setColumnVisibility((prev) => ({
+                    ...prev,
+                    stages: mergeEnabledState(stages, prev.stages),
+                    offerStages: mergeEnabledState(offerStages, prev.offerStages),
+                }));
             } catch (error) {
                 console.error(error);
                 errorToast("Error fetching pipeline report", 1300);
@@ -224,20 +223,6 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
             // Re-apply the user's Customize Columns selections (label-matched) onto the
             // freshly fetched stage list so the export honors what the table shows.
             // Stages absent from the current view keep their fetched default (enabled).
-            const mergeEnabledState = (fresh: any[], existing: any[]) => fresh.map((stage: any) => {
-                const existingStage = existing.find((s: any) => s.label === stage.label);
-                return {
-                    ...stage,
-                    enabled: existingStage ? existingStage.enabled : stage.enabled,
-                    substages: stage.substages.map((substage: any) => {
-                        const existingSubstage = existingStage?.substages.find((s: any) => s.label === substage.label);
-                        return {
-                            ...substage,
-                            enabled: existingSubstage ? existingSubstage.enabled : substage.enabled,
-                        }
-                    }),
-                }
-            });
             const updatedStages = mergeEnabledState(stages, columnVisibility.stages);
             const updatedOfferStages = mergeEnabledState(offerStages, columnVisibility.offerStages);
             const formattedData = getTableData({

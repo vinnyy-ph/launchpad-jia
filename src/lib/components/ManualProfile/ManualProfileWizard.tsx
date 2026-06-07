@@ -244,10 +244,20 @@ export default function ManualProfileWizard({
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const uniqRes = await api.post("/api/job-portal/check-phone-unique", {
-        phone: data.contact.phone,
-        email: data.contact.email,
-      });
+      // Distinct copy per failure: a transient uniqueness-check error is not a
+      // save failure — tell the user which half went wrong.
+      let uniqRes;
+      try {
+        uniqRes = await api.post("/api/job-portal/check-phone-unique", {
+          phone: data.contact.phone,
+          email: data.contact.email,
+        });
+      } catch {
+        setSubmitError(
+          "We couldn't verify your mobile number. Please check your connection and try again.",
+        );
+        return;
+      }
       if (uniqRes?.data?.unique === false) {
         setSubmitError("That mobile number is already linked to another account.");
         setStepIndex(0);

@@ -2296,7 +2296,8 @@ export default function ManageCareerPage() {
                   {career && (
                     <>
                       <CareerStatusBadges career={formData} />
-                      {activeTab === "career-settings" && (
+                      {/* Archived careers must be restored before their status can change (kept in sync with the update-career guard). */}
+                      {activeTab === "career-settings" && !formData.archived && (
                         <button
                           onClick={() => setShowCareerStatusModal(true)}
                           style={{

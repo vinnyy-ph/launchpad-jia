@@ -1,7 +1,7 @@
 import {
   getReportStages, getFormattedStages, getStageCounts,
   groupByParentChild, buildPipelineReportParams, getExtraColumnValue,
-  combineTimelineStages, relativeTimeShort, csvEscape,
+  combineTimelineStages, relativeTimeShort, csvEscape, isoDateOnly,
 } from "../pipelineReport";
 
 const career = (over: any = {}) => ({
@@ -167,6 +167,18 @@ describe("getExtraColumnValue", () => {
     expect(getExtraColumnValue(career({ headcount: "5" }), "Headcount")).toBe("5");
     expect(getExtraColumnValue(career({ notes: undefined }), "Notes")).toBe("-");
     expect(getExtraColumnValue(career({ notes: "urgent req" }), "Notes")).toBe("urgent req");
+  });
+});
+
+describe("isoDateOnly (export Created Date format)", () => {
+  it("formats any parseable input as YYYY-MM-DD", () => {
+    expect(isoDateOnly("2026-01-10T08:30:00.000Z")).toBe("2026-01-10");
+    expect(isoDateOnly(new Date("2025-12-31T23:59:59Z"))).toBe("2025-12-31");
+  });
+  it("falls back to '-' for missing or unparseable input", () => {
+    expect(isoDateOnly(null)).toBe("-");
+    expect(isoDateOnly(undefined)).toBe("-");
+    expect(isoDateOnly("not-a-date")).toBe("-");
   });
 });
 

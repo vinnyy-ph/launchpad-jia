@@ -278,6 +278,15 @@ export function relativeTimeShort(input: any): string {
   return `${Math.floor(day / 365)}y ago`;
 }
 
+// Exports emit an ABSOLUTE date for Created Date (ISO YYYY-MM-DD): the on-screen
+// relative string ("2w ago") goes stale the moment the file is opened and doesn't
+// sort in a spreadsheet. The table keeps the relative format (JIA-431).
+export function isoDateOnly(input: any): string {
+  if (!input) return "-";
+  const t = new Date(input);
+  return isNaN(t.getTime()) ? "-" : t.toISOString().slice(0, 10);
+}
+
 // Value for the JIA-431 "Others" columns. Created Date = relative time; Notes/Headcount gracefully default.
 export function getExtraColumnValue(career: any, key: ExtraColumnKey): string {
   if (key === "Headcount") return career.headcount != null && career.headcount !== "" ? String(career.headcount) : "-";

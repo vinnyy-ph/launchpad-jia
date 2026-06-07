@@ -16,7 +16,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams, csvEscape, type ColumnVisibility } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams, csvEscape, isoDateOnly, type ColumnVisibility } from "@/lib/utils/pipelineReport";
 
 // Display-only header rename (the underlying stage key stays "Human Interview" so
 // stage matching, exports, and the API contract are unaffected); sortable header set.
@@ -165,6 +165,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
             if (header === "Notes") {
                 return row.metadata?.notes ?? "-";
             }
+            if (header === "Created Date") {
+                // Exports get an absolute ISO date; the table keeps the relative string.
+                return isoDateOnly(row.metadata?.createdAt);
+            }
             return row[header];
         };
         const csvContent = newHeaders.map(csvEscape).join(",") + "\n" + formattedData.rows.map((row: any) =>
@@ -194,6 +198,8 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 if (header === "Job Post Type") return row.metadata.jobPostType;
                 if (header === "Job Title") return typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
                 if (header === "Notes") return row.metadata?.notes ?? "-";
+                // Exports get an absolute ISO date; the table keeps the relative string.
+                if (header === "Created Date") return isoDateOnly(row.metadata?.createdAt);
                 return row[header];
             })),
         ];
@@ -375,6 +381,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     metadata: {
                         _id: item._id,
                         jobTitle: item.jobTitle || "-",
+                        createdAt: item.createdAt,
                         notes: hasNote ? String(item.notes) : "-",
                         jobOwner: item.teamMembers?.find((member: any) => member.role === "Job Owner") || item.createdBy,
                         publishedStatus: item.status === "active" ? "Published" : "Unpublished",

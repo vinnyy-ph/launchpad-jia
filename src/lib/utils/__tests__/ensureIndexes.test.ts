@@ -12,6 +12,9 @@ describe("ensureCareerFetchIndexes", () => {
     const { db, createIndex } = mockDb();
     await ensureCareerFetchIndexes(db);
     expect(createIndex).toHaveBeenCalledTimes(CAREER_FETCH_INDEXES.length);
+    for (const { collection } of CAREER_FETCH_INDEXES) {
+      expect(db.collection).toHaveBeenCalledWith(collection);
+    }
   });
 
   it("declares the seven indexes from the spec", () => {

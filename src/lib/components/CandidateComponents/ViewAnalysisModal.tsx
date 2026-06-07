@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   CvAnalysisV2,
   AnalysisTab,
@@ -54,6 +54,16 @@ function StatusPill({ status }: { status: QualificationStatus }) {
 export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvAnalysisV2; onClose: () => void }) {
   const [tab, setTab] = useState<AnalysisTab>("all");
   const [page, setPage] = useState(0); // 0-based
+
+  // Escape-to-close. The component only mounts while open, so the listener's
+  // lifecycle is tied to the modal being visible.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
 
   const quals = analysis.qualifications;
   const summary = useMemo(() => summarizeBuckets(quals), [quals]);

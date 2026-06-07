@@ -64,6 +64,25 @@ export function getReportStages(careers: any[]): { stages: StageDescriptor[]; of
         pushParent(stages);
       } else if (["4"].includes(stage.id) && !offerStages.find((s) => s.stageId === stage.id)) {
         pushParent(offerStages);
+      } else if (["4"].includes(stage.id)) {
+        // Offer-stage entry already exists: merge any NEW substages a later career
+        // introduces (mirror of the stages merge below). Without this branch a
+        // Job Offer substage first seen on a later career never got a column and
+        // its candidates were uncounted in per-sub-stage mode.
+        const idx = offerStages.findIndex((s) => s.stageId === stage.id);
+        if (idx !== -1) {
+          const merged = { ...offerStages[idx] };
+          for (const substage of stage.substages) {
+            const label = `${stage.name} - ${substage.name}`;
+            if (!merged.substages.find((s) => s.label === label)) {
+              merged.substages.push({
+                label, stageId: stage.id, substageId: substage.id,
+                candidates: substage.candidates, droppedCandidates: substage.droppedCandidates, enabled: true,
+              });
+            }
+          }
+          offerStages[idx] = merged;
+        }
       } else if (!["1", "2", "3", "4"].includes(stage.id) && !existingStage) {
         pushParent(stages);
       } else if (!["4"].includes(stage.id) && existingStage) {

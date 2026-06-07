@@ -47,10 +47,10 @@ describe("getReportStages", () => {
     ]);
   });
 
-  // Pins a known gap (see refactors/t3/recommendations.md): the merge branch only runs
-  // for non-offer stages, so a NEW Job Offer substage introduced by a later career is
-  // not added to the existing offerStages entry. Kept as-is to avoid count drift.
-  it("does not merge new offer-stage substages from later careers (current behavior)", () => {
+  // Was a pinned gap (see refactors/t3/recommendations.md R1), fixed in the deferred-
+  // cleanup session: a NEW Job Offer substage introduced by a later career now merges
+  // into the existing offerStages entry, so its column appears and its candidates count.
+  it("merges new offer-stage substages from later careers into the existing entry", () => {
     const c2 = career({ timelineStages: [
       { id: "4", name: "Job Offer", substages: [
         { id: "9", name: "Negotiation", candidates: [{}], droppedCandidates: [] },
@@ -58,7 +58,12 @@ describe("getReportStages", () => {
     ] });
     const { offerStages } = getReportStages([career(), c2]);
     expect(offerStages).toHaveLength(1);
-    expect(offerStages[0].substages.map((s: any) => s.label)).toEqual(["Job Offer - For Final Review"]);
+    expect(offerStages[0].substages.map((s: any) => s.label)).toEqual([
+      "Job Offer - For Final Review", "Job Offer - Negotiation",
+    ]);
+    // and it does not duplicate substages both careers share
+    const { offerStages: again } = getReportStages([career(), career()]);
+    expect(again[0].substages.map((s: any) => s.label)).toEqual(["Job Offer - For Final Review"]);
   });
 });
 

@@ -14,8 +14,8 @@ export const getApplicantsFilter = (
   filterStageId: string | null,
   filterSubstageId: string | null,
   filterStatus: string | null
-): Record<string, any> => {
-  const filter: any = { id: careerID };
+): Record<string, unknown> => {
+  const filter: Record<string, unknown> = { id: careerID };
   if (search) filter.name = { $regex: search, $options: "i" };
   if (filterStatus) {
     if (filterStatus === "All Statuses") {
@@ -54,6 +54,9 @@ const EVALUATIONS_LOOKUP = {
     from: "recruiter-evaluations",
     let: {
       interviewUID: { $toString: "$_id" },
+      // Action rule: Dropped applicants read their latest "Dropped" evaluation,
+      // everyone else (incl. null status) reads "Endorsed". The same rule is
+      // re-stated in JS in joinInterviewBatches() — keep the two in sync.
       status: {
         $cond: { if: { $ne: ["$applicationStatus", "Dropped"] }, then: "Endorsed", else: "Dropped" },
       },
@@ -102,6 +105,9 @@ export function buildApplicantsPipeline(args: {
     { $sort: sort },
     { $skip: (page - 1) * limit },
     { $limit: limit },
+    // $project sits after $limit on purpose: $sort→$skip→$limit is a top-k sort
+    // (memory ∝ skip+limit docs, not the career size), so only the returned page
+    // pays the projection — and, more importantly, the $lookup below it.
     { $project: Object.fromEntries(APPLICANT_OUTPUT_FIELDS.map((f) => [f, 1])) },
     EVALUATIONS_LOOKUP,
     { $addFields: { currentEvaluation: { $arrayElemAt: ["$evaluations", 0] } } },
@@ -187,6 +193,8 @@ export function joinInterviewBatches<T extends { _id: unknown; interviewID?: unk
 
   return interviews.map((iv) => {
     const uid = String(iv._id);
+    // Same action rule as EVALUATIONS_LOOKUP's $cond (applicants endpoint) —
+    // null/missing status falls in the "Endorsed" branch in both. Keep in sync.
     const action = iv.applicationStatus !== "Dropped" ? "Endorsed" : "Dropped";
     const counts = countsById.get(iv.interviewID) ?? { commentCount: 0, newCommentCount: 0 };
     return {

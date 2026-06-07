@@ -3,7 +3,7 @@ import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { ObjectId } from "mongodb";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { logActivity } from "@/lib/utils/activityLogger";
-import { isCareerJobOwner } from "@/lib/utils/careerArchive";
+import { isCareerJobOwner, restoreCareerUpdate } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
@@ -22,7 +22,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     // Restore = un-archive only. Publish state stays unpublished + inactive (per spec).
     await db.collection("careers").updateOne(
       { _id: new ObjectId(id) },
-      { $set: { archived: false, archivedAt: null, updatedAt: new Date() } }
+      restoreCareerUpdate()
     );
 
     try {

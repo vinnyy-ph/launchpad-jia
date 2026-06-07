@@ -108,3 +108,19 @@ export function undoCareerUpdate(career: { status?: string | null; activityStatu
     $unset: { archivedAt: "", archivedBy: "", archiveBatchId: "", statusBeforeArchive: "", activityStatusBeforeArchive: "" },
   };
 }
+
+/**
+ * The { $set, $unset } update for an explicit Restore (the modal/banner action,
+ * not the undo toast): un-archive only — publish state stays unpublished +
+ * inactive per spec/Figma, so no status keys here. $unsets the same
+ * bookkeeping fields undoCareerUpdate clears: a restored career must not keep
+ * a stale archiveBatchId (a late undo-archive of its old batch would re-run
+ * the un-drop against it), and the doc shape stays consistent (fields absent,
+ * not archivedAt: null residue).
+ */
+export function restoreCareerUpdate() {
+  return {
+    $set: { archived: false, updatedAt: new Date() },
+    $unset: { archivedAt: "", archivedBy: "", archiveBatchId: "", statusBeforeArchive: "", activityStatusBeforeArchive: "" },
+  };
+}

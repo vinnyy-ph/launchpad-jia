@@ -7,6 +7,7 @@ import {
   planArchiveTargets,
   archiveCareerPatch,
   undoCareerUpdate,
+  restoreCareerUpdate,
   isCareerJobOwner,
 } from "@/lib/utils/careerArchive";
 
@@ -116,5 +117,18 @@ describe("undoCareerUpdate", () => {
   it("falls back to current status when no prior captured", () => {
     const u = undoCareerUpdate({ status: "inactive", activityStatus: "Inactive" });
     expect(u.$set.status).toBe("inactive");
+  });
+});
+
+describe("restoreCareerUpdate", () => {
+  it("un-archives without touching publish/activity status", () => {
+    const r = restoreCareerUpdate();
+    expect(r.$set).toMatchObject({ archived: false });
+    expect(r.$set).not.toHaveProperty("status");
+    expect(r.$set).not.toHaveProperty("activityStatus");
+  });
+
+  it("clears the same bookkeeping fields undo does (no batch-id residue)", () => {
+    expect(restoreCareerUpdate().$unset).toEqual(undoCareerUpdate({}).$unset);
   });
 });

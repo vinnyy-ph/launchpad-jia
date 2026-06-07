@@ -779,7 +779,7 @@ export default function CareersV2Table() {
                                               setShowSaveModal("publish");
                                             }}
                                           >
-                                            <i className="la la-eye-slash mr-2" style={{ fontSize: 16 }}></i>
+                                            <i className="la la-eye mr-2" style={{ fontSize: 16 }}></i>
                                             <span>Publish career</span>
                                           </div>
                                         ) : (

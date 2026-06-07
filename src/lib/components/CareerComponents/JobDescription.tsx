@@ -324,15 +324,18 @@ export default function JobDescription({ formData, setFormData, isEditing, setIs
                   </div>
 
                       <div className="layered-card-content">
+                        {/* Restore is a non-destructive action — neutral styling + redo icon;
+                            Archive keeps the cautionary red. Copy reflects that archive is
+                            reversible (Restore + the toast Undo), not a hard delete. */}
                         <button
                         onClick={() => {
                           formData.archived ? openRestore(formData) : openArchive(formData);
                         }}
-                        style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,backgroundColor: "#FFFFFF", color: "#B32318", borderRadius: "60px", padding: "5px 10px", border: "1px solid #B32318", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
-                                <i className="la la-archive" style={{ color: "#B32318", fontSize: 16 }}></i>
+                        style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,backgroundColor: "#FFFFFF", color: formData.archived ? "#414651" : "#B32318", borderRadius: "60px", padding: "5px 10px", border: formData.archived ? "1px solid #D5D7DA" : "1px solid #B32318", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
+                                <i className={formData.archived ? "la la-redo-alt" : "la la-archive"} style={{ color: formData.archived ? "#414651" : "#B32318", fontSize: 16 }}></i>
                                 <span>{formData.archived ? "Restore this career" : "Archive this career"}</span>
                         </button>
-                        <span style={{ fontSize: "14px", color: "#717680", textAlign: "center" }}>Be careful, this action cannot be undone.</span>
+                        <span style={{ fontSize: "14px", color: "#717680", textAlign: "center" }}>{formData.archived ? "Restoring returns this career to your active list." : "You can restore this career later from the Archived view."}</span>
                     </div>
                   </div>
                 </div>

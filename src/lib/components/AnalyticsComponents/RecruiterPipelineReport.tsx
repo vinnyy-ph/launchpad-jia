@@ -16,7 +16,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams, type ColumnVisibility } from "@/lib/utils/pipelineReport";
 
 // Display-only header rename (the underlying stage key stays "Human Interview" so
 // stage matching, exports, and the API contract are unaffected); sortable header set.
@@ -44,12 +44,12 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         // TODO: Add deal status filter
       });
     const [isCustomizeColumnModalOpen, setIsCustomizeColumnModalOpen] = useState(false);
-    const [columnVisibility, setColumnVisibility] = useState({
+    const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
         type: "Show per stage",
         includeDroppedCandidates: false,
         stages: [],
         offerStages: [],
-        otherColumns: { "Created Date": false, "Headcount": false, "Notes": false } as Record<string, boolean>,
+        otherColumns: { "Created Date": false, "Headcount": false, "Notes": false },
     });
     // Server-side sort default. The "Sort by" dropdown was removed in the Figma fidelity
     // pass (column-header sorting replaced it), so this is a constant, not state.
@@ -253,10 +253,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         }
     }
 
-    const getTableData = (columnVisibility: any, pipelineReport: any[], opts?: { allRows?: boolean }) => {
+    const getTableData = (columnVisibility: ColumnVisibility, pipelineReport: any[], opts?: { allRows?: boolean }) => {
         const formattedStages = getFormattedStages(columnVisibility);
-        const enabledOthers = (Object.keys(columnVisibility.otherColumns || {}) as string[])
-            .filter((k) => columnVisibility.otherColumns[k]);
+        const enabledOthers = Object.keys(columnVisibility.otherColumns || {})
+            .filter((k) => columnVisibility.otherColumns?.[k]);
         const headers = ["#", "Job Title", "Project", "Job Owner", "Status",
             ...formattedStages.map((stage) => stage.label), ...enabledOthers];
         const grouped = groupByParentChild(pipelineReport);

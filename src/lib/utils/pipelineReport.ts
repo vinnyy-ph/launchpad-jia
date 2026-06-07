@@ -10,23 +10,44 @@ export interface FormattedStage {
   parentStageLabel?: string;
 }
 
+// Stage/substage descriptors built by getReportStages and carried in ColumnVisibility.
+// `candidates`/`droppedCandidates` stay loosely typed — they mirror untyped API data
+// and the report only ever reads `.length` on them.
+export interface SubstageDescriptor {
+  label: string;
+  stageId: string;
+  substageId: string;
+  candidates: any[];
+  droppedCandidates: any[];
+  enabled: boolean;
+}
+
+export interface StageDescriptor {
+  label: string;
+  stageId: string;
+  enabled: boolean;
+  substages: SubstageDescriptor[];
+}
+
 export interface ColumnVisibility {
   type: ColumnMode;
   includeDroppedCandidates: boolean;
-  stages: any[];
-  offerStages: any[];
+  stages: StageDescriptor[];
+  offerStages: StageDescriptor[];
+  /** JIA-431 "Others" columns (Created Date / Headcount / Notes) → shown? */
+  otherColumns?: Record<string, boolean>;
 }
 
 // Port of the original inline getStages(). Pure: builds stage/offerStage descriptors
 // (with substages carrying candidates/droppedCandidates) from the fetched careers.
-export function getReportStages(careers: any[]): { stages: any[]; offerStages: any[] } {
-  const stages: any[] = [];
-  const offerStages: any[] = [];
+export function getReportStages(careers: any[]): { stages: StageDescriptor[]; offerStages: StageDescriptor[] } {
+  const stages: StageDescriptor[] = [];
+  const offerStages: StageDescriptor[] = [];
   careers.forEach((item: any) => {
     item.timelineStages.forEach((stage: any) => {
       const existingStage = stages.find((s) => s.label === stage.name);
-      const pushParent = (target: any[]) => {
-        const parentStage: any = { label: stage.name, stageId: stage.id, enabled: true, substages: [] };
+      const pushParent = (target: StageDescriptor[]) => {
+        const parentStage: StageDescriptor = { label: stage.name, stageId: stage.id, enabled: true, substages: [] };
         stage.substages.forEach((substage: any) => {
           parentStage.substages.push({
             label: `${stage.name} - ${substage.name}`,
@@ -51,7 +72,7 @@ export function getReportStages(careers: any[]): { stages: any[]; offerStages: a
           const merged = { ...stages[idx] };
           for (const substage of stage.substages) {
             const label = `${stage.name} - ${substage.name}`;
-            if (!merged.substages.find((s: any) => s.label === label)) {
+            if (!merged.substages.find((s) => s.label === label)) {
               merged.substages.push({
                 label, stageId: stage.id, substageId: substage.id,
                 candidates: substage.candidates, droppedCandidates: substage.droppedCandidates, enabled: true,
@@ -82,7 +103,7 @@ export function getFormattedStages(columnVisibility: ColumnVisibility): Formatte
     });
   } else {
     allStages.forEach((stage) => {
-      stage.substages.forEach((substage: any) => {
+      stage.substages.forEach((substage) => {
         if (formattedStages.find((s) => s.label === substage.label) || !substage.enabled) return;
         formattedStages.push({ label: substage.label, stageId: stage.stageId, substageId: substage.substageId, parentStageLabel: stage.label });
         if (columnVisibility.includeDroppedCandidates) {

@@ -207,6 +207,7 @@ export default function ManualProfileWizard({
   const [showDiscard, setShowDiscard] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const {
     generating: generatingIntro,
@@ -609,6 +610,16 @@ export default function ManualProfileWizard({
     // Block + reveal all errors when the step is invalid.
     if (Object.keys(stepErrors).length > 0) {
       setShowAllErrors(true);
+      // a11y: move focus to the first invalid control once the errors render —
+      // keyboard/SR users otherwise get silence. aria-invalid is set by DS
+      // Field/Textarea and the T5 custom controls (url combo, rich-text).
+      // Controls without it (date Selects, collapsed accordion entries) keep
+      // today's no-focus behavior.
+      requestAnimationFrame(() => {
+        cardRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.focus();
+      });
       return;
     }
     setSectionStatus((s) => nextSectionStatus(s, stepIndex, "submit"));
@@ -703,7 +714,7 @@ export default function ManualProfileWizard({
         </span>
       </div>
 
-      <div className={styles.card}>
+      <div className={styles.card} ref={cardRef}>
         <div className={styles.progressTrack}>
           <div className={styles.progressFill} style={progressFillStyle} />
         </div>

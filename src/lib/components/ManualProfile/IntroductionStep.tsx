@@ -37,6 +37,8 @@ export default function IntroductionStep({
             placeholder="Tell us about yourself — what you do, what you're good at, and what you're looking for."
             value={value}
             onChange={onChange}
+            invalid={Boolean(errors?.introduction)}
+            describedBy={errors?.introduction ? "introduction-error" : undefined}
           />
         </div>
         {generating && (
@@ -52,7 +54,11 @@ export default function IntroductionStep({
       </div>
 
       {!generating && errors?.introduction && (
-        <p className={styles.fieldError}>{errors.introduction}</p>
+        // role="alert" matches the generate-error twin below; id pairs with the
+        // editor's aria-describedby.
+        <p id="introduction-error" className={styles.fieldError} role="alert">
+          {errors.introduction}
+        </p>
       )}
       {!generating && generateError && (
         <p className={styles.fieldError} role="alert">

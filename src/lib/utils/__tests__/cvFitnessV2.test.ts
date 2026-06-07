@@ -1,10 +1,12 @@
 import {
   hasStructuredQualifications,
+  normalizeStructuredDescription,
   deriveLegacyDescription,
   summarizeBuckets,
   filterQualificationsByTab,
   parseStructuredAnalysis,
   buildStructuredScreeningPrompt,
+  stripHtml,
   StructuredCareerDescription,
   QualificationResult,
 } from "../cvFitnessV2";
@@ -35,6 +37,64 @@ describe("hasStructuredQualifications", () => {
   });
   it("is true when at least one qualification exists", () => {
     expect(hasStructuredQualifications({ structuredDescription: structured })).toBe(true);
+  });
+  it("ignores blank qualification rows (R5 fix: blanks no longer route a career to V2)", () => {
+    expect(
+      hasStructuredQualifications({
+        structuredDescription: { overview: "", rolesAndResponsibilities: "", requiredQualifications: [""], preferredQualifications: [] },
+      })
+    ).toBe(false);
+    expect(
+      hasStructuredQualifications({
+        structuredDescription: { overview: "", rolesAndResponsibilities: "", requiredQualifications: ["  ", ""], preferredQualifications: [] },
+      })
+    ).toBe(false);
+    expect(
+      hasStructuredQualifications({
+        structuredDescription: { overview: "", rolesAndResponsibilities: "", requiredQualifications: [""], preferredQualifications: ["real"] },
+      })
+    ).toBe(true);
+  });
+  it("is false for null/undefined career", () => {
+    expect(hasStructuredQualifications(null)).toBe(false);
+    expect(hasStructuredQualifications(undefined)).toBe(false);
+  });
+});
+
+describe("normalizeStructuredDescription", () => {
+  it("drops blank qualification rows from both lists", () => {
+    const messy: StructuredCareerDescription = {
+      overview: "<p>o</p>",
+      rolesAndResponsibilities: "",
+      requiredQualifications: ["real", "", "  "],
+      preferredQualifications: ["", "kept"],
+    };
+    expect(normalizeStructuredDescription(messy)).toEqual({
+      overview: "<p>o</p>",
+      rolesAndResponsibilities: "",
+      requiredQualifications: ["real"],
+      preferredQualifications: ["kept"],
+    });
+  });
+  it("returns a new object and does not mutate its input", () => {
+    const input: StructuredCareerDescription = { overview: "", rolesAndResponsibilities: "", requiredQualifications: [""], preferredQualifications: [] };
+    const out = normalizeStructuredDescription(input);
+    expect(out).not.toBe(input);
+    expect(input.requiredQualifications).toEqual([""]);
+  });
+  it("keeps non-blank rows byte-identical (no trimming)", () => {
+    const input: StructuredCareerDescription = { overview: "", rolesAndResponsibilities: "", requiredQualifications: [" padded "], preferredQualifications: [] };
+    expect(normalizeStructuredDescription(input).requiredQualifications).toEqual([" padded "]);
+  });
+});
+
+describe("stripHtml", () => {
+  it("strips tags and trims", () => {
+    expect(stripHtml("<p> hello <b>world</b> </p>")).toBe("hello world");
+  });
+  it("handles empty and null-ish input", () => {
+    expect(stripHtml("")).toBe("");
+    expect(stripHtml(undefined as unknown as string)).toBe("");
   });
 });
 
@@ -112,6 +172,21 @@ describe("parseStructuredAnalysis", () => {
   });
   it("throws on malformed JSON", () => {
     expect(() => parseStructuredAnalysis("not json", 0)).toThrow();
+  });
+  it("fails safe on unknown vocabulary and a non-array qualifications field", () => {
+    const unknownStatus = JSON.stringify({
+      matchScore: "not-a-number",
+      qualifications: [{ type: "bonus", text: "X", status: "unsure", evidence: 7 }],
+    });
+    expect(parseStructuredAnalysis(unknownStatus, 0)).toEqual({
+      matchScore: 0,
+      overallFit: "N/A",
+      summary: "",
+      qualifications: [{ type: "required", text: "X", status: "missing", evidence: "7" }],
+      generatedAt: 0,
+    });
+    const nonArray = JSON.stringify({ matchScore: 10, overallFit: "x", summary: "y", qualifications: "nope" });
+    expect(parseStructuredAnalysis(nonArray, 0).qualifications).toEqual([]);
   });
 });
 

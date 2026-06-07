@@ -27,9 +27,7 @@ export default function SkillsStep({
         size="sm"
         placeholder="Enter skill (ex. Project Management)"
         value={draft}
-        onChange={(event) =>
-          setDraft((event as React.ChangeEvent<HTMLInputElement>).target.value)
-        }
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => setDraft(event.target.value)}
         onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
           if (event.key === "Enter") {
             event.preventDefault();

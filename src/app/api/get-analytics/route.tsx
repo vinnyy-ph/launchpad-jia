@@ -45,6 +45,17 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
 
         const hasFullAccess = authUserRole?.role === "admin" || authUserRole?.role === "recruiter" || !!adminAccount;
         let careerIds: string[] = careerFilter;
+
+        // Archived careers stay out of analytics (T4). The careers-collection reads
+        // below are gated via withExcludeArchived, but the interviews-collection
+        // aggregations can only exclude by career id — resolve the org's archived
+        // ids once so every unfiltered interview match can $nin them.
+        const archivedCareers = await db.collection("careers")
+            .find({ orgID, archived: true })
+            .project({ _id: 1, id: 1 })
+            .toArray();
+        const archivedCareerIds: string[] = archivedCareers.map((c: any) => c.id).filter(Boolean);
+        const archivedCareerMongoIds: string[] = archivedCareers.map((c: any) => c._id?.toString()).filter(Boolean);
         
         if (!hasFullAccess) {
             const assignedCareers = await db.collection("careers").find(withExcludeArchived({
@@ -52,7 +63,11 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
                 "teamMembers.email": userEmail,
             })).project({ _id: 1, id: 1 }).toArray();
             const assignedCareerIds = assignedCareers.map((c: any) => c.id);
-            const allowedCareerIds = [...new Set([...(authUserRole?.careers || []), ...assignedCareerIds])];
+            // The member doc's raw career list is never archive-filtered — drop
+            // archived ids so a member whose careers are all archived gets the
+            // "No careers assigned" response instead of unscoped analytics.
+            const allowedCareerIds = [...new Set([...(authUserRole?.careers || []), ...assignedCareerIds])]
+                .filter((id) => !archivedCareerIds.includes(id));
 
             if (careerIds.length > 0) {
                 careerIds = careerIds.filter((id) => allowedCareerIds.includes(id));
@@ -75,10 +90,10 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
             }).project({ _id: 1, careers: 1 }).toArray();
             projectCareerIds = projects.flatMap(project => project.careers.map(c => new ObjectId(c)) || []);
 
-            const careers = await db.collection("careers").find({
+            const careers = await db.collection("careers").find(withExcludeArchived({
                 orgID: orgID,
                 _id: { $in: projectCareerIds },
-            }).project({ _id: 1, id: 1 }).toArray();
+            })).project({ _id: 1, id: 1 }).toArray();
             const careerIdsArray = careers.map((c: any) => c.id);
             
             if (careerIds.length > 0) {
@@ -107,7 +122,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
             memberFilters.push(...hiringManagerFilter.map((h) => ({ email: h, role: "Hiring Manager" })));
         }
 
-        const activeCareersData = await getActiveCareers(db, orgID, careerIds, dateFilter, memberFilters);
+        const activeCareersData = await getActiveCareers(db, orgID, careerIds, dateFilter, memberFilters, archivedCareerMongoIds);
         const hasCareerFilters = careerFilter.length > 0 || projectFilter.length > 0 || jobOwnerFilter.length > 0 || contributorFilter.length > 0 || hiringManagerFilter.length > 0;
 
         if (hasCareerFilters && activeCareersData.selectedCareers.length === 0) {
@@ -125,7 +140,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
                 data: activeCareersData.data,
             });
         } else if (metricType === "new-applicants") {
-            const newApplicantsData = await getNewApplicants(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter);
+            const newApplicantsData = await getNewApplicants(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds);
             return NextResponse.json({
                 metricValue: newApplicantsData.currentValue,
                 pastValue: newApplicantsData.pastValue,
@@ -134,7 +149,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
                 data: newApplicantsData.data,
             })
         } else if (metricType === "hires") {
-            const hires = await getHires(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter);
+            const hires = await getHires(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds);
             return NextResponse.json({
                 metricValue: hires.currentValue,
                 pastValue: hires.pastValue,
@@ -143,7 +158,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
                 data: hires.data,
             });
         } else if (metricType === "application-volume") {
-            const applicationVolume = await getApplicationVolume(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter);
+            const applicationVolume = await getApplicationVolume(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds);
             return NextResponse.json({
                 applicationVolume: applicationVolume
             })
@@ -183,9 +198,9 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
 
 
         const [newApplicantsData, hireData, applicationVolume, dropOffData, stageAging, offerAcceptanceRate, endorsementEfficiency, timeToHire, stagePassRateData] = await Promise.all([
-            getNewApplicants(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter),
-            getHires(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter),
-            getApplicationVolume(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter),
+            getNewApplicants(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds),
+            getHires(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds),
+            getApplicationVolume(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds),
             getDropOffRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter),
             getStageAging(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c._id.toString()) : [], dateFilter),
             getOfferAcceptanceRate(db, orgID, activeCareersData.selectedCareers.map((c) => c._id), dateFilter),
@@ -235,7 +250,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
     }
 });
 
-const getActiveCareers = async (db: any, orgID: string, careerIds: string[], dateFilter: DateFilter, memberFilters: {email: string, role: string}[]) => {
+const getActiveCareers = async (db: any, orgID: string, careerIds: string[], dateFilter: DateFilter, memberFilters: {email: string, role: string}[], archivedCareerMongoIds: string[] = []) => {
     let matchTime = {};
     let timeRangeStart;
     let timeRangeEnd;
@@ -370,7 +385,14 @@ const getActiveCareers = async (db: any, orgID: string, careerIds: string[], dat
                 orgID: orgID,
                 ...matchTime,
                 isActiveCareer: true,
-                ...(careerIds.length > 0 ? { careerId: { $in: selectedCareers.map((c) => c._id.toString()) } } : {}),
+                // Filtered: history scoped to the (archive-gated) selected careers.
+                // Unfiltered: exclude archived careers' historical rows so both
+                // views share one exclusion semantic (review finding A3).
+                ...(careerIds.length > 0
+                    ? { careerId: { $in: selectedCareers.map((c) => c._id.toString()) } }
+                    : archivedCareerMongoIds.length > 0
+                        ? { careerId: { $nin: archivedCareerMongoIds } }
+                        : {}),
             }
         },
         {
@@ -422,7 +444,7 @@ const getActiveCareers = async (db: any, orgID: string, careerIds: string[], dat
     };
 }
 
-const getNewApplicants = async (db: any, orgID: string, careerIds: string[], dateFilter: DateFilter) => {
+const getNewApplicants = async (db: any, orgID: string, careerIds: string[], dateFilter: DateFilter, archivedCareerIds: string[] = []) => {
     let matchTime = {};
     let grouping = {}
     let timeRangeStart;
@@ -573,6 +595,8 @@ const getNewApplicants = async (db: any, orgID: string, careerIds: string[], dat
                                     { $eq: ["$email", "$$email"] },
                                     { $eq: ["$orgID", orgID] },
                                     ...(careerIds.length > 0 ? [{ $in: ["$id", careerIds] }] : []),
+                                    // Unfiltered view: still keep archived careers' interviews out.
+                                    ...(archivedCareerIds.length > 0 ? [{ $not: [{ $in: ["$id", archivedCareerIds] }] }] : []),
                                 ],
                             },
                             ...matchTime,
@@ -637,7 +661,7 @@ const getNewApplicants = async (db: any, orgID: string, careerIds: string[], dat
     };
 }
 
-const getHires = async (db: any, orgID: string, careerIds: string[], dateFilter: DateFilter) => {
+const getHires = async (db: any, orgID: string, careerIds: string[], dateFilter: DateFilter, archivedCareerIds: string[] = []) => {
     let matchTime = {};
     let timeRangeStart: Date;
     let timeRangeEnd: Date;
@@ -746,7 +770,13 @@ const getHires = async (db: any, orgID: string, careerIds: string[], dateFilter:
                 orgID: orgID,
                 applicationStatus: "Hired",
                 ...matchTime,
-                ...(careerIds.length > 0 ? { id: { $in: careerIds } } : {}),
+                // Filtered ids come from gated careers reads (already archive-free);
+                // the unfiltered view excludes archived careers' interviews explicitly.
+                ...(careerIds.length > 0
+                    ? { id: { $in: careerIds } }
+                    : archivedCareerIds.length > 0
+                        ? { id: { $nin: archivedCareerIds } }
+                        : {}),
             }
         },
         {
@@ -800,7 +830,7 @@ const getHires = async (db: any, orgID: string, careerIds: string[], dateFilter:
     };
 }
 
-const getApplicationVolume = async (db: any, orgID: string, careerIds: string[], dateFilter: DateFilter) => {
+const getApplicationVolume = async (db: any, orgID: string, careerIds: string[], dateFilter: DateFilter, archivedCareerIds: string[] = []) => {
         let matchTime = {};
         let interviewHistoryMatchTime = {};
 
@@ -875,7 +905,12 @@ const getApplicationVolume = async (db: any, orgID: string, careerIds: string[],
                 $match: {
                     orgID: orgID,
                     ...matchTime,
-                    ...(careerIds.length > 0 ? { id: { $in: careerIds } } : {}),
+                    // Same archived-exclusion contract as getHires above.
+                    ...(careerIds.length > 0
+                        ? { id: { $in: careerIds } }
+                        : archivedCareerIds.length > 0
+                            ? { id: { $nin: archivedCareerIds } }
+                            : {}),
                 }
             },
             {

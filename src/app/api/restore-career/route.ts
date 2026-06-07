@@ -3,28 +3,28 @@ import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { ObjectId } from "mongodb";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { logActivity } from "@/lib/utils/activityLogger";
+import { isCareerJobOwner, restoreCareerUpdate } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const { id } = await request.json();
     if (!id) return NextResponse.json({ error: "Career ID is required" }, { status: 400 });
+    // Malformed ids are a client error, not a server crash (new ObjectId throws -> 500).
+    if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid career ID" }, { status: 400 });
 
     const { db } = await connectMongoDB();
     const career = await db.collection("careers").findOne({ _id: new ObjectId(id) });
     if (!career) return NextResponse.json({ error: "Career not found" }, { status: 404 });
 
     const userEmail = request.user?.email;
-    const isJobOwner = career.teamMembers?.some(
-      (m: any) => m.email === userEmail && m.role === "Job Owner"
-    );
-    if (!isJobOwner) {
+    if (!isCareerJobOwner(career, userEmail)) {
       return NextResponse.json({ error: "Only Job Owners can restore this career" }, { status: 403 });
     }
 
     // Restore = un-archive only. Publish state stays unpublished + inactive (per spec).
     await db.collection("careers").updateOne(
       { _id: new ObjectId(id) },
-      { $set: { archived: false, archivedAt: null, updatedAt: new Date() } }
+      restoreCareerUpdate()
     );
 
     try {
@@ -39,7 +39,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
           id: request.user?.uid,
           email: userEmail,
           name: request.user?.name || userEmail || "Recruiter",
-          image: (request.user as any)?.picture,
+          image: request.user?.picture,
         },
       });
     } catch (e) {

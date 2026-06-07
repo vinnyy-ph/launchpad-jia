@@ -778,6 +778,8 @@ export default function CandidateCVAnalysis({
     {(includeEvaluationCard || showPreScreeningAnswers) && (
         <div className={styles.cvAnalysisContainer}>
             {includeEvaluationCard && (
+                // V2 card branch: only when at least one active interview has a V2 analysis and we are
+                // not mid-regenerate — while regenerating, the legacy shell below hosts the spinner.
                 !regenerateLoading && activeInterviews?.length > 0 && activeInterviews.some((i: any) => i.cvAnalysisV2) ? (
                     activeInterviews
                         .filter((i: any) => i.cvAnalysisV2)
@@ -846,18 +848,15 @@ export default function CandidateCVAnalysis({
                                                     </div>
                                                 )}
                                             </div>
-                                            {interview.cvAnalysisV2 ? (
-                                                <EvaluationByJiaV2 analysis={interview.cvAnalysisV2} />
-                                            ) : (
-                                                <div style={{ fontSize: 16, color: "#414651", fontWeight: 500 }}>
-                                                    <p
-                                                        className="markdown-content"
-                                                        dangerouslySetInnerHTML={{
-                                                            __html: interview.cvScreeningReason || "No CV Analysis available",
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
+                                            {/* No V2 case here: this shell only renders when no active interview has cvAnalysisV2 (see branch condition above). */}
+                                            <div style={{ fontSize: 16, color: "#414651", fontWeight: 500 }}>
+                                                <p
+                                                    className="markdown-content"
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: interview.cvScreeningReason || "No CV Analysis available",
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
                                     ))}
                                     <Tooltip className="career-fit-tooltip fade-in" id="career-fit-tooltip" clickable={true} />

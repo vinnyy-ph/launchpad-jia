@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import { Button } from "../ui";
 import { generateJobPortalUrl } from "@/lib/utils/subdomainUtils";
-import { type CareerDeletePreview } from "@/lib/utils/careerDelete";
 import { useCareerArchiveModal } from "@/lib/hooks/useCareerArchiveModal";
 import {
   HIRING_MANAGER_ROLE,
@@ -33,12 +32,10 @@ import {
 export default function CareerDescriptionView({
   formData,
   setFormData,
-  deletePreview,
   onEdit,
 }: {
   formData: any;
   setFormData: (data: any) => void;
-  deletePreview?: CareerDeletePreview;
   onEdit?: (section: string) => void;
 }) {
   const { user, orgID } = useAppContext();

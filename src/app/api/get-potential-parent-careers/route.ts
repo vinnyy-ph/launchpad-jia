@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
+import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
@@ -22,6 +23,9 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     const filter: any = {
       orgID,
       status: "active",
+      // Defense-in-depth: archived careers are forced inactive, but don't rely on
+      // that invariant alone to keep them out of the parent-career dropdown.
+      ...EXCLUDE_ARCHIVED,
     };
 
     if (excludeCareerID) {

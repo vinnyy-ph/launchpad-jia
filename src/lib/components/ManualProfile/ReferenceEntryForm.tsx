@@ -2,13 +2,14 @@
 
 import { Field, Group } from "@/lib/components/ui";
 import {
-  PHONE_COUNTRY_OPTIONS,
   type SupportedPhoneCountry,
   applyCountryDialCode,
+  buildPhoneFromNationalInput,
+  extractNationalNumber,
   formatNationalNumber,
+  getDialCode,
   inferPhoneCountry,
-  maxNationalDigits,
-  sanitizeInternationalPhoneInput,
+  isSupportedPhoneCountry,
 } from "@/lib/utils/phoneInput";
 import CountrySelect from "./CountrySelect";
 import type { ReferenceSectionItem } from "@/lib/utils/structuredCV";
@@ -49,28 +50,23 @@ export default function ReferenceEntryForm({
     onChange({ ...value, [field]: fieldValue });
   }
 
-  const country =
-    (value.countryCode as SupportedPhoneCountry) || inferPhoneCountry(value.phone);
-  const dialCode =
-    PHONE_COUNTRY_OPTIONS.find((option) => option.code === country)?.dialCode ?? "+63";
-  const dialDigits = dialCode.replace(/^\+/, "");
-  const phoneDigits = value.phone.replace(/\D/g, "");
-  const nationalNumber = phoneDigits.startsWith(dialDigits)
-    ? phoneDigits.slice(dialDigits.length)
-    : phoneDigits;
+  // Guarded: stored data (drafts, legacy docs) could carry an unsupported
+  // code — fall back to inference rather than crash maxNationalDigits.
+  const country = isSupportedPhoneCountry(value.countryCode)
+    ? value.countryCode
+    : inferPhoneCountry(value.phone);
+  const dialCode = getDialCode(country);
+  const nationalNumber = extractNationalNumber(value.phone, country);
 
   function handleCountryChange(next: SupportedPhoneCountry) {
     onChange({ ...value, countryCode: next, phone: applyCountryDialCode(value.phone, next) });
   }
 
   function handlePhoneChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const nationalDigits = event.target.value
-      .replace(/\D/g, "")
-      .slice(0, maxNationalDigits(country));
     onChange({
       ...value,
       countryCode: country,
-      phone: sanitizeInternationalPhoneInput(`${dialCode}${nationalDigits}`, country),
+      phone: buildPhoneFromNationalInput(event.target.value, country),
     });
   }
 

@@ -10,12 +10,13 @@ import {
   createEmptyAddressParts,
 } from "@/lib/utils/addressFormat";
 import {
-  PHONE_COUNTRY_OPTIONS,
   type SupportedPhoneCountry,
   applyCountryDialCode,
+  buildPhoneFromNationalInput,
+  extractNationalNumber,
   formatNationalNumber,
+  getDialCode,
   inferPhoneCountry,
-  maxNationalDigits,
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
 import CountrySelect from "./CountrySelect";
@@ -96,13 +97,8 @@ export default function ContactInformationStep({
   // The dial code (e.g. +63) is a fixed, bold prefix driven by the country
   // selector; the editable input holds only the national number. The full
   // E.164 value is kept in value.phone for validation + submission.
-  const dialCode =
-    PHONE_COUNTRY_OPTIONS.find((option) => option.code === country)?.dialCode ?? "+63";
-  const dialDigits = dialCode.replace(/^\+/, "");
-  const phoneDigits = value.phone.replace(/\D/g, "");
-  const nationalNumber = phoneDigits.startsWith(dialDigits)
-    ? phoneDigits.slice(dialDigits.length)
-    : phoneDigits;
+  const dialCode = getDialCode(country);
+  const nationalNumber = extractNationalNumber(value.phone, country);
   const emailTooltip = lockEmail
     ? "This is the email linked to your Google sign-in, so it can't be changed here."
     : "We'll use this email to keep your application linked to your account and to reach you.";
@@ -235,13 +231,7 @@ export default function ContactInformationStep({
             error={errors?.phone}
             onBlur={() => onFieldBlur?.("phone")}
             onChange={(event) => {
-              const nationalDigits = event.target.value
-                .replace(/\D/g, "")
-                .slice(0, maxNationalDigits(country));
-              const nextPhone = sanitizeInternationalPhoneInput(
-                `${dialCode}${nationalDigits}`,
-                country,
-              );
+              const nextPhone = buildPhoneFromNationalInput(event.target.value, country);
               patch({
                 phone: nextPhone,
                 isPhoneVerified: value.isPhoneVerified && value.phone === nextPhone,

@@ -7,7 +7,6 @@ import ContactInformationStep, {
   type ContactStepValue,
   createEmptyContact,
 } from "./ContactInformationStep";
-import MultiEntryStep from "./MultiEntryStep";
 import InlineMultiEntryStep from "./InlineMultiEntryStep";
 import EducationEntryForm, { createEmptyEducation } from "./EducationEntryForm";
 import ExperienceEntryForm, { createEmptyExperience } from "./ExperienceEntryForm";
@@ -47,6 +46,7 @@ import {
   assembleStructuredCV,
   INITIAL_SECTION_STATUS,
   nextSectionStatus,
+  sanitizeSectionStatus,
   type ProfileSectionStatus,
   type WizardData,
 } from "@/lib/utils/assembleProfile";
@@ -146,6 +146,8 @@ function prefixItemErrors<T extends { id: string }>(
   return out;
 }
 
+// NOTE: the step-index cases here must stay in sync with STEP_SECTION in
+// assembleProfile.ts (asserted by its test) and with renderStep below.
 function computeStepErrors(stepIndex: number, d: WizardData): FieldErrors {
   switch (stepIndex) {
     case 0:
@@ -205,6 +207,11 @@ export default function ManualProfileWizard({
   const [showDiscard, setShowDiscard] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  // Dirty-guard bookkeeping: armed once the guard pushes its history entry;
+  // exiting marks the programmatic back() that consumes it so onPop ignores it.
+  const guardArmedRef = useRef(false);
+  const exitingRef = useRef(false);
 
   const {
     generating: generatingIntro,
@@ -218,6 +225,11 @@ export default function ManualProfileWizard({
 
   const draftStorageKey = draftKey(userEmail);
   const [pendingDraft, setPendingDraft] = useState<ProfileDraft<WizardData> | null>(null);
+  // Bumped on draft resume. Keys the contact step so resuming AT step 0 forces
+  // a remount — its local state (country/manualMode/addressParts) is snapshotted
+  // from props at mount and would otherwise desync from the restored data. Every
+  // other resume index is safe (step 0 remounts when navigated back to).
+  const [resumeGen, setResumeGen] = useState(0);
 
   function clearDraft() {
     try {
@@ -236,10 +248,20 @@ export default function ManualProfileWizard({
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const uniqRes = await api.post("/api/job-portal/check-phone-unique", {
-        phone: data.contact.phone,
-        email: data.contact.email,
-      });
+      // Distinct copy per failure: a transient uniqueness-check error is not a
+      // save failure — tell the user which half went wrong.
+      let uniqRes;
+      try {
+        uniqRes = await api.post("/api/job-portal/check-phone-unique", {
+          phone: data.contact.phone,
+          email: data.contact.email,
+        });
+      } catch {
+        setSubmitError(
+          "We couldn't verify your mobile number. Please check your connection and try again.",
+        );
+        return;
+      }
       if (uniqRes?.data?.unique === false) {
         setSubmitError("That mobile number is already linked to another account.");
         setStepIndex(0);
@@ -253,6 +275,7 @@ export default function ManualProfileWizard({
         fileInfo: null,
       });
       clearDraft();
+      consumeGuardEntry();
       (onSubmitted ?? onExit)();
     } catch {
       setSubmitError("Something went wrong saving your profile. Please try again.");
@@ -388,18 +411,24 @@ export default function ManualProfileWizard({
   useEffect(() => {
     if (!isDirty || pendingDraft) return;
     try {
-      window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+      window.localStorage.setItem(
+        draftStorageKey,
+        serializeDraft(data, stepIndex, sectionStatus),
+      );
     } catch {
       /* ignore quota / disabled storage */
     }
-  }, [data, stepIndex, isDirty, pendingDraft, draftStorageKey]);
+  }, [data, stepIndex, sectionStatus, isDirty, pendingDraft, draftStorageKey]);
 
   // Final silent save on tab close/reload (no native prompt — resume is offered on return).
   useEffect(() => {
     const onBeforeUnload = () => {
       if (isDirty) {
         try {
-          window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+          window.localStorage.setItem(
+            draftStorageKey,
+            serializeDraft(data, stepIndex, sectionStatus),
+          );
         } catch {
           /* ignore */
         }
@@ -407,13 +436,15 @@ export default function ManualProfileWizard({
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [isDirty, data, stepIndex, draftStorageKey]);
+  }, [isDirty, data, stepIndex, sectionStatus, draftStorageKey]);
 
   // Browser Back while editing → show the discard prompt instead of leaving.
   useEffect(() => {
     if (!isDirty) return;
     window.history.pushState(null, "", window.location.href);
+    guardArmedRef.current = true;
     const onPop = () => {
+      if (exitingRef.current) return; // programmatic back() from a clean exit
       setShowDiscard(true);
       window.history.pushState(null, "", window.location.href);
     };
@@ -421,11 +452,23 @@ export default function ManualProfileWizard({
     return () => window.removeEventListener("popstate", onPop);
   }, [isDirty]);
 
+  // Consume the guard's history entry (if armed) before leaving — otherwise
+  // the user needs one extra Back press after Save & Exit / submit to actually
+  // navigate away.
+  function consumeGuardEntry() {
+    if (guardArmedRef.current) {
+      guardArmedRef.current = false;
+      exitingRef.current = true;
+      window.history.back();
+    }
+  }
+
   function renderStep() {
     switch (stepIndex) {
       case 0:
         return (
           <ContactInformationStep
+            key={resumeGen}
             value={data.contact}
             onChange={(contact) => patch({ contact })}
             lockEmail={Boolean(userEmail)}
@@ -584,6 +627,8 @@ export default function ManualProfileWizard({
       if (isDirty) {
         setShowDiscard(true);
       } else {
+        // Guard can still be armed here (dirty earlier, then reverted).
+        consumeGuardEntry();
         onExit();
       }
       return;
@@ -595,6 +640,16 @@ export default function ManualProfileWizard({
     // Block + reveal all errors when the step is invalid.
     if (Object.keys(stepErrors).length > 0) {
       setShowAllErrors(true);
+      // a11y: move focus to the first invalid control once the errors render —
+      // keyboard/SR users otherwise get silence. aria-invalid is set by DS
+      // Field/Textarea and the T5 custom controls (url combo, rich-text).
+      // Controls without it (date Selects, collapsed accordion entries) keep
+      // today's no-focus behavior.
+      requestAnimationFrame(() => {
+        cardRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.focus();
+      });
       return;
     }
     setSectionStatus((s) => nextSectionStatus(s, stepIndex, "submit"));
@@ -619,14 +674,19 @@ export default function ManualProfileWizard({
         onGoBack={() => setShowDiscard(false)}
         onSaveExit={() => {
           try {
-            window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+            window.localStorage.setItem(
+              draftStorageKey,
+              serializeDraft(data, stepIndex, sectionStatus),
+            );
           } catch {
             /* ignore */
           }
+          consumeGuardEntry();
           onExit();
         }}
         onExitWithoutSaving={() => {
           clearDraft();
+          consumeGuardEntry();
           onExit();
         }}
       />
@@ -637,7 +697,15 @@ export default function ManualProfileWizard({
         onResume={() => {
           if (pendingDraft) {
             setData(pendingDraft.data);
-            setStepIndex(pendingDraft.stepIndex);
+            // Clamp: parseDraft only checks the index is a number; a malformed
+            // or legacy draft must not land on a non-existent (blank) step.
+            setStepIndex(
+              Math.min(Math.max(0, pendingDraft.stepIndex), TOTAL_STEPS - 1),
+            );
+            // v1 drafts have no sectionStatus → INITIAL (same as before); the
+            // sanitizer also rejects tampered/invalid values per section.
+            setSectionStatus(sanitizeSectionStatus(pendingDraft.sectionStatus));
+            setResumeGen((n) => n + 1);
           }
           setPendingDraft(null);
         }}
@@ -678,7 +746,7 @@ export default function ManualProfileWizard({
         </span>
       </div>
 
-      <div className={styles.card}>
+      <div className={styles.card} ref={cardRef}>
         <div className={styles.progressTrack}>
           <div className={styles.progressFill} style={progressFillStyle} />
         </div>

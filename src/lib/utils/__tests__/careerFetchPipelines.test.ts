@@ -26,6 +26,11 @@ describe("getApplicantsFilter", () => {
     expect(f.stageId).toBe("s1");
     expect(f.substageId).toBe("ss1");
   });
+  it("Invited filters by invitedFrom only — applicationStatus stays unset", () => {
+    const f = getApplicantsFilter("c1", null, null, null, "Invited");
+    expect(f.invitedFrom).toEqual({ $exists: true, $ne: null });
+    expect(f).not.toHaveProperty("applicationStatus");
+  });
 });
 
 describe("getApplicantsSort", () => {
@@ -156,6 +161,17 @@ describe("joinInterviewBatches", () => {
     expect(out[0]).not.toHaveProperty("recruiterHistory");
     expect(interviews[0]).not.toHaveProperty("commentCount");
   });
+  // Pins a known (corruption-only) divergence from the old $lookup: an interview
+  // doc MISSING interviewID groups under _id:null in Mongo, but Map.get(undefined)
+  // !== Map.get(null) in JS — so such a doc gets 0 counts here. See refactors/t6 R1.
+  it("interview missing interviewID gets zero counts even when a null-keyed batch row exists", () => {
+    const r = joinInterviewBatches(
+      [{ _id: "x", applicationStatus: "Ongoing" }] as any[],
+      { evaluations: [], commentCounts: [{ _id: null, commentCount: 5, newCommentCount: 5 }],
+        latestHistory: [], latestRecruiterHistory: [] } as any
+    );
+    expect(r[0]).toMatchObject({ commentCount: 0, newCommentCount: 0 });
+  });
 });
 
 describe("collectApplicantEmailKeys", () => {
@@ -200,5 +216,12 @@ describe("decorateApplicantAccounts", () => {
   it("does not mutate inputs and preserves other fields", () => {
     expect(interviews[0]).not.toHaveProperty("hasJiaAccount");
     expect(out[0]._id).toBe(1);
+  });
+  it("duplicate emails: first doc in fetch order wins (matches old $limit:1 semantics)", () => {
+    const r = decorateApplicantAccounts([{ _id: 1, email: "dup@x.com" }] as any, [
+      { email: "dup@x.com", status: "Active" },
+      { email: "DUP@x.com", status: "Invited" },
+    ] as any);
+    expect(r[0]).toMatchObject({ applicantStatus: "Active", hasJiaAccount: true });
   });
 });

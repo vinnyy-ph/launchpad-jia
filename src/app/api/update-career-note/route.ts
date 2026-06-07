@@ -8,6 +8,10 @@ import { NextResponse } from "next/server";
 // adds/updates a recruiter-only note on a career. The note lives on the career
 // document and is only ever surfaced in the recruiter portal (pipeline report) —
 // no applicant-facing route reads `notes`.
+
+// Generous for a per-career recruiter note; blocks multi-MB payloads being stored verbatim.
+const MAX_NOTE_LENGTH = 5000;
+
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
     const { _id, orgID, note } = await request.json();
     const email = request.user?.email;
@@ -15,8 +19,15 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     if (!_id) {
         return NextResponse.json({ error: "Career _id is required" }, { status: 400 });
     }
+    // Malformed ids previously reached `new ObjectId(_id)` and threw -> unhandled 500.
+    if (!ObjectId.isValid(_id)) {
+        return NextResponse.json({ error: "Invalid career _id" }, { status: 400 });
+    }
     if (!orgID) {
         return NextResponse.json({ error: "orgID is required" }, { status: 400 });
+    }
+    if (typeof note === "string" && note.length > MAX_NOTE_LENGTH) {
+        return NextResponse.json({ error: `note exceeds ${MAX_NOTE_LENGTH} characters` }, { status: 400 });
     }
 
     const { db } = await connectMongoDB();

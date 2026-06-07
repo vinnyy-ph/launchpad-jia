@@ -10,23 +10,44 @@ export interface FormattedStage {
   parentStageLabel?: string;
 }
 
+// Stage/substage descriptors built by getReportStages and carried in ColumnVisibility.
+// `candidates`/`droppedCandidates` stay loosely typed — they mirror untyped API data
+// and the report only ever reads `.length` on them.
+export interface SubstageDescriptor {
+  label: string;
+  stageId: string;
+  substageId: string;
+  candidates: any[];
+  droppedCandidates: any[];
+  enabled: boolean;
+}
+
+export interface StageDescriptor {
+  label: string;
+  stageId: string;
+  enabled: boolean;
+  substages: SubstageDescriptor[];
+}
+
 export interface ColumnVisibility {
   type: ColumnMode;
   includeDroppedCandidates: boolean;
-  stages: any[];
-  offerStages: any[];
+  stages: StageDescriptor[];
+  offerStages: StageDescriptor[];
+  /** JIA-431 "Others" columns (Created Date / Headcount / Notes) → shown? */
+  otherColumns?: Record<string, boolean>;
 }
 
 // Port of the original inline getStages(). Pure: builds stage/offerStage descriptors
 // (with substages carrying candidates/droppedCandidates) from the fetched careers.
-export function getReportStages(careers: any[]): { stages: any[]; offerStages: any[] } {
-  const stages: any[] = [];
-  const offerStages: any[] = [];
+export function getReportStages(careers: any[]): { stages: StageDescriptor[]; offerStages: StageDescriptor[] } {
+  const stages: StageDescriptor[] = [];
+  const offerStages: StageDescriptor[] = [];
   careers.forEach((item: any) => {
     item.timelineStages.forEach((stage: any) => {
       const existingStage = stages.find((s) => s.label === stage.name);
-      const pushParent = (target: any[]) => {
-        const parentStage: any = { label: stage.name, stageId: stage.id, enabled: true, substages: [] };
+      const pushParent = (target: StageDescriptor[]) => {
+        const parentStage: StageDescriptor = { label: stage.name, stageId: stage.id, enabled: true, substages: [] };
         stage.substages.forEach((substage: any) => {
           parentStage.substages.push({
             label: `${stage.name} - ${substage.name}`,
@@ -43,6 +64,25 @@ export function getReportStages(careers: any[]): { stages: any[]; offerStages: a
         pushParent(stages);
       } else if (["4"].includes(stage.id) && !offerStages.find((s) => s.stageId === stage.id)) {
         pushParent(offerStages);
+      } else if (["4"].includes(stage.id)) {
+        // Offer-stage entry already exists: merge any NEW substages a later career
+        // introduces (mirror of the stages merge below). Without this branch a
+        // Job Offer substage first seen on a later career never got a column and
+        // its candidates were uncounted in per-sub-stage mode.
+        const idx = offerStages.findIndex((s) => s.stageId === stage.id);
+        if (idx !== -1) {
+          const merged = { ...offerStages[idx] };
+          for (const substage of stage.substages) {
+            const label = `${stage.name} - ${substage.name}`;
+            if (!merged.substages.find((s) => s.label === label)) {
+              merged.substages.push({
+                label, stageId: stage.id, substageId: substage.id,
+                candidates: substage.candidates, droppedCandidates: substage.droppedCandidates, enabled: true,
+              });
+            }
+          }
+          offerStages[idx] = merged;
+        }
       } else if (!["1", "2", "3", "4"].includes(stage.id) && !existingStage) {
         pushParent(stages);
       } else if (!["4"].includes(stage.id) && existingStage) {
@@ -51,7 +91,7 @@ export function getReportStages(careers: any[]): { stages: any[]; offerStages: a
           const merged = { ...stages[idx] };
           for (const substage of stage.substages) {
             const label = `${stage.name} - ${substage.name}`;
-            if (!merged.substages.find((s: any) => s.label === label)) {
+            if (!merged.substages.find((s) => s.label === label)) {
               merged.substages.push({
                 label, stageId: stage.id, substageId: substage.id,
                 candidates: substage.candidates, droppedCandidates: substage.droppedCandidates, enabled: true,
@@ -64,6 +104,28 @@ export function getReportStages(careers: any[]): { stages: any[]; offerStages: a
     });
   });
   return { stages, offerStages };
+}
+
+// Reconciles freshly fetched stage descriptors with the user's Customize Columns
+// selections: enabled flags are label-matched from `existing` onto `fresh`; stages and
+// substages without a match (first fetch, or stages newly present after a filter/page
+// change) keep their fetched default (enabled). Used by the table fetch (selections
+// persist across page/filter/sort changes) and the export path (export honors the table).
+export function mergeEnabledState(fresh: StageDescriptor[], existing: StageDescriptor[]): StageDescriptor[] {
+  return fresh.map((stage) => {
+    const existingStage = existing.find((s) => s.label === stage.label);
+    return {
+      ...stage,
+      enabled: existingStage ? existingStage.enabled : stage.enabled,
+      substages: stage.substages.map((substage) => {
+        const existingSubstage = existingStage?.substages.find((s) => s.label === substage.label);
+        return {
+          ...substage,
+          enabled: existingSubstage ? existingSubstage.enabled : substage.enabled,
+        };
+      }),
+    };
+  });
 }
 
 const isPerStage = (type: string) => type === "Show per stage";
@@ -82,7 +144,7 @@ export function getFormattedStages(columnVisibility: ColumnVisibility): Formatte
     });
   } else {
     allStages.forEach((stage) => {
-      stage.substages.forEach((substage: any) => {
+      stage.substages.forEach((substage) => {
         if (formattedStages.find((s) => s.label === substage.label) || !substage.enabled) return;
         formattedStages.push({ label: substage.label, stageId: stage.stageId, substageId: substage.substageId, parentStageLabel: stage.label });
         if (columnVisibility.includeDroppedCandidates) {
@@ -127,12 +189,19 @@ export interface ReportRowMeta { career: any; depth: 0 | 1; childCount: number; 
 // Groups child careers (parentCareerID) under their parent. Standalone careers and
 // orphan children (parent not in result set) render at depth 0. Matches parent by id or _id.
 export function groupByParentChild(careers: any[]): ReportRowMeta[] {
-  const keyOf = (c: any) => [String(c.id), String(c._id)];
+  // Index careers by BOTH id and _id up front (O(n) instead of a find() per child).
+  // First occurrence wins per key, matching the original first-match find() semantics.
+  const byKey = new Map<string, any>();
+  for (const c of careers) {
+    for (const k of [String(c.id), String(c._id)]) {
+      if (!byKey.has(k)) byKey.set(k, c);
+    }
+  }
   const childrenByParent = new Map<string, any[]>();
   const top: any[] = [];
   for (const c of careers) {
     const pk = c.parentCareerID ? String(c.parentCareerID) : null;
-    const parent = pk ? careers.find((p) => keyOf(p).includes(pk)) : null;
+    const parent = pk ? byKey.get(pk) : null;
     if (isChildCareer(c) && parent && parent !== c) {
       const gid = String(parent.id);
       if (!childrenByParent.has(gid)) childrenByParent.set(gid, []);
@@ -202,6 +271,15 @@ export function buildPipelineReportParams(
   };
 }
 
+// RFC-4180 CSV field escaping: wrap any field containing a comma, double quote, or
+// line break in double quotes, doubling embedded quotes. null/undefined render as "".
+// Replaces the lossy per-column sanitizing (comma-stripping titles, comma->space notes)
+// the export inherited — values keep their real bytes and columns can never shift.
+export function csvEscape(value: unknown): string {
+  const s = String(value ?? "");
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
 export type ExtraColumnKey = "Headcount" | "Created Date" | "Notes";
 
 // JIA-431: Created Date uses a RELATIVE time format (e.g. "10d ago"), not an absolute date.
@@ -220,6 +298,15 @@ export function relativeTimeShort(input: any): string {
   if (day < 30) return `${Math.floor(day / 7)}w ago`;
   if (day < 365) return `${Math.floor(day / 30)}mo ago`;
   return `${Math.floor(day / 365)}y ago`;
+}
+
+// Exports emit an ABSOLUTE date for Created Date (ISO YYYY-MM-DD): the on-screen
+// relative string ("2w ago") goes stale the moment the file is opened and doesn't
+// sort in a spreadsheet. The table keeps the relative format (JIA-431).
+export function isoDateOnly(input: any): string {
+  if (!input) return "-";
+  const t = new Date(input);
+  return isNaN(t.getTime()) ? "-" : t.toISOString().slice(0, 10);
 }
 
 // Value for the JIA-431 "Others" columns. Created Date = relative time; Notes/Headcount gracefully default.

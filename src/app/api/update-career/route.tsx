@@ -62,6 +62,24 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       );
     }
 
+    // Archived careers keep their forced unpublished/inactive state. Reject status
+    // flips until the career is restored (the archived banner promises exactly this);
+    // otherwise an archived career could go live on the public portal while staying
+    // hidden from the recruiter list and analytics.
+    if (existingCareer.archived === true) {
+      const wantsStatusChange =
+        requestData.status !== undefined && requestData.status !== existingCareer.status;
+      const wantsActivityChange =
+        requestData.activityStatus !== undefined &&
+        requestData.activityStatus !== existingCareer.activityStatus;
+      if (wantsStatusChange || wantsActivityChange) {
+        return NextResponse.json(
+          { error: "This career is archived. Restore it before changing its status." },
+          { status: 409 }
+        );
+      }
+    }
+
     // Enforce job post limits only when publishing (inactive -> active) OR changing job post type
     if ((requestData.status === "active" && existingCareer.status !== "active") || (requestData.jobPostType !== existingCareer.jobPostType)) {
       const orgDetails = await db

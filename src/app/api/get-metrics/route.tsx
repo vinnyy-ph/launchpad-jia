@@ -16,13 +16,26 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       .collection("careers")
       .find(withExcludeArchived({ orgID, status: "active" }))
       .count();
+    // Interviews/transcripts of archived careers stay counted-out too — same
+    // exclusion semantic as careersCount (interview docs key on the career id).
+    const archivedCareerIds = (
+      await db
+        .collection("careers")
+        .find({ orgID, archived: true })
+        .project({ id: 1 })
+        .toArray()
+    )
+      .map((c: any) => c.id)
+      .filter(Boolean);
+    const archivedGate =
+      archivedCareerIds.length > 0 ? { id: { $nin: archivedCareerIds } } : {};
     const interviewsCount = await db
       .collection("interviews")
-      .find({ orgID, interviewStatus: { $ne: "Dropped" } })
+      .find({ orgID, interviewStatus: { $ne: "Dropped" }, ...archivedGate })
       .count();
     const interviewIDs = await db
       .collection("interviews")
-      .find({ orgID })
+      .find({ orgID, ...archivedGate })
       .project({ interviewID: 1, _id: 0 })
       .toArray();
     const interviewIDList = interviewIDs.map((doc) => doc.interviewID);

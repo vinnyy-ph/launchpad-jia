@@ -31,6 +31,13 @@ export function maxNationalDigits(country: SupportedPhoneCountry): number {
   return NATIONAL_NUMBER_FORMAT[country].max;
 }
 
+// Type guard for codes read from stored data (drafts, legacy docs): an
+// unsupported code must fall back instead of indexing NATIONAL_NUMBER_FORMAT
+// with it (maxNationalDigits would throw on the undefined entry).
+export function isSupportedPhoneCountry(code: unknown): code is SupportedPhoneCountry {
+  return typeof code === "string" && code in NATIONAL_NUMBER_FORMAT;
+}
+
 // Groups national digits with spaces per country (PH "9876543210" -> "987 654
 // 3210"), capping at the country's max digit count. Non-digits are ignored.
 export function formatNationalNumber(

@@ -9,6 +9,7 @@ import {
   formatNationalNumber,
   getDialCode,
   inferPhoneCountry,
+  isSupportedPhoneCountry,
 } from "@/lib/utils/phoneInput";
 import CountrySelect from "./CountrySelect";
 import type { ReferenceSectionItem } from "@/lib/utils/structuredCV";
@@ -49,8 +50,11 @@ export default function ReferenceEntryForm({
     onChange({ ...value, [field]: fieldValue });
   }
 
-  const country =
-    (value.countryCode as SupportedPhoneCountry) || inferPhoneCountry(value.phone);
+  // Guarded: stored data (drafts, legacy docs) could carry an unsupported
+  // code — fall back to inference rather than crash maxNationalDigits.
+  const country = isSupportedPhoneCountry(value.countryCode)
+    ? value.countryCode
+    : inferPhoneCountry(value.phone);
   const dialCode = getDialCode(country);
   const nationalNumber = extractNationalNumber(value.phone, country);
 

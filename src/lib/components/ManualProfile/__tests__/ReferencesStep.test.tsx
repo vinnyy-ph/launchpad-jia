@@ -36,4 +36,14 @@ describe("References inline accordion step", () => {
     const updated = onChange.mock.calls.at(-1)?.[0] as ReferenceSectionItem[];
     expect(updated[0].phone).toBe("+639175551234");
   });
+
+  it("falls back gracefully when a stored countryCode is unsupported", () => {
+    // Wizard-created entries always carry a supported code; this pins the
+    // guard for hand-edited drafts / legacy docs (previously crashed in
+    // maxNationalDigits via NATIONAL_NUMBER_FORMAT[undefined]).
+    const ref = { ...createEmptyReference(), countryCode: "XX", phone: "" };
+    expect(() => renderStep([ref])).not.toThrow();
+    // Unsupported code -> inferred from phone (empty -> PH dial code).
+    expect(screen.getByText("+63")).toBeInTheDocument();
+  });
 });

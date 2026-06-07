@@ -3,6 +3,7 @@ import {
   extractNationalNumber,
   formatNationalNumber,
   getDialCode,
+  isSupportedPhoneCountry,
   maxNationalDigits,
 } from "../phoneInput";
 
@@ -108,5 +109,21 @@ describe("buildPhoneFromNationalInput", () => {
   it("returns the bare dial code for empty input", () => {
     // sanitizeInternationalPhoneInput receives just the dial code digits.
     expect(buildPhoneFromNationalInput("", "PH")).toBe("+63");
+  });
+});
+
+describe("isSupportedPhoneCountry", () => {
+  it("accepts every supported code", () => {
+    for (const code of ["PH", "US", "SG", "AU", "UK"]) {
+      expect(isSupportedPhoneCountry(code)).toBe(true);
+    }
+  });
+
+  it("rejects unsupported, empty, wrong-case and non-string codes", () => {
+    expect(isSupportedPhoneCountry("XX")).toBe(false);
+    expect(isSupportedPhoneCountry("")).toBe(false);
+    expect(isSupportedPhoneCountry("ph")).toBe(false);
+    expect(isSupportedPhoneCountry(undefined)).toBe(false);
+    expect(isSupportedPhoneCountry(63)).toBe(false);
   });
 });

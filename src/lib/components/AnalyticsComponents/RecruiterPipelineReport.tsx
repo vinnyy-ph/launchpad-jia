@@ -144,8 +144,8 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         const csvContent = `${newHeaders.join(",")}` + "\n" + formattedData.rows.map((row: any) => newHeaders.map((header: any) => {
             if (header === "Job Owner") {
                 // Optional-chained: a career with neither a Job Owner member nor createdBy
-                // must not crash the whole export (cell falls through to "" via join).
-                return row.metadata.jobOwner?.name;
+                // must not crash the whole export. "-" matches the XLSX export convention.
+                return row.metadata.jobOwner?.name ?? "-";
             }
             if (header === "Published Status") {
                 return row.metadata.publishedStatus;
@@ -202,22 +202,12 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         // Fetch the full pipeline report from the API
         try {
             setIsLoadingFullReport(true);
-            const response = await api.get("/api/get-pipeline-report", { 
-                params: { 
-                    orgID: orgID, 
-                    limit: limit, 
-                    page: page,
-                    status: filterStatus["Published Status"].join(","),
-                    jobOwners: filterStatus.jobOwners.map((j) => j.email).join(","),
-                    projectIds: projectId ? projectId : filterStatus.projects.map((p) => p._id).join(","),
-                    contributors: filterStatus.contributors.map((c) => c.email).join(","),
-                    activityStatus: filterStatus["Activity Status"].join(","),
-                    jobPostType: filterStatus["Subscription Plan"].join(","),
-                    careers: filterStatus.careers.map((c) => c.id).join(","),
-                    sortBy: sortBy,
-                    fullReport: true,
-                    hiringManagers: filterStatus.hiringManagers.map((h) => h.email).join(","),
-                } 
+            const response = await api.get("/api/get-pipeline-report", {
+                // Same tested builder as the table fetch, so the export query can never
+                // diverge from the visible rows (the inline copy it replaces skipped
+                // .filter(Boolean) on the email lists — a selected filter member without
+                // an email produced "a@x.com," here vs "a@x.com" in the table query).
+                params: buildPipelineReportParams(filterStatus, { orgID, projectId, page, limit, sortBy, fullReport: true }),
             });
             const { stages, offerStages } = getReportStages(response.data.careers);
             // Re-apply the user's Customize Columns selections (label-matched) onto the

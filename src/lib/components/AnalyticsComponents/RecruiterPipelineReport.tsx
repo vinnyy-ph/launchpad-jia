@@ -295,6 +295,14 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 const countsCareer = isParent
                     ? { ...item, timelineStages: combineTimelineStages([item, ...(r.childCareers || [])]) }
                     : item;
+                // The title cell is wrapped in an <a> (row navigates to the career); the
+                // chevron alone must toggle expansion without navigating — hence the
+                // preventDefault/stopPropagation on both the click and key handlers.
+                const toggleExpand = (e: React.SyntheticEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setExpandedParents((p) => ({ ...p, [String(item.id)]: !p[String(item.id)] }));
+                };
                 const titleCell = (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 8, paddingLeft: r.depth === 1 ? 24 : 0 }}>
                         {r.depth === 1 && <span style={{ color: "#717680", fontSize: 14 }} aria-hidden>↳</span>}
@@ -302,12 +310,12 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                             <img
                                 src="/iconsV3/chevron-down.svg"
                                 alt={expandedParents[String(item.id)] ? "Collapse child posts" : "Expand child posts"}
-                                onClick={(e) => {
-                                    // The title cell is wrapped in an <a> (row navigates to the career);
-                                    // the chevron alone must toggle expansion without navigating.
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setExpandedParents((p) => ({ ...p, [String(item.id)]: !p[String(item.id)] }));
+                                role="button"
+                                tabIndex={0}
+                                aria-expanded={!!expandedParents[String(item.id)]}
+                                onClick={toggleExpand}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") toggleExpand(e);
                                 }}
                                 style={{
                                     width: 12,
@@ -345,9 +353,14 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     cellTooltips[i] = tips;
                 }
                 const hasNote = item.notes && String(item.notes).trim();
+                const openNote = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); openNoteModal(item); };
                 const notesCell = (
                     <span
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openNoteModal(item); }}
+                        onClick={openNote}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") openNote(e); }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={hasNote ? `Edit note for ${item.jobTitle || "career"}` : `Add note for ${item.jobTitle || "career"}`}
                         style={{ cursor: "pointer", color: hasNote ? "#181D27" : "#6941C6", fontWeight: hasNote ? 400 : 500 }}
                     >
                         {hasNote ? (String(item.notes).length > 40 ? String(item.notes).slice(0, 40) + "…" : String(item.notes)) : "Add note"}
@@ -508,16 +521,32 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
 // JIA-431: "Add a note" modal — recruiter-only note on a career, shown in the Notes column.
 function AddNoteModal({ career, onClose, onSave }: { career: any; onClose: () => void; onSave: (note: string) => void }) {
     const [note, setNote] = useState<string>(career?.notes || "");
+    // Escape-to-close. The component only mounts while open, so the listener's
+    // lifecycle is tied to the modal being visible (same pattern as ViewAnalysisModal).
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+    }, [onClose]);
     return (
         <div className="modal-background fade-in-bottom">
             <div className="modal-container">
-                <div className="modal-content" style={{ width: "100%", maxWidth: 640, background: "#fff", border: "1.5px solid #E9EAEB", borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: 24, position: "relative" }}>
+                <div className="modal-content" role="dialog" aria-modal="true" aria-label="Add a note" style={{ width: "100%", maxWidth: 640, background: "#fff", border: "1.5px solid #E9EAEB", borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: 24, position: "relative" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                         <span style={{ fontSize: 16, fontWeight: 500, color: "#181D27" }}>Add a note</span>
                         <span style={{ fontSize: 14, fontWeight: 400, color: "#717680" }}>{career?.jobTitle || ""}</span>
                     </div>
-                    <div style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }} onClick={onClose}>
-                        <img src="/icons/close.svg" alt="Close" style={{ width: 28, height: 28 }} />
+                    <div
+                        style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }}
+                        onClick={onClose}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Close"
+                    >
+                        <img src="/icons/close.svg" alt="" style={{ width: 28, height: 28 }} />
                     </div>
                     <textarea
                         value={note}
@@ -550,10 +579,19 @@ function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCust
             setCareerPipelineStages(allStages);
         }
     }, [columnVisibility])
+    // Escape-to-close. The component only mounts while open, so the listener's
+    // lifecycle is tied to the modal being visible (same pattern as ViewAnalysisModal).
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setIsCustomizeColumnModalOpen(false);
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+    }, [setIsCustomizeColumnModalOpen]);
     return (
         <div className="modal-background fade-in-bottom">
             <div className="modal-container">
-                <div className="modal-content" style={{ overflowY: "auto", height: "100%", maxHeight: "90vh", width: "100%", maxWidth: "400px", background: "#fff", border: `1.5px solid #E9EAEB`, borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: "24px" }}>
+                <div className="modal-content" role="dialog" aria-modal="true" aria-label="Customize Columns" style={{ overflowY: "auto", height: "100%", maxHeight: "90vh", width: "100%", maxWidth: "400px", background: "#fff", border: `1.5px solid #E9EAEB`, borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: "24px" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, textAlign: "center" }}>
                     <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 16, width: "100%" }}>
                         <div style={{ width: 48, height: 48, borderRadius: "10px", border: "1px solid #D5D7DA", backgroundColor: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -565,8 +603,15 @@ function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCust
                         </div>
                     </div>
 
-                    <div style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }} onClick={() => setIsCustomizeColumnModalOpen(false)}>
-                        <img src="/icons/close.svg" alt="Close" style={{ width: 32, height: 32 }} />
+                    <div
+                        style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }}
+                        onClick={() => setIsCustomizeColumnModalOpen(false)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsCustomizeColumnModalOpen(false); } }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Close"
+                    >
+                        <img src="/icons/close.svg" alt="" style={{ width: 32, height: 32 }} />
                     </div>
 
                     <div style={{ display: "flex", alignItems: "center", flexDirection: "row", height: "44px", maxWidth: "460px", width: "100%", backgroundColor: "#EAECF5", borderRadius: "10px", border: "1px solid #D5D7DA"}}>

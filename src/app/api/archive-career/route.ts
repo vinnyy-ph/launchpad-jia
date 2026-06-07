@@ -70,7 +70,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
           id: request.user?.uid,
           email: userEmail,
           name: request.user?.name || userEmail || "Recruiter",
-          image: (request.user as any)?.picture,
+          image: request.user?.picture,
         },
       });
     } catch (e) {

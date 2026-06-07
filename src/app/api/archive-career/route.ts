@@ -9,6 +9,8 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const { id, dropCandidates } = await request.json();
     if (!id) return NextResponse.json({ error: "Career ID is required" }, { status: 400 });
+    // Malformed ids are a client error, not a server crash (new ObjectId throws -> 500).
+    if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid career ID" }, { status: 400 });
 
     const { db } = await connectMongoDB();
     const career = await db.collection("careers").findOne({ _id: new ObjectId(id) });

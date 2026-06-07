@@ -73,7 +73,11 @@ Response time is now **independent of career size** — the page is joined after
 | 1,500 | ~37.2s | **0.75s** | 0.82s | 1.80MB |
 | 3,000 | ~71.5s | **1.07s** | 1.10s | 3.66MB |
 
-**Target met for careers up to ~1,500 applicants** (already far beyond a realistic single posting). The deliberately extreme 3,000-applicant case lands at 1.07s — a 67× improvement; its remaining cost is transferring 3,000 full candidate documents from the remote Atlas cluster, so it is bounded by network locality (the local-dev → Atlas link used here is the conservative case; a same-region deployment is faster). This endpoint's contract returns *all* interviews (the timeline UI consumes the full set), so the floor scales with career size by design.
+**Target met for careers up to ~1,500 applicants** (already far beyond a realistic single posting). The deliberately extreme 3,000-applicant case lands at 1.07s — a 67× improvement; its remaining cost is transferring 3,000 full candidate documents from the remote Atlas cluster, so it is bounded by network locality (the local-dev → Atlas link used here is the conservative case; a same-region deployment is faster).
+
+**Deployed verification (Vercel, 2026-06-07):** the same 3,000-applicant case measured **0.59s** on the production deployment after pinning functions to `sin1` (1.25s on the default region before the pin — see PR #14), confirming the network-locality analysis above: colocating compute with the Atlas cluster beats even the local benchmark.
+
+This endpoint's contract returns *all* interviews (the timeline UI consumes the full set), so the floor scales with career size by design.
 
 ### Reproduce
 

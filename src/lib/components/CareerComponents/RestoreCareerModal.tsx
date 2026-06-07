@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "@/lib/styles/screens/projects.module.scss";
 import { Career } from "@/lib/types/projects";
 import { errorToast } from "@/lib/Utils";
@@ -19,6 +19,17 @@ export default function RestoreCareerModal({
   onRestored,
 }: RestoreCareerModalProps) {
   const [loading, setLoading] = useState(false);
+
+  // Escape-to-close, matching Cancel's semantics (no close mid-flight).
+  // The component only mounts while open, so the listener's lifecycle is
+  // tied to the modal being visible.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !loading) onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [loading, onClose]);
 
   const handleRestore = async () => {
     setLoading(true);

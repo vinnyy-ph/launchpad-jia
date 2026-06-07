@@ -273,7 +273,9 @@ export default function ManualPhoneVerifyModal({
                 variant="primary"
                 pill
                 onClick={handleVerify}
-                disabled={step === "verifying"}
+                // Also gated until all 6 digits are typed — handleVerify's
+                // early return made an incomplete code a silent no-op.
+                disabled={step === "verifying" || !isOtpComplete}
                 iconJsx={step === "verifying" ? <span className={styles.spinner} /> : undefined}
                 style={{ width: "100%", height: 52 }}
               />

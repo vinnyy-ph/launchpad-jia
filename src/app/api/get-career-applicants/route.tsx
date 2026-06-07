@@ -3,11 +3,22 @@ import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { getCurrentPipelineStage } from "@/lib/Utils";
 import { DEFAULT_JOB_PIPELINE } from "../../../lib/utils/constants";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
+import { ensureCareerFetchIndexes } from "@/lib/utils/ensureIndexes";
+import { getApplicantsFilter, getApplicantsSort, buildApplicantsPipeline } from "@/lib/utils/careerFetchPipelines";
 
-
-
+/**
+ * [Bonus: Optimize fetching] This route was averaging 4.7–12.5s on careers with
+ * 1k–3k applicants. Two fixes (see OPTIMIZE_FETCHING.md for measurements):
+ *  1. ensureCareerFetchIndexes — the interviews.id match and the
+ *     recruiter-evaluations lookup now hit indexes instead of collection scans.
+ *  2. buildApplicantsPipeline — $sort/$skip/$limit moved BEFORE the
+ *     recruiter-evaluations $lookup, so only the returned page (default 10 docs)
+ *     is joined instead of every applicant on the career.
+ * Response shape is unchanged.
+ */
 export const GET = withAuth(async (request: AuthenticatedRequest) => {
   const { db } = await connectMongoDB();
+  await ensureCareerFetchIndexes(db);
   const { searchParams } = new URL(request.url);
   const careerID = searchParams.get("careerID");
   const page = parseInt(searchParams.get("page") || "1");
@@ -18,79 +29,11 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
   const filterStatus = searchParams.get("filterStatus");
   const sortBy = searchParams.get("sortBy");
   try {
-    const filter = getFilter(careerID, search, filterStageId, filterSubstageId, filterStatus);
-    const sort = getSort(sortBy);
-    const applicants = await db.collection("interviews").aggregate([
-      { $match: filter },
-      {
-        $project: {
-          _id: 1,
-          interviewID: 1,
-          name: 1,
-          image: 1,
-          nameLower: {
-            $toLower: "$name"
-          },
-          email: 1,
-          applicationStatus: 1,
-          currentStep: 1,
-          status: 1,
-          updatedAt: {
-            $toDate: "$updatedAt"
-          },
-          createdAt: {
-            $toDate: "$createdAt"
-          },
-          // Additional fields for fit status display (matching recruiter-dashboard)
-          cvStatus: 1,
-          jobFit: 1,
-          cvScreeningEvaluation: 1,
-          cvScreeningReason: 1,
-          summary: 1,
-          stageId: 1,
-          substageId: 1,
-        }
-      },
-      // Lookup recruiter evaluations to get currentEvaluation (endorser info, matchFit)
-      {
-        $lookup: {
-          from: "recruiter-evaluations",
-          let: {
-            interviewUID: { $toString: "$_id" },
-            status: {
-              $cond: {
-                if: { $ne: ["$applicationStatus", "Dropped"] },
-                then: "Endorsed",
-                else: "Dropped",
-              },
-            },
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$interviewUID", "$$interviewUID"] },
-                    { $eq: ["$action", "$$status"] },
-                  ],
-                },
-              },
-            },
-            { $sort: { createdAt: -1 } },
-            { $limit: 1 },
-          ],
-          as: "evaluations",
-        },
-      },
-      {
-        $addFields: {
-          currentEvaluation: { $arrayElemAt: ["$evaluations", 0] },
-        },
-      },
-      { $sort: sort },
-      { $skip: (page - 1) * limit },
-      { $limit: limit },
-    ])
+    const filter = getApplicantsFilter(careerID, search, filterStageId, filterSubstageId, filterStatus);
+    const sort = getApplicantsSort(sortBy);
+    const applicants = await db
+      .collection("interviews")
+      .aggregate(buildApplicantsPipeline({ filter, sort, page, limit }))
       .toArray();
     const totalApplicants = await db.collection("interviews").countDocuments(filter);
     const totalPages = Math.ceil(totalApplicants / limit);
@@ -128,62 +71,3 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
     return NextResponse.json({ error: "Failed to fetch applicants" }, { status: 500 });
   }
 });
-
-const getFilter = (careerID: string, search: string, filterStageId: string, filterSubstageId: string, filterStatus: string) => {
-  const filter: any = { id: careerID };
-
-  if (search) {
-    filter.name = { $regex: search, $options: "i" };
-  }
-
-  if (filterStatus) {
-    if (filterStatus === "All Statuses") {
-      filter.applicationStatus = { $in: ["Ongoing", "Dropped", "Hired", "Cancelled", null] };
-    } else if (filterStatus === "Ongoing") {
-      filter.applicationStatus = { $in: ["Ongoing", null] };
-    } else if (filterStatus === "Invited") {
-      filter.invitedFrom = { $exists: true, $ne: null };
-      // Optional: if you want to include all statuses for invited candidates, don't set filter.applicationStatus
-    } else {
-      filter.applicationStatus = filterStatus;
-    }
-  }
-
-  if (filterStageId) {
-    filter.stageId = filterStageId;
-  }
-
-  if (filterSubstageId) {
-    filter.substageId = filterSubstageId;
-  }
-
-  return filter;
-}
-
-const getSort = (sortBy: string) => {
-  if (sortBy === "Recent Activity") {
-    return { updatedAt: -1, _id: -1 };
-  }
-
-  if (sortBy === "Oldest Activity") {
-    return { updatedAt: 1, _id: -1 };
-  }
-
-  if (sortBy === "Date Applied (Newest First)") {
-    return { createdAt: -1, _id: -1 };
-  }
-
-  if (sortBy === "Date Applied (Oldest First)") {
-    return { createdAt: 1, _id: -1 };
-  }
-
-  if (sortBy === "Alphabetical (A-Z)") {
-    return { nameLower: 1, _id: -1 };
-  }
-
-  if (sortBy === "Alphabetical (Z-A)") {
-    return { nameLower: -1, _id: -1 };
-  }
-
-  return { _id: -1 };
-}

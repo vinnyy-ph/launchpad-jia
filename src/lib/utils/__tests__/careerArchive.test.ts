@@ -7,6 +7,7 @@ import {
   planArchiveTargets,
   archiveCareerPatch,
   undoCareerUpdate,
+  isCareerJobOwner,
 } from "@/lib/utils/careerArchive";
 
 describe("careerArchive query helpers", () => {
@@ -70,6 +71,31 @@ describe("planArchiveTargets", () => {
 
   it("returns just the parent when no children", () => {
     expect(planArchiveTargets({ _id: "p", id: "P1" } as any, [])).toEqual(["p"]);
+  });
+});
+
+describe("isCareerJobOwner", () => {
+  const career = {
+    teamMembers: [
+      { email: "owner@x.com", role: "Job Owner" },
+      { email: "hm@x.com", role: "Hiring Manager" },
+    ],
+  };
+
+  it("accepts a Job Owner on the career", () => {
+    expect(isCareerJobOwner(career, "owner@x.com")).toBe(true);
+  });
+
+  it("rejects members with other roles", () => {
+    expect(isCareerJobOwner(career, "hm@x.com")).toBe(false);
+  });
+
+  it("rejects emails not on the career", () => {
+    expect(isCareerJobOwner(career, "stranger@x.com")).toBe(false);
+  });
+
+  it("rejects when teamMembers is missing", () => {
+    expect(isCareerJobOwner({}, "owner@x.com")).toBe(false);
   });
 });
 

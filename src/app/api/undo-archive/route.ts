@@ -2,8 +2,16 @@ import { NextResponse } from "next/server";
 import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { logActivity } from "@/lib/utils/activityLogger";
-import { undoCareerUpdate } from "@/lib/utils/careerArchive";
+import { undoCareerUpdate, isCareerJobOwner } from "@/lib/utils/careerArchive";
 
+/**
+ * Undo an archive by batch id (the toast "Undo" action). Reverts everything the
+ * matching archive-career call did: un-archives the whole cascade, restores each
+ * career's pre-archive publish/activity status (including re-publish), and
+ * un-drops the candidates dropped in the same batch. Candidates are reset to
+ * applicationStatus "Ongoing" by design — the pre-drop per-candidate status is
+ * not captured, so undo is a fresh "back in play", not a field-level restore.
+ */
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const { batchId } = await request.json();
@@ -16,7 +24,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     const userEmail = request.user?.email;
     const orgID = careers[0].orgID;
     // Job-Owner gate: user must own at least one career in the batch.
-    const isJobOwner = careers.some((c: any) => c.teamMembers?.some((m: any) => m.email === userEmail && m.role === "Job Owner"));
+    const isJobOwner = careers.some((c: any) => isCareerJobOwner(c, userEmail));
     if (!isJobOwner) return NextResponse.json({ error: "Only Job Owners can undo this" }, { status: 403 });
 
     await db.collection("careers").bulkWrite(

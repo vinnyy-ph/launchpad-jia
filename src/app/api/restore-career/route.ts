@@ -3,6 +3,7 @@ import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { ObjectId } from "mongodb";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { logActivity } from "@/lib/utils/activityLogger";
+import { isCareerJobOwner } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
@@ -14,10 +15,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     if (!career) return NextResponse.json({ error: "Career not found" }, { status: 404 });
 
     const userEmail = request.user?.email;
-    const isJobOwner = career.teamMembers?.some(
-      (m: any) => m.email === userEmail && m.role === "Job Owner"
-    );
-    if (!isJobOwner) {
+    if (!isCareerJobOwner(career, userEmail)) {
       return NextResponse.json({ error: "Only Job Owners can restore this career" }, { status: 403 });
     }
 

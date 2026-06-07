@@ -3,7 +3,7 @@ import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { ObjectId } from "mongodb";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { logActivity } from "@/lib/utils/activityLogger";
-import { selectInterviewIdsToDrop, planArchiveTargets, archiveCareerPatch } from "@/lib/utils/careerArchive";
+import { selectInterviewIdsToDrop, planArchiveTargets, archiveCareerPatch, isCareerJobOwner } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
@@ -15,13 +15,13 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     if (!career) return NextResponse.json({ error: "Career not found" }, { status: 404 });
 
     const userEmail = request.user?.email;
-    const isJobOwner = career.teamMembers?.some(
-      (m: any) => m.email === userEmail && m.role === "Job Owner"
-    );
-    if (!isJobOwner) {
+    if (!isCareerJobOwner(career, userEmail)) {
       return NextResponse.json({ error: "Only Job Owners can archive this career" }, { status: 403 });
     }
 
+    // Cascade is single-level by design: the careers hierarchy is parent -> child
+    // posts only (children never have their own children), so one parentCareerID
+    // lookup collects the whole subtree.
     const orgID = career.orgID;
     const children = career.id
       ? await db.collection("careers").find({ orgID, parentCareerID: career.id }).toArray()
@@ -46,7 +46,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
         .find({ orgID, id: { $in: careerStringIds } })
         .project({ _id: 1, applicationStatus: 1 })
         .toArray();
-      const idsToDrop = selectInterviewIdsToDrop(interviews);
+      const idsToDrop = selectInterviewIdsToDrop<ObjectId>(interviews);
       if (idsToDrop.length > 0) {
         const res = await db.collection("interviews").updateMany(
           { _id: { $in: idsToDrop } },

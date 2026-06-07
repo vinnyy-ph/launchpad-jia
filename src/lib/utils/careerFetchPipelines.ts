@@ -107,3 +107,117 @@ export function buildApplicantsPipeline(args: {
     { $addFields: { currentEvaluation: { $arrayElemAt: ["$evaluations", 0] } } },
   ];
 }
+
+// --- get-career-interviews ---------------------------------------------------
+
+const latestByUidLookup = (from: string, as: string) => ({
+  $lookup: {
+    from,
+    let: { interviewUID: { $toString: "$_id" } },
+    pipeline: [
+      { $match: { $expr: { $eq: ["$interviewUID", "$$interviewUID"] } } },
+      { $sort: { createdAt: -1 } },
+      { $limit: 1 },
+    ],
+    as,
+  },
+});
+
+/**
+ * Perf fix vs. the original inline pipeline: the `applicants` $lookup is gone.
+ * It compared $toLower(foreign email) to $toLower(local email) — an expression
+ * on the foreign field that no index can serve, forcing a full applicants scan
+ * per interview doc. The account fields it produced (applicantStatus,
+ * hasJiaAccount) are now joined in route code via ONE collation-indexed query
+ * (collectApplicantEmailKeys + decorateApplicantAccounts below).
+ * The four remaining lookups are equality-on-indexed-field (see ensureIndexes).
+ */
+export function buildInterviewsPipeline(args: { careerID: string | null; userEmail: string }): Document[] {
+  const { careerID, userEmail } = args;
+  return [
+    { $match: { id: careerID } },
+    EVALUATIONS_LOOKUP,
+    {
+      $lookup: {
+        from: "comments",
+        let: { interviewID: "$interviewID" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                // Application-level comments only
+                $and: [
+                  { $eq: ["$interviewID", "$$interviewID"] },
+                  { $eq: ["$type", "application"] },
+                  { $ne: ["$deleted", true] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "comments",
+      },
+    },
+    latestByUidLookup("interview-history", "history"),
+    latestByUidLookup("recruiter-history", "recruiterHistory"),
+    {
+      $addFields: {
+        currentEvaluation: { $arrayElemAt: ["$evaluations", 0] },
+        commentCount: { $size: "$comments" },
+        newCommentCount: {
+          $size: {
+            $filter: {
+              input: "$comments",
+              as: "comment",
+              cond: { $not: { $in: [userEmail, { $ifNull: ["$$comment.viewedBy", []] }] } },
+            },
+          },
+        },
+        latestApplicationMovement: { $arrayElemAt: ["$history", 0] },
+        latestRecruiterAction: { $arrayElemAt: ["$recruiterHistory", 0] },
+      },
+    },
+    { $project: { comments: 0 } },
+  ];
+}
+
+/** Distinct lowercase emails across the fetched interviews + whether any doc has no email. */
+export function collectApplicantEmailKeys(interviews: Array<{ email?: string | null }>): {
+  emails: string[];
+  hasEmpty: boolean;
+} {
+  const set = new Set<string>();
+  let hasEmpty = false;
+  for (const iv of interviews) {
+    const key = String(iv.email ?? "").toLowerCase();
+    if (key) set.add(key);
+    else hasEmpty = true;
+  }
+  return { emails: [...set], hasEmpty };
+}
+
+/**
+ * JS port of the dropped $lookup's $addFields — semantics preserved exactly:
+ *  - no matching applicant → applicantStatus null, hasJiaAccount false
+ *  - applicantStatus = stored status ?? null  (missing status stays null)
+ *  - hasJiaAccount   = toLower(status ?? "joined") !== "invited"
+ */
+export function decorateApplicantAccounts<T extends { email?: string | null }>(
+  interviews: T[],
+  applicantDocs: Array<{ email?: string | null; status?: string | null }>
+): Array<T & { applicantStatus: string | null; hasJiaAccount: boolean }> {
+  const byEmail = new Map<string, { status?: string | null }>();
+  for (const doc of applicantDocs) {
+    const key = String(doc.email ?? "").toLowerCase();
+    if (!byEmail.has(key)) byEmail.set(key, doc);
+  }
+  return interviews.map((iv) => {
+    const acct = byEmail.get(String(iv.email ?? "").toLowerCase());
+    if (!acct) return { ...iv, applicantStatus: null, hasJiaAccount: false };
+    return {
+      ...iv,
+      applicantStatus: acct.status ?? null,
+      hasJiaAccount: String(acct.status ?? "joined").toLowerCase() !== "invited",
+    };
+  });
+}

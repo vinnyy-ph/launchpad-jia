@@ -220,6 +220,11 @@ export default function ManualProfileWizard({
 
   const draftStorageKey = draftKey(userEmail);
   const [pendingDraft, setPendingDraft] = useState<ProfileDraft<WizardData> | null>(null);
+  // Bumped on draft resume. Keys the contact step so resuming AT step 0 forces
+  // a remount — its local state (country/manualMode/addressParts) is snapshotted
+  // from props at mount and would otherwise desync from the restored data. Every
+  // other resume index is safe (step 0 remounts when navigated back to).
+  const [resumeGen, setResumeGen] = useState(0);
 
   function clearDraft() {
     try {
@@ -434,6 +439,7 @@ export default function ManualProfileWizard({
       case 0:
         return (
           <ContactInformationStep
+            key={resumeGen}
             value={data.contact}
             onChange={(contact) => patch({ contact })}
             lockEmail={Boolean(userEmail)}
@@ -656,6 +662,7 @@ export default function ManualProfileWizard({
             // v1 drafts have no sectionStatus → INITIAL (same as before); the
             // sanitizer also rejects tampered/invalid values per section.
             setSectionStatus(sanitizeSectionStatus(pendingDraft.sectionStatus));
+            setResumeGen((n) => n + 1);
           }
           setPendingDraft(null);
         }}

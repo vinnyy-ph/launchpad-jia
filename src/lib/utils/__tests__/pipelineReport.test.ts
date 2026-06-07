@@ -46,6 +46,20 @@ describe("getReportStages", () => {
       "CV Screening - Final Screen",
     ]);
   });
+
+  // Pins a known gap (see refactors/t3/recommendations.md): the merge branch only runs
+  // for non-offer stages, so a NEW Job Offer substage introduced by a later career is
+  // not added to the existing offerStages entry. Kept as-is to avoid count drift.
+  it("does not merge new offer-stage substages from later careers (current behavior)", () => {
+    const c2 = career({ timelineStages: [
+      { id: "4", name: "Job Offer", substages: [
+        { id: "9", name: "Negotiation", candidates: [{}], droppedCandidates: [] },
+      ] },
+    ] });
+    const { offerStages } = getReportStages([career(), c2]);
+    expect(offerStages).toHaveLength(1);
+    expect(offerStages[0].substages.map((s: any) => s.label)).toEqual(["Job Offer - For Final Review"]);
+  });
 });
 
 const colVis = (over: any = {}) => {
@@ -101,6 +115,16 @@ describe("groupByParentChild", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].depth).toBe(0);
   });
+  it("matches the parent by _id as well as id, preserving child order", () => {
+    const parent = career({ id: "p1", _id: "PID", jobTitle: "Parent" });
+    const a = career({ id: "a", _id: "aid", jobTitle: "A", parentCareerID: "PID" });
+    const b = career({ id: "b", _id: "bid", jobTitle: "B", parentCareerID: "p1" });
+    const rows = groupByParentChild([parent, a, b]);
+    expect(rows.map((r) => [r.career.jobTitle, r.depth])).toEqual([
+      ["Parent", 0], ["A", 1], ["B", 1],
+    ]);
+    expect(rows[0].childCount).toBe(2);
+  });
 });
 
 describe("buildPipelineReportParams", () => {
@@ -121,6 +145,13 @@ describe("buildPipelineReportParams", () => {
     const p = buildPipelineReportParams(fs, { orgID: "O", projectId: "SCOPED", page: 1, limit: 20, sortBy: "x", fullReport: true });
     expect(p.projectIds).toBe("SCOPED");
     expect(p.fullReport).toBe(true);
+  });
+  it("drops member entries with a missing email instead of emitting empty segments", () => {
+    const p = buildPipelineReportParams(
+      { ...fs, jobOwners: [{ email: "a@x.com" }, { name: "No Email" }] },
+      { orgID: "O", page: 1, limit: 20, sortBy: "x" }
+    );
+    expect(p.jobOwners).toBe("a@x.com");
   });
 });
 
@@ -144,6 +175,9 @@ describe("relativeTimeShort (JIA-431 Created Date format)", () => {
     expect(relativeTimeShort(new Date(Date.now() - 60 * 864e5))).toBe("2mo ago");
     expect(relativeTimeShort(null)).toBe("-");
     expect(relativeTimeShort("not-a-date")).toBe("-");
+  });
+  it("clamps future dates to 'just now' (clock-skewed createdAt must not render negative)", () => {
+    expect(relativeTimeShort(new Date(Date.now() + 60 * 1000))).toBe("just now");
   });
 });
 

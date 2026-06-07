@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import TableMetric from "./TableMetric";
 import { useSearchParams } from "next/navigation";
@@ -16,7 +16,12 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams } from "@/lib/utils/pipelineReport";
+
+// Display-only header rename (the underlying stage key stays "Human Interview" so
+// stage matching, exports, and the API contract are unaffected); sortable header set.
+const DISPLAY_LABEL: Record<string, string> = { "Human Interview": "HR Interview" };
+const SORTABLE_COLUMNS = ["Job Title", "Project", "Job Owner", "AI Interview", "Human Interview"];
 
 export default function RecruiterPipelineReport({ projectId }: { projectId?: string }) {
     const searchParams = useSearchParams();
@@ -46,8 +51,9 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         offerStages: [],
         otherColumns: { "Created Date": false, "Headcount": false, "Notes": false } as Record<string, boolean>,
     });
-    const [sortBy, setSortBy] = useState<string>("Position Name (A-Z)");
-    const sortByOptions = ["Position Name (A-Z)", "Position Name (Z-A)", "Project Name (A-Z)", "Project Name (Z-A)"];
+    // Server-side sort default. The "Sort by" dropdown was removed in the Figma fidelity
+    // pass (column-header sorting replaced it), so this is a constant, not state.
+    const sortBy = "Position Name (A-Z)";
     const [isLoadingFullReport, setIsLoadingFullReport] = useState(false);
     const [isFullscreenView, setIsFullscreenView] = useState(false);
     const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -57,9 +63,6 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         else if (sortDir === "asc") setSortDir("desc");
         else { setSortColumn(null); setSortDir(null); }
     };
-    // Display-only header rename (data stage stays "Human Interview"); sortable header set.
-    const DISPLAY_LABEL: Record<string, string> = { "Human Interview": "HR Interview" };
-    const SORTABLE_COLUMNS = ["Job Title", "Project", "Job Owner", "AI Interview", "Human Interview"];
     const [noteModalCareer, setNoteModalCareer] = useState<any>(null);
     const openNoteModal = (career: any) => setNoteModalCareer(career);
     const saveNote = async (career: any, note: string) => {
@@ -102,25 +105,17 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         const fetchPipelineReport = async () => {
             try {
                 setIsLoading(true);
-                const response = await api.get("/api/get-pipeline-report", { 
-                    params: { 
-                        orgID: orgID, 
-                        limit: limit, 
-                        page: page,
-                        status: filterStatus["Published Status"].join(","),
-                        projectIds: projectId ? projectId : filterStatus.projects.map((p) => p._id).join(","),
-                        activityStatus: filterStatus["Activity Status"].join(","),
-                        jobPostType: filterStatus["Subscription Plan"].join(","),
-                        careers: filterStatus.careers.map((c) => c.id).join(","),
-                        sortBy: sortBy,
-                        jobOwners: filterStatus.jobOwners.map((j) => j.email).filter(Boolean).join(","),
-                        contributors: filterStatus.contributors.map((c) => c.email).filter(Boolean).join(","),
-                        hiringManagers: filterStatus.hiringManagers.map((h) => h.email).filter(Boolean).join(","),
-                    } 
+                const response = await api.get("/api/get-pipeline-report", {
+                    // All five ticket filters (project, job title=careers, job owner,
+                    // status, hiring manager) compose server-side via these params.
+                    params: buildPipelineReportParams(filterStatus, { orgID, projectId, page, limit, sortBy }),
                 });
                 setPipelineReport(response.data.careers)
                 setTotalCareers(response.data.totalCareers);
                 const { stages, offerStages } = getReportStages(response.data.careers);
+                // NOTE: every fetch (page/filter change) rebuilds stage columns from the new
+                // result set and resets type/dropped/otherColumns to defaults — pre-T3 behavior,
+                // kept intact (see recommendations: persisting customizations across fetches).
                 setColumnVisibility({
                     type: "Show per stage",
                     includeDroppedCandidates: false,
@@ -148,7 +143,9 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         if (statusIdx !== -1) newHeaders.splice(statusIdx, 1, "Published Status", "Activity Status", "Job Post Type");
         const csvContent = `${newHeaders.join(",")}` + "\n" + formattedData.rows.map((row: any) => newHeaders.map((header: any) => {
             if (header === "Job Owner") {
-                return row.metadata.jobOwner.name;
+                // Optional-chained: a career with neither a Job Owner member nor createdBy
+                // must not crash the whole export (cell falls through to "" via join).
+                return row.metadata.jobOwner?.name;
             }
             if (header === "Published Status") {
                 return row.metadata.publishedStatus;
@@ -223,9 +220,11 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 } 
             });
             const { stages, offerStages } = getReportStages(response.data.careers);
-            // Match enabled state with the stages and offerStages
-            const updatedStages = stages.map((stage: any) => {
-                const existingStage = columnVisibility.stages.find((s: any) => s.label === stage.label);
+            // Re-apply the user's Customize Columns selections (label-matched) onto the
+            // freshly fetched stage list so the export honors what the table shows.
+            // Stages absent from the current view keep their fetched default (enabled).
+            const mergeEnabledState = (fresh: any[], existing: any[]) => fresh.map((stage: any) => {
+                const existingStage = existing.find((s: any) => s.label === stage.label);
                 return {
                     ...stage,
                     enabled: existingStage ? existingStage.enabled : stage.enabled,
@@ -238,20 +237,8 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     }),
                 }
             });
-            const updatedOfferStages = offerStages.map((stage: any) => {
-                const existingStage = columnVisibility.offerStages.find((s: any) => s.label === stage.label);
-                return {
-                    ...stage,
-                    enabled: existingStage ? existingStage.enabled : stage.enabled,
-                    substages: stage.substages.map((substage: any) => {
-                        const existingSubstage = existingStage?.substages.find((s: any) => s.label === substage.label);
-                        return {
-                            ...substage,
-                            enabled: existingSubstage ? existingSubstage.enabled : substage.enabled,
-                        }
-                    }),
-                }
-            })
+            const updatedStages = mergeEnabledState(stages, columnVisibility.stages);
+            const updatedOfferStages = mergeEnabledState(offerStages, columnVisibility.offerStages);
             const formattedData = getTableData({
                 ...columnVisibility,
                 stages: updatedStages,
@@ -328,8 +315,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                         {isParent && (
                             <img
                                 src="/iconsV3/chevron-down.svg"
-                                alt=""
+                                alt={expandedParents[String(item.id)] ? "Collapse child posts" : "Expand child posts"}
                                 onClick={(e) => {
+                                    // The title cell is wrapped in an <a> (row navigates to the career);
+                                    // the chevron alone must toggle expansion without navigating.
                                     e.preventDefault();
                                     e.stopPropagation();
                                     setExpandedParents((p) => ({ ...p, [String(item.id)]: !p[String(item.id)] }));
@@ -403,15 +392,27 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         };
     }
 
-    const tableData = pipelineReport ? getTableData(columnVisibility, pipelineReport) : { columnHeaders: [], rows: [], cellTooltips: {} };
-    const orderedHeaders = columnOrder.length
-        ? [...tableData.columnHeaders].sort((a, b) => {
-            const ia = columnOrder.indexOf(a);
-            const ib = columnOrder.indexOf(b);
-            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-        })
-        : tableData.columnHeaders;
-    const orderedData = { ...tableData, columnHeaders: orderedHeaders };
+    // Memoized: getTableData builds row JSX + per-cell tooltips for every visible row, so
+    // unrelated state changes (modals, fullscreen flag, export spinner) must not recompute it.
+    // Deps = everything getTableData closes over that can change between renders.
+    const tableData = useMemo(
+        () => pipelineReport ? getTableData(columnVisibility, pipelineReport) : { columnHeaders: [] as string[], rows: [] as any[], cellTooltips: {} as Record<number, Record<string, React.ReactNode>> },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- getTableData is render-scoped; its mutable inputs are listed
+        [pipelineReport, columnVisibility, sortColumn, sortDir, expandedParents]
+    );
+    const orderedData = useMemo(() => {
+        // Apply the persisted drag-reorder. Columns not yet in the saved order (e.g. a stage
+        // or "Others" column enabled after saving) sort to the END via the 999 sentinel,
+        // keeping their relative order (Array.sort is stable).
+        const orderedHeaders = columnOrder.length
+            ? [...tableData.columnHeaders].sort((a, b) => {
+                const ia = columnOrder.indexOf(a);
+                const ib = columnOrder.indexOf(b);
+                return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+            })
+            : tableData.columnHeaders;
+        return { ...tableData, columnHeaders: orderedHeaders };
+    }, [tableData, columnOrder]);
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%" }}>
@@ -486,7 +487,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     enableColumnReorder
                     onColumnReorder={(o) => setColumnOrder(o)}
                     fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
-                    getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
+                    getCellTooltip={(col: string, ri: number) => orderedData.cellTooltips?.[ri]?.[col]}
                     columnLabels={DISPLAY_LABEL}
                     sortableColumns={SORTABLE_COLUMNS}
                     sortColumn={sortColumn}
@@ -505,7 +506,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 enableColumnReorder
                 onColumnReorder={(o) => setColumnOrder(o)}
                 fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
-                getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
+                getCellTooltip={(col: string, ri: number) => orderedData.cellTooltips?.[ri]?.[col]}
                 columnLabels={DISPLAY_LABEL}
                 sortableColumns={SORTABLE_COLUMNS}
                 sortColumn={sortColumn}

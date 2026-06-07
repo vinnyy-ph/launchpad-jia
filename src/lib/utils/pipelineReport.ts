@@ -127,12 +127,19 @@ export interface ReportRowMeta { career: any; depth: 0 | 1; childCount: number; 
 // Groups child careers (parentCareerID) under their parent. Standalone careers and
 // orphan children (parent not in result set) render at depth 0. Matches parent by id or _id.
 export function groupByParentChild(careers: any[]): ReportRowMeta[] {
-  const keyOf = (c: any) => [String(c.id), String(c._id)];
+  // Index careers by BOTH id and _id up front (O(n) instead of a find() per child).
+  // First occurrence wins per key, matching the original first-match find() semantics.
+  const byKey = new Map<string, any>();
+  for (const c of careers) {
+    for (const k of [String(c.id), String(c._id)]) {
+      if (!byKey.has(k)) byKey.set(k, c);
+    }
+  }
   const childrenByParent = new Map<string, any[]>();
   const top: any[] = [];
   for (const c of careers) {
     const pk = c.parentCareerID ? String(c.parentCareerID) : null;
-    const parent = pk ? careers.find((p) => keyOf(p).includes(pk)) : null;
+    const parent = pk ? byKey.get(pk) : null;
     if (isChildCareer(c) && parent && parent !== c) {
       const gid = String(parent.id);
       if (!childrenByParent.has(gid)) childrenByParent.set(gid, []);

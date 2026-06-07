@@ -24,24 +24,27 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
   const userEmail = request.user.email;
 
   try {
-    const interviews = await db
+    type InterviewDoc = Record<string, unknown> & { email?: string | null };
+    type ApplicantDoc = { email?: string | null; status?: string | null };
+
+    const interviewDocs = (await db
       .collection("interviews")
       .aggregate(buildInterviewsPipeline({ careerID, userEmail }))
-      .toArray();
+      .toArray()) as InterviewDoc[];
 
-    const { emails, hasEmpty } = collectApplicantEmailKeys(interviews as any);
+    const { emails, hasEmpty } = collectApplicantEmailKeys(interviewDocs);
     const accountFilter = hasEmpty
       ? { $or: [{ email: { $in: [...emails, ""] } }, { email: null }, { email: { $exists: false } }] }
       : { email: { $in: emails } };
-    const applicantDocs = emails.length || hasEmpty
+    const applicantDocs = (emails.length || hasEmpty
       ? await db
           .collection("applicants")
           .find(accountFilter, { projection: { email: 1, status: 1 } })
           .collation({ locale: "en", strength: 2 })
           .toArray()
-      : [];
+      : []) as ApplicantDoc[];
 
-    return NextResponse.json(decorateApplicantAccounts(interviews as any, applicantDocs as any));
+    return NextResponse.json(decorateApplicantAccounts(interviewDocs, applicantDocs));
   } catch (error) {
     console.error(error);
     return NextResponse.json(

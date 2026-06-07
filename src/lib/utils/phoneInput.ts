@@ -58,6 +58,39 @@ export function formatNationalNumber(
   return parts.join(" ");
 }
 
+/** Dial code for a supported country (e.g. "PH" -> "+63"). Falls back to "+63". */
+export function getDialCode(country: SupportedPhoneCountry): string {
+  return (
+    PHONE_COUNTRY_OPTIONS.find((option) => option.code === country)?.dialCode ?? "+63"
+  );
+}
+
+// Splits the national number out of a (possibly formatted) full phone value by
+// stripping the country's dial-code digits when present. Shared by every
+// dial-code-prefix phone input (contact step, verify modal, reference form).
+export function extractNationalNumber(
+  phone: string,
+  country: SupportedPhoneCountry,
+): string {
+  const dialDigits = getDialCode(country).replace(/^\+/, "");
+  const digits = `${phone || ""}`.replace(/\D/g, "");
+  return digits.startsWith(dialDigits) ? digits.slice(dialDigits.length) : digits;
+}
+
+// Rebuilds the full E.164 value from raw national-number input: keeps digits
+// only, caps at the country's max national length, prefixes the dial code, then
+// runs the shared sanitizer. The single onChange path for all dial-code-prefix
+// phone inputs.
+export function buildPhoneFromNationalInput(
+  rawNationalInput: string,
+  country: SupportedPhoneCountry,
+): string {
+  const nationalDigits = `${rawNationalInput || ""}`
+    .replace(/\D/g, "")
+    .slice(0, maxNationalDigits(country));
+  return sanitizeInternationalPhoneInput(`${getDialCode(country)}${nationalDigits}`, country);
+}
+
 function normalizePhilippinesPhoneInput(digits: string): string {
   if (!digits) {
     return "";

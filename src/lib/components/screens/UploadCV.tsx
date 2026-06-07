@@ -48,6 +48,7 @@ import {
   normalizeStructuredCVInput,
 } from "@/lib/utils/structuredCV";
 import ManualProfileWizard from "@/lib/components/ManualProfile/ManualProfileWizard";
+import CreateProfileCard from "@/lib/components/ManualProfile/CreateProfileCard";
 
 const PHONE_VERIFICATION_RECAPTCHA_ID = "upload-cv-recaptcha-container";
 
@@ -1644,16 +1645,10 @@ export default function () {
               <>
                 {!buildingCV && !userCV && !file && (
                   <div className={styles.cvManageContainer}>
-                    <div className={styles.cvContainer}>
-                      <img alt="" src="/iconsV3/create-profile.svg" />
-                      <button onClick={() => setShowManualWizard(true)}>
-                        Create a Profile Manually
-                      </button>
-                      <span>
-                        Quickstart your job application by creating your own CV
-                        from scratch.
-                      </span>
-                    </div>
+                    <CreateProfileCard
+                      className={styles.cvContainer}
+                      onClick={() => setShowManualWizard(true)}
+                    />
 
                     <div
                       className={styles.cvContainer}

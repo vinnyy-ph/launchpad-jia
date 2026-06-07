@@ -7,7 +7,6 @@ import ContactInformationStep, {
   type ContactStepValue,
   createEmptyContact,
 } from "./ContactInformationStep";
-import MultiEntryStep from "./MultiEntryStep";
 import InlineMultiEntryStep from "./InlineMultiEntryStep";
 import EducationEntryForm, { createEmptyEducation } from "./EducationEntryForm";
 import ExperienceEntryForm, { createEmptyExperience } from "./ExperienceEntryForm";
@@ -146,6 +145,8 @@ function prefixItemErrors<T extends { id: string }>(
   return out;
 }
 
+// NOTE: the step-index cases here must stay in sync with STEP_SECTION in
+// assembleProfile.ts (asserted by its test) and with renderStep below.
 function computeStepErrors(stepIndex: number, d: WizardData): FieldErrors {
   switch (stepIndex) {
     case 0:

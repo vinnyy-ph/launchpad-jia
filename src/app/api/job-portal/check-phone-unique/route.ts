@@ -18,16 +18,22 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
 
   const { db } = await connectMongoDB();
 
+  // Shape produced by the projection below — only the two fields we compare.
+  interface PhoneProjection {
+    email?: string;
+    structuredCV?: { contactInfo?: { phone?: string } };
+  }
+
   // Pull only docs that carry a phone; project just the two fields we compare.
   const docs = await db
     .collection("applicant-cv")
-    .find(
+    .find<PhoneProjection>(
       { "structuredCV.contactInfo.phone": { $exists: true, $ne: "" } },
       { projection: { email: 1, "structuredCV.contactInfo.phone": 1 } },
     )
     .toArray();
 
-  const existing: ExistingPhoneRecord[] = docs.map((d: any) => ({
+  const existing: ExistingPhoneRecord[] = docs.map((d) => ({
     email: d.email ?? "",
     phone: d?.structuredCV?.contactInfo?.phone ?? "",
   }));

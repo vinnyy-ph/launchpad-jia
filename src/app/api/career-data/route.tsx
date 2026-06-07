@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
+import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
 
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
@@ -67,7 +68,9 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       parentCareer = await db
         .collection("careers")
         .findOne(
-          { id: career.parentCareerID, orgID: career.orgID },
+          // Hierarchy reads skip archived relatives (defense-in-depth; the career
+          // itself stays fetchable by direct id — that's where Restore lives).
+          { id: career.parentCareerID, orgID: career.orgID, ...EXCLUDE_ARCHIVED },
           { projection: hierarchyProjection }
         );
     }
@@ -76,7 +79,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
       childCareers = await db
         .collection("careers")
         .find(
-          { parentCareerID: career.id, orgID: career.orgID },
+          { parentCareerID: career.id, orgID: career.orgID, ...EXCLUDE_ARCHIVED },
           { projection: hierarchyProjection }
         )
         .toArray();

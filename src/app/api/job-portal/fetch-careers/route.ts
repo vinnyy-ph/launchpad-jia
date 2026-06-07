@@ -1,6 +1,7 @@
 import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
+import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
 
 export async function POST(request: Request) {
   const { db } = await connectMongoDB();
@@ -36,6 +37,9 @@ export async function POST(request: Request) {
   const earlyMatchConditions: any = {
     status: "active",
     orgID: { $ne: "6850d1f32eb27a8356bfe968" }, // Exclude specific org [Test Cloak]
+    // Defense-in-depth: archived careers are forced inactive, but keep them out
+    // of the public job portal even if that invariant ever slips.
+    ...EXCLUDE_ARCHIVED,
   };
 
   if (jobID != "all") {

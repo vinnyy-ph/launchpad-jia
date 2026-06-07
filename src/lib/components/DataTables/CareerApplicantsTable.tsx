@@ -360,7 +360,7 @@ export default function CareerApplicantsTable({ slug, pipelineStages, career }: 
                               onMouseLeave={handleTooltipMouseLeave}
                             >
                               <img
-                                src={applicant?.image}
+                                src={applicant?.image || "/default-avatar.png"}
                                 alt={applicant?.name}
                                 style={{ width: 32, height: 32, borderRadius: "50%", background: "#E0E0E0" }}
                               />

@@ -1,7 +1,7 @@
 import {
   getReportStages, getFormattedStages, getStageCounts,
   groupByParentChild, buildPipelineReportParams, getExtraColumnValue,
-  combineTimelineStages, relativeTimeShort,
+  combineTimelineStages, relativeTimeShort, csvEscape,
 } from "../pipelineReport";
 
 const career = (over: any = {}) => ({
@@ -167,6 +167,24 @@ describe("getExtraColumnValue", () => {
     expect(getExtraColumnValue(career({ headcount: "5" }), "Headcount")).toBe("5");
     expect(getExtraColumnValue(career({ notes: undefined }), "Notes")).toBe("-");
     expect(getExtraColumnValue(career({ notes: "urgent req" }), "Notes")).toBe("urgent req");
+  });
+});
+
+describe("csvEscape (RFC-4180)", () => {
+  it("passes plain fields through unquoted", () => {
+    expect(csvEscape("Engineer")).toBe("Engineer");
+    expect(csvEscape(42)).toBe("42");
+    expect(csvEscape("-")).toBe("-");
+  });
+  it("quote-wraps fields containing commas, quotes, or line breaks", () => {
+    expect(csvEscape("Senior, Staff Engineer")).toBe('"Senior, Staff Engineer"');
+    expect(csvEscape('the "best" role')).toBe('"the ""best"" role"');
+    expect(csvEscape("line1\nline2")).toBe('"line1\nline2"');
+    expect(csvEscape("line1\r\nline2")).toBe('"line1\r\nline2"');
+  });
+  it("renders null/undefined as an empty string", () => {
+    expect(csvEscape(null)).toBe("");
+    expect(csvEscape(undefined)).toBe("");
   });
 });
 

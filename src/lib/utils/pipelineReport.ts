@@ -249,6 +249,15 @@ export function buildPipelineReportParams(
   };
 }
 
+// RFC-4180 CSV field escaping: wrap any field containing a comma, double quote, or
+// line break in double quotes, doubling embedded quotes. null/undefined render as "".
+// Replaces the lossy per-column sanitizing (comma-stripping titles, comma->space notes)
+// the export inherited — values keep their real bytes and columns can never shift.
+export function csvEscape(value: unknown): string {
+  const s = String(value ?? "");
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
 export type ExtraColumnKey = "Headcount" | "Created Date" | "Notes";
 
 // JIA-431: Created Date uses a RELATIVE time format (e.g. "10d ago"), not an absolute date.

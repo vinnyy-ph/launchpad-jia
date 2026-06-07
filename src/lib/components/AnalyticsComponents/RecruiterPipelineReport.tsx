@@ -16,7 +16,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams, type ColumnVisibility } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams, csvEscape, type ColumnVisibility } from "@/lib/utils/pipelineReport";
 
 // Display-only header rename (the underlying stage key stays "Human Interview" so
 // stage matching, exports, and the API contract are unaffected); sortable header set.
@@ -141,7 +141,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         const newHeaders = [...formattedData.columnHeaders];
         const statusIdx = newHeaders.indexOf("Status");
         if (statusIdx !== -1) newHeaders.splice(statusIdx, 1, "Published Status", "Activity Status", "Job Post Type");
-        const csvContent = `${newHeaders.join(",")}` + "\n" + formattedData.rows.map((row: any) => newHeaders.map((header: any) => {
+        // Every cell (headers too — custom stage names may contain commas) goes through
+        // RFC-4180 csvEscape, so values keep their real bytes (titles keep their commas,
+        // notes keep commas/newlines) and columns can never shift.
+        const cellValue = (row: any, header: string) => {
             if (header === "Job Owner") {
                 // Optional-chained: a career with neither a Job Owner member nor createdBy
                 // must not crash the whole export. "-" matches the XLSX export convention.
@@ -157,14 +160,16 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 return row.metadata.jobPostType;
             }
             if (header === "Job Title") {
-                const t = typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
-                return t.replace(/,/g, "");
+                return typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
             }
             if (header === "Notes") {
-                return String(row.metadata?.notes ?? "-").replace(/,/g, " ");
+                return row.metadata?.notes ?? "-";
             }
             return row[header];
-        }).join(",")).join("\n");
+        };
+        const csvContent = newHeaders.map(csvEscape).join(",") + "\n" + formattedData.rows.map((row: any) =>
+            newHeaders.map((header: string) => csvEscape(cellValue(row, header))).join(",")
+        ).join("\n");
         const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);

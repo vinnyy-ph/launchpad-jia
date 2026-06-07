@@ -1,6 +1,8 @@
 import {
   getApplicantsFilter, getApplicantsSort, buildApplicantsPipeline,
-  buildInterviewsPipeline, collectApplicantEmailKeys, decorateApplicantAccounts,
+  collectApplicantEmailKeys, decorateApplicantAccounts,
+  buildEvaluationsBatchPipeline, buildCommentCountsPipeline, buildLatestByUidPipeline,
+  joinInterviewBatches,
 } from "../careerFetchPipelines";
 
 const stageNames = (p: any[]) => p.map((s) => Object.keys(s)[0]);
@@ -86,22 +88,73 @@ describe("buildApplicantsPipeline", () => {
   });
 });
 
-describe("buildInterviewsPipeline", () => {
-  const pipeline = buildInterviewsPipeline({ careerID: "c1", userEmail: "me@x.com" });
-  const lookups = pipeline.filter((s: any) => "$lookup" in s).map((s: any) => s.$lookup.from);
+describe("buildEvaluationsBatchPipeline", () => {
+  const p = buildEvaluationsBatchPipeline(["u1", "u2"]);
+  it("matches both actions for the given uids, sorts latest-first, groups per (uid, action)", () => {
+    expect(p[0]).toEqual({ $match: { interviewUID: { $in: ["u1", "u2"] }, action: { $in: ["Endorsed", "Dropped"] } } });
+    expect(p[1]).toEqual({ $sort: { interviewUID: 1, action: 1, createdAt: -1 } });
+    expect(p[2]).toEqual({ $group: { _id: { interviewUID: "$interviewUID", action: "$action" }, doc: { $first: "$$ROOT" } } });
+  });
+});
 
-  it("matches the career first", () => {
-    expect(pipeline[0]).toEqual({ $match: { id: "c1" } });
+describe("buildCommentCountsPipeline", () => {
+  const p = buildCommentCountsPipeline(["i1", null], "me@x.com");
+  it("filters application-level comments and counts unseen per user", () => {
+    expect(p[0]).toEqual({ $match: { interviewID: { $in: ["i1", null] }, type: "application", deleted: { $ne: true } } });
+    const group: any = p[1];
+    expect(group.$group._id).toBe("$interviewID");
+    expect(group.$group.commentCount).toEqual({ $sum: 1 });
+    expect(JSON.stringify(group.$group.newCommentCount)).toContain("me@x.com");
   });
-  it("keeps 4 lookups and drops the non-sargable applicants lookup", () => {
-    expect(lookups).toEqual(["recruiter-evaluations", "comments", "interview-history", "recruiter-history"]);
+});
+
+describe("buildLatestByUidPipeline", () => {
+  it("groups latest doc per uid", () => {
+    expect(buildLatestByUidPipeline(["u1"])).toEqual([
+      { $match: { interviewUID: { $in: ["u1"] } } },
+      { $sort: { interviewUID: 1, createdAt: -1 } },
+      { $group: { _id: "$interviewUID", doc: { $first: "$$ROOT" } } },
+    ]);
   });
-  it("newCommentCount still keyed to the requesting user", () => {
-    const addFields: any = pipeline.find((s: any) => "$addFields" in s);
-    expect(JSON.stringify(addFields.$addFields.newCommentCount)).toContain("me@x.com");
+});
+
+describe("joinInterviewBatches", () => {
+  const interviews = [
+    { _id: "a", interviewID: "ia", applicationStatus: "Ongoing" },
+    { _id: "b", interviewID: "ib", applicationStatus: "Dropped" },
+    { _id: "c", interviewID: null, applicationStatus: null },
+  ] as any[];
+  const batches = {
+    evaluations: [
+      { _id: { interviewUID: "a", action: "Endorsed" }, doc: { action: "Endorsed", note: "latest-a" } },
+      { _id: { interviewUID: "a", action: "Dropped" }, doc: { action: "Dropped", note: "wrong-action" } },
+      { _id: { interviewUID: "b", action: "Dropped" }, doc: { action: "Dropped", note: "latest-b" } },
+    ],
+    commentCounts: [{ _id: "ia", commentCount: 3, newCommentCount: 2 }],
+    latestHistory: [{ _id: "a", doc: { event: "moved" } }],
+    latestRecruiterHistory: [{ _id: "b", doc: { event: "noted" } }],
+  } as any;
+  const out = joinInterviewBatches(interviews, batches);
+
+  it("picks the evaluation matching the status-derived action", () => {
+    expect(out[0].currentEvaluation).toEqual({ action: "Endorsed", note: "latest-a" });
+    expect(out[1].currentEvaluation).toEqual({ action: "Dropped", note: "latest-b" });
   });
-  it("still strips the raw comments array from the payload", () => {
-    expect(pipeline[pipeline.length - 1]).toEqual({ $project: { comments: 0 } });
+  it("null applicationStatus counts as not-Dropped (Endorsed branch)", () => {
+    expect(out[2].currentEvaluation).toBeUndefined();
+  });
+  it("defaults counts to zero and leaves missing joins undefined", () => {
+    expect(out[0]).toMatchObject({ commentCount: 3, newCommentCount: 2 });
+    expect(out[1]).toMatchObject({ commentCount: 0, newCommentCount: 0 });
+    expect(out[0].latestApplicationMovement).toEqual({ event: "moved" });
+    expect(out[0].latestRecruiterAction).toBeUndefined();
+    expect(out[1].latestRecruiterAction).toEqual({ event: "noted" });
+  });
+  it("does not emit raw arrays and does not mutate input", () => {
+    expect(out[0]).not.toHaveProperty("evaluations");
+    expect(out[0]).not.toHaveProperty("history");
+    expect(out[0]).not.toHaveProperty("recruiterHistory");
+    expect(interviews[0]).not.toHaveProperty("commentCount");
   });
 });
 

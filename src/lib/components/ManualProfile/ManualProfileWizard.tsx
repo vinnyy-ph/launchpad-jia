@@ -208,6 +208,10 @@ export default function ManualProfileWizard({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  // Dirty-guard bookkeeping: armed once the guard pushes its history entry;
+  // exiting marks the programmatic back() that consumes it so onPop ignores it.
+  const guardArmedRef = useRef(false);
+  const exitingRef = useRef(false);
 
   const {
     generating: generatingIntro,
@@ -271,6 +275,7 @@ export default function ManualProfileWizard({
         fileInfo: null,
       });
       clearDraft();
+      consumeGuardEntry();
       (onSubmitted ?? onExit)();
     } catch {
       setSubmitError("Something went wrong saving your profile. Please try again.");
@@ -437,13 +442,26 @@ export default function ManualProfileWizard({
   useEffect(() => {
     if (!isDirty) return;
     window.history.pushState(null, "", window.location.href);
+    guardArmedRef.current = true;
     const onPop = () => {
+      if (exitingRef.current) return; // programmatic back() from a clean exit
       setShowDiscard(true);
       window.history.pushState(null, "", window.location.href);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [isDirty]);
+
+  // Consume the guard's history entry (if armed) before leaving — otherwise
+  // the user needs one extra Back press after Save & Exit / submit to actually
+  // navigate away.
+  function consumeGuardEntry() {
+    if (guardArmedRef.current) {
+      guardArmedRef.current = false;
+      exitingRef.current = true;
+      window.history.back();
+    }
+  }
 
   function renderStep() {
     switch (stepIndex) {
@@ -609,6 +627,8 @@ export default function ManualProfileWizard({
       if (isDirty) {
         setShowDiscard(true);
       } else {
+        // Guard can still be armed here (dirty earlier, then reverted).
+        consumeGuardEntry();
         onExit();
       }
       return;
@@ -661,10 +681,12 @@ export default function ManualProfileWizard({
           } catch {
             /* ignore */
           }
+          consumeGuardEntry();
           onExit();
         }}
         onExitWithoutSaving={() => {
           clearDraft();
+          consumeGuardEntry();
           onExit();
         }}
       />

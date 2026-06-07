@@ -32,13 +32,18 @@ export function showArchiveToast(opts: {
 }) {
   const variant = opts.dropped ? "archive-drop" : "archive-nodrop";
 
+  // Captured below so Undo dismisses only ITS toast — a bare toast.dismiss()
+  // clears every open toast (archive two careers quickly and one Undo would
+  // eat the other career's toast, undo affordance included).
+  let toastId: ReturnType<typeof toast> | undefined;
+
   const handleUndo = opts.batchId
     ? async () => {
         if (!opts.batchId) return;
         try {
           const data = await undoArchiveRequest(opts.batchId);
           if (data?.success) {
-            toast.dismiss();
+            if (toastId !== undefined) toast.dismiss(toastId);
             opts.onUndone?.();
             successToast("Archive undone.", 2500);
           } else {
@@ -53,7 +58,7 @@ export function showArchiveToast(opts: {
       }
     : undefined;
 
-  toast(
+  toastId = toast(
     <CareerArchiveToast
       variant={variant}
       careerTitle={opts.careerTitle}

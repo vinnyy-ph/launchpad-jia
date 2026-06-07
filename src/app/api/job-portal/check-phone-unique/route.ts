@@ -10,7 +10,11 @@ import { isPhoneTaken, type ExistingPhoneRecord } from "@/lib/utils/phoneValidat
  * our own `applicant-cv` collection per the ticket brief.
  */
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
-  const { phone, email } = await request.json();
+  // Malformed JSON → 400 (matches the generate-introduction sibling), not an
+  // unhandled 500; the existing phone check rejects the null body.
+  const body = await request.json().catch(() => null);
+  const phone = body?.phone;
+  const email = body?.email;
 
   if (typeof phone !== "string" || !phone.trim()) {
     return NextResponse.json({ error: "Phone is required" }, { status: 400 });

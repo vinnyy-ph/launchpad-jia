@@ -46,6 +46,7 @@ import {
   assembleStructuredCV,
   INITIAL_SECTION_STATUS,
   nextSectionStatus,
+  sanitizeSectionStatus,
   type ProfileSectionStatus,
   type WizardData,
 } from "@/lib/utils/assembleProfile";
@@ -389,18 +390,24 @@ export default function ManualProfileWizard({
   useEffect(() => {
     if (!isDirty || pendingDraft) return;
     try {
-      window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+      window.localStorage.setItem(
+        draftStorageKey,
+        serializeDraft(data, stepIndex, sectionStatus),
+      );
     } catch {
       /* ignore quota / disabled storage */
     }
-  }, [data, stepIndex, isDirty, pendingDraft, draftStorageKey]);
+  }, [data, stepIndex, sectionStatus, isDirty, pendingDraft, draftStorageKey]);
 
   // Final silent save on tab close/reload (no native prompt — resume is offered on return).
   useEffect(() => {
     const onBeforeUnload = () => {
       if (isDirty) {
         try {
-          window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+          window.localStorage.setItem(
+            draftStorageKey,
+            serializeDraft(data, stepIndex, sectionStatus),
+          );
         } catch {
           /* ignore */
         }
@@ -408,7 +415,7 @@ export default function ManualProfileWizard({
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [isDirty, data, stepIndex, draftStorageKey]);
+  }, [isDirty, data, stepIndex, sectionStatus, draftStorageKey]);
 
   // Browser Back while editing → show the discard prompt instead of leaving.
   useEffect(() => {
@@ -620,7 +627,10 @@ export default function ManualProfileWizard({
         onGoBack={() => setShowDiscard(false)}
         onSaveExit={() => {
           try {
-            window.localStorage.setItem(draftStorageKey, serializeDraft(data, stepIndex));
+            window.localStorage.setItem(
+              draftStorageKey,
+              serializeDraft(data, stepIndex, sectionStatus),
+            );
           } catch {
             /* ignore */
           }
@@ -638,7 +648,14 @@ export default function ManualProfileWizard({
         onResume={() => {
           if (pendingDraft) {
             setData(pendingDraft.data);
-            setStepIndex(pendingDraft.stepIndex);
+            // Clamp: parseDraft only checks the index is a number; a malformed
+            // or legacy draft must not land on a non-existent (blank) step.
+            setStepIndex(
+              Math.min(Math.max(0, pendingDraft.stepIndex), TOTAL_STEPS - 1),
+            );
+            // v1 drafts have no sectionStatus → INITIAL (same as before); the
+            // sanitizer also rejects tampered/invalid values per section.
+            setSectionStatus(sanitizeSectionStatus(pendingDraft.sectionStatus));
           }
           setPendingDraft(null);
         }}

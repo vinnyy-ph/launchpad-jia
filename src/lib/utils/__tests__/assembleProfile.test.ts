@@ -2,6 +2,7 @@ import {
   assembleStructuredCV,
   INITIAL_SECTION_STATUS,
   nextSectionStatus,
+  sanitizeSectionStatus,
   STEP_SECTION,
   type ProfileSectionStatus,
   type WizardData,
@@ -167,5 +168,41 @@ describe("nextSectionStatus", () => {
     expect(nextSectionStatus(base, 0, "submit")).toBe(base);
     expect(nextSectionStatus(base, 4, "skip")).toBe(base);
     expect(nextSectionStatus(base, 9, "submit")).toBe(base);
+  });
+});
+
+describe("sanitizeSectionStatus", () => {
+  it("returns INITIAL for non-object input (legacy v1 drafts, garbage)", () => {
+    expect(sanitizeSectionStatus(undefined)).toEqual(INITIAL_SECTION_STATUS);
+    expect(sanitizeSectionStatus(null)).toEqual(INITIAL_SECTION_STATUS);
+    expect(sanitizeSectionStatus("skipped")).toEqual(INITIAL_SECTION_STATUS);
+    expect(sanitizeSectionStatus(42)).toEqual(INITIAL_SECTION_STATUS);
+  });
+
+  it("passes a fully valid map through unchanged", () => {
+    const valid: ProfileSectionStatus = {
+      ...INITIAL_SECTION_STATUS,
+      experience: "skipped",
+      projects: "submitted",
+    };
+    expect(sanitizeSectionStatus(valid)).toEqual(valid);
+  });
+
+  it("merges partial maps over INITIAL defaults", () => {
+    expect(sanitizeSectionStatus({ awards: "skipped" })).toEqual({
+      ...INITIAL_SECTION_STATUS,
+      awards: "skipped",
+    });
+  });
+
+  it("rejects invalid values per section and drops unknown keys", () => {
+    const out = sanitizeSectionStatus({
+      experience: "SKIPPED", // wrong case → invalid
+      projects: 3,
+      awards: "skipped",
+      bogusSection: "skipped",
+    });
+    expect(out).toEqual({ ...INITIAL_SECTION_STATUS, awards: "skipped" });
+    expect("bogusSection" in out).toBe(false);
   });
 });

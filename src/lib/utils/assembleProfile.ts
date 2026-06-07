@@ -65,6 +65,25 @@ export const INITIAL_SECTION_STATUS: ProfileSectionStatus = {
   references: "untouched",
 };
 
+const SECTION_STATUS_VALUES: readonly SectionStatus[] = ["untouched", "submitted", "skipped"];
+
+// Coerce an untrusted value (a deserialized draft's sectionStatus — possibly
+// missing on legacy drafts, or hand-edited) into a valid status map. Unknown
+// shapes, extra keys, and invalid values all fall back per-section to
+// INITIAL_SECTION_STATUS, so a bad draft can never restore an invalid state.
+export function sanitizeSectionStatus(input: unknown): ProfileSectionStatus {
+  if (!input || typeof input !== "object") return INITIAL_SECTION_STATUS;
+  const source = input as Record<string, unknown>;
+  const out = { ...INITIAL_SECTION_STATUS };
+  for (const section of Object.keys(INITIAL_SECTION_STATUS) as MultiEntrySection[]) {
+    const value = source[section];
+    if (typeof value === "string" && (SECTION_STATUS_VALUES as readonly string[]).includes(value)) {
+      out[section] = value as SectionStatus;
+    }
+  }
+  return out;
+}
+
 // The multi-entry step indices → their section key. The wizard's only forward
 // navigation is Next/Skip, so this mapping + nextSectionStatus fully describe how
 // a section's intent gets set. (Revisit if a jump-to-step path is ever added.)

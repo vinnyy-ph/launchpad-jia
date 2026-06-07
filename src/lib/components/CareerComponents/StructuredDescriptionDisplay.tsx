@@ -1,14 +1,12 @@
 "use client";
 
 import React from "react";
-import { StructuredCareerDescription } from "@/lib/utils/cvFitnessV2";
+import { StructuredCareerDescription, stripHtml } from "@/lib/utils/cvFitnessV2";
 
 const sectionLabel: React.CSSProperties = { fontSize: 14, color: "#414651", fontWeight: 700, marginTop: 16 };
 const sectionBody: React.CSSProperties = { fontSize: 15, color: "#717680", lineHeight: 1.6, marginTop: 8 };
 
-function hasText(html: string) {
-  return (html || "").replace(/<[^>]*>/g, "").trim().length > 0;
-}
+const hasText = (html: string) => stripHtml(html).length > 0;
 
 /** Read-only render of the 4 structured sections. */
 export default function StructuredDescriptionDisplay({ value }: { value: StructuredCareerDescription }) {

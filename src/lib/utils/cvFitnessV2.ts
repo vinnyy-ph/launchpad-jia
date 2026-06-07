@@ -35,11 +35,14 @@ export interface BucketSummary {
   missingCount: number;
 }
 
-const stripHtml = (html: string): string => (html || "").replace(/<[^>]*>/g, "").trim();
+/** Tag-strip + trim, used for "does this rich-text field have real content?" checks and prompt text. */
+export const stripHtml = (html: string): string => (html || "").replace(/<[^>]*>/g, "").trim();
 
 /** A career can run V2 screening only if it has a structured description with at least one qualification. */
-export function hasStructuredQualifications(career: any): boolean {
-  const s = career?.structuredDescription;
+export function hasStructuredQualifications(career: unknown): boolean {
+  // DB documents are untyped — narrow defensively rather than trusting the shape.
+  const s = (career as { structuredDescription?: Partial<StructuredCareerDescription> } | null | undefined)
+    ?.structuredDescription;
   if (!s) return false;
   const required = Array.isArray(s.requiredQualifications) ? s.requiredQualifications : [];
   const preferred = Array.isArray(s.preferredQualifications) ? s.preferredQualifications : [];
@@ -76,15 +79,17 @@ export function filterQualificationsByTab(qualifications: QualificationResult[],
   return qualifications.filter((q) => q.status === tab);
 }
 
-function coerceStatus(raw: any): QualificationStatus {
+function coerceStatus(raw: unknown): QualificationStatus {
   const v = String(raw ?? "").toLowerCase();
+  // Order matters: "partially matched" contains both "partial" and "match",
+  // so the partial check must run first. Unknown vocab fails safe to "missing".
   if (v.includes("partial")) return "partial";
   if (v.includes("match")) return "matched";
   if (v.includes("missing")) return "missing";
   return "missing";
 }
 
-function coerceType(raw: any): QualificationType {
+function coerceType(raw: unknown): QualificationType {
   return String(raw ?? "").toLowerCase().includes("preferred") ? "preferred" : "required";
 }
 

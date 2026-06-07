@@ -76,6 +76,20 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
 
   const headerCell: React.CSSProperties = { background: "#F8F9FC", borderBottom: "1px solid #E9EAEB", padding: "12px 24px", fontSize: 12, fontWeight: 700, color: "#717680" };
   const bodyCell: React.CSSProperties = { padding: "16px 24px", display: "flex", alignItems: "center" };
+  // Previous/Next share one style, varying only by disabled state.
+  const pagerBtn = (disabled: boolean): React.CSSProperties => ({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    background: "#fff",
+    border: `1px solid ${disabled ? "#E9EAEB" : "#D5D7DA"}`,
+    borderRadius: 8,
+    padding: "8px 14px",
+    cursor: disabled ? "not-allowed" : "pointer",
+    fontSize: 14,
+    fontWeight: 700,
+    color: disabled ? "#D5D7DA" : "#414651",
+  });
 
   return (
     <div className="modal-background fade-in-bottom">
@@ -165,7 +179,7 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
               <button
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
-                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: `1px solid ${page === 0 ? "#E9EAEB" : "#D5D7DA"}`, borderRadius: 8, padding: "8px 14px", cursor: page === 0 ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700, color: page === 0 ? "#D5D7DA" : "#414651" }}
+                style={pagerBtn(page === 0)}
               >
                 <i className="la la-arrow-left" style={{ fontSize: 18 }} /> Previous
               </button>
@@ -187,7 +201,7 @@ export default function ViewAnalysisModal({ analysis, onClose }: { analysis: CvA
               <button
                 disabled={page >= pageCount - 1}
                 onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: `1px solid ${page >= pageCount - 1 ? "#E9EAEB" : "#D5D7DA"}`, borderRadius: 8, padding: "8px 14px", cursor: page >= pageCount - 1 ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700, color: page >= pageCount - 1 ? "#D5D7DA" : "#414651" }}
+                style={pagerBtn(page >= pageCount - 1)}
               >
                 Next <i className="la la-arrow-right" style={{ fontSize: 18 }} />
               </button>

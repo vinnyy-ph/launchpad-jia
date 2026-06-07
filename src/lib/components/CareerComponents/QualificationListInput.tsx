@@ -11,6 +11,9 @@ type Props = {
 
 /** Repeatable add/remove text rows for a list of qualifications. */
 export default function QualificationListInput({ label, placeholder, values, onChange }: Props) {
+  // When the stored list is empty we still render one "phantom" empty row so there is
+  // always an input to type into. The handlers below operate on `rows` (not `values`),
+  // which commits that phantom row into form state on the first edit or Add.
   const rows = values.length > 0 ? values : [""];
 
   const update = (index: number, value: string) => {
@@ -21,9 +24,9 @@ export default function QualificationListInput({ label, placeholder, values, onC
 
   const add = () => onChange([...rows, ""]);
 
+  // Removing the last row stores [] — the phantom row above keeps one input visible.
   const remove = (index: number) => {
-    const next = rows.filter((_, i) => i !== index);
-    onChange(next.length > 0 ? next : []);
+    onChange(rows.filter((_, i) => i !== index));
   };
 
   return (

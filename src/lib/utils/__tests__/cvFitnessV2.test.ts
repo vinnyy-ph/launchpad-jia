@@ -5,6 +5,7 @@ import {
   filterQualificationsByTab,
   parseStructuredAnalysis,
   buildStructuredScreeningPrompt,
+  stripHtml,
   StructuredCareerDescription,
   QualificationResult,
 } from "../cvFitnessV2";
@@ -35,6 +36,28 @@ describe("hasStructuredQualifications", () => {
   });
   it("is true when at least one qualification exists", () => {
     expect(hasStructuredQualifications({ structuredDescription: structured })).toBe(true);
+  });
+  it("counts empty-string entries as qualifications (current behavior — see refactor notes)", () => {
+    // Pins the quirk: a saved-but-blank qualification row still routes the career to V2 screening.
+    expect(
+      hasStructuredQualifications({
+        structuredDescription: { overview: "", rolesAndResponsibilities: "", requiredQualifications: [""], preferredQualifications: [] },
+      })
+    ).toBe(true);
+  });
+  it("is false for null/undefined career", () => {
+    expect(hasStructuredQualifications(null)).toBe(false);
+    expect(hasStructuredQualifications(undefined)).toBe(false);
+  });
+});
+
+describe("stripHtml", () => {
+  it("strips tags and trims", () => {
+    expect(stripHtml("<p> hello <b>world</b> </p>")).toBe("hello world");
+  });
+  it("handles empty and null-ish input", () => {
+    expect(stripHtml("")).toBe("");
+    expect(stripHtml(undefined as unknown as string)).toBe("");
   });
 });
 
@@ -112,6 +135,21 @@ describe("parseStructuredAnalysis", () => {
   });
   it("throws on malformed JSON", () => {
     expect(() => parseStructuredAnalysis("not json", 0)).toThrow();
+  });
+  it("fails safe on unknown vocabulary and a non-array qualifications field", () => {
+    const unknownStatus = JSON.stringify({
+      matchScore: "not-a-number",
+      qualifications: [{ type: "bonus", text: "X", status: "unsure", evidence: 7 }],
+    });
+    expect(parseStructuredAnalysis(unknownStatus, 0)).toEqual({
+      matchScore: 0,
+      overallFit: "N/A",
+      summary: "",
+      qualifications: [{ type: "required", text: "X", status: "missing", evidence: "7" }],
+      generatedAt: 0,
+    });
+    const nonArray = JSON.stringify({ matchScore: 10, overallFit: "x", summary: "y", qualifications: "nope" });
+    expect(parseStructuredAnalysis(nonArray, 0).qualifications).toEqual([]);
   });
 });
 

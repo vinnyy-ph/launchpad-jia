@@ -9,7 +9,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import philippineCitiesAndProvinces from "../../../../public/philippines-locations.json";
 import RichTextEditor from "./RichTextEditor";
 import StructuredDescriptionFields, { EMPTY_STRUCTURED_DESCRIPTION } from "./StructuredDescriptionFields";
-import { deriveLegacyDescription, StructuredCareerDescription } from "@/lib/utils/cvFitnessV2";
+import { deriveLegacyDescription } from "@/lib/utils/cvFitnessV2";
 import InterviewQuestionGeneratorV2 from "./InterviewQuestionGeneratorV2";
 import PipelineStageBuilder from "./PipelineStageBuilder";
 import { candidateActionToast, errorToast, guid, normalizePipeline } from "@/lib/Utils";
@@ -352,7 +352,7 @@ export default function SegmentedCareerForm({
     project: preselectedProject?.name || "",
     projectId: preselectedProject?.id || "",
     description: "",
-    structuredDescription: EMPTY_STRUCTURED_DESCRIPTION as StructuredCareerDescription,
+    structuredDescription: EMPTY_STRUCTURED_DESCRIPTION,
     employmentType: "",
     workSetup: "",
     country: "Philippines",
@@ -692,6 +692,9 @@ export default function SegmentedCareerForm({
         project: career?.project || "",
         projectId: career?.projectId || "",
         description: career.description,
+        // Back-compat migration path: a legacy career only has `description`, so seed it
+        // as the Overview. On save, `deriveLegacyDescription` rebuilds `description` from
+        // the structured sections, upgrading the career to the V2 shape additively.
         structuredDescription: career.structuredDescription || {
           ...EMPTY_STRUCTURED_DESCRIPTION,
           overview: career.description || "",

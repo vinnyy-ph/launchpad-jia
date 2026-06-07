@@ -6,6 +6,7 @@ import {
   hasStructuredQualifications,
   buildStructuredScreeningPrompt,
   parseStructuredAnalysis,
+  type CvAnalysisV2,
 } from "@/lib/utils/cvFitnessV2";
 
 /**
@@ -33,8 +34,9 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     return NextResponse.json({ error: "You have not uploaded a CV for this application." });
   }
 
+  // Same flatten the V1 screen-cv route uses: digitalCV sections -> plain text for the prompt.
   let parsedCV = "";
-  cvData.digitalCV.forEach((section: any) => {
+  cvData.digitalCV.forEach((section: { name?: string; content?: string }) => {
     parsedCV += `${section.name}\n${section.content}\n`;
   });
 
@@ -54,7 +56,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  let cvAnalysisV2;
+  let cvAnalysisV2: CvAnalysisV2;
   try {
     const completion = await openai.responses.create({
       model: "o4-mini",

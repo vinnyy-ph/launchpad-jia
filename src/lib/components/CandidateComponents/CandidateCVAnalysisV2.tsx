@@ -778,6 +778,8 @@ export default function CandidateCVAnalysis({
     {(includeEvaluationCard || showPreScreeningAnswers) && (
         <div className={styles.cvAnalysisContainer}>
             {includeEvaluationCard && (
+                // V2 card branch: only when at least one active interview has a V2 analysis and we are
+                // not mid-regenerate — while regenerating, the legacy shell below hosts the spinner.
                 !regenerateLoading && activeInterviews?.length > 0 && activeInterviews.some((i: any) => i.cvAnalysisV2) ? (
                     activeInterviews
                         .filter((i: any) => i.cvAnalysisV2)

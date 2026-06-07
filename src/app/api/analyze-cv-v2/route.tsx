@@ -16,7 +16,10 @@ import {
  * careers keep using the V1 display.
  */
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
-  const { interviewID, userEmail } = await request.json();
+  // SECURITY: the request body's userEmail is deliberately ignored — the applicant email is
+  // derived from the interview doc so an authenticated caller cannot run analysis against an
+  // arbitrary applicant's CV. (V1 screen-cv/analyze-cv still accept it; base modules, untouched.)
+  const { interviewID } = await request.json();
   const { db } = await connectMongoDB();
 
   const interviewData = await db.collection("interviews").findOne({ interviewID });
@@ -29,7 +32,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     return NextResponse.json({ fallback: true });
   }
 
-  const cvData = await db.collection("applicant-cv").findOne({ email: userEmail });
+  const cvData = await db.collection("applicant-cv").findOne({ email: interviewData.email });
   if (!cvData) {
     return NextResponse.json({ error: "You have not uploaded a CV for this application." });
   }

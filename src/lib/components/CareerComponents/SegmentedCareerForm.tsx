@@ -1098,7 +1098,10 @@ export default function SegmentedCareerForm({
       )
         errors.maximumSalary = true;
       // Also validate Job Description in Career Details & Team Access step
-      const textContent = (careerForm.structuredDescription?.overview || careerForm.description || "").replace(/<[^>]*>/g, "").trim();
+      // Overview itself is required when the structured form is in use (?? keeps an empty
+      // Overview from falling through to the derived legacy description) — matches the
+      // "Overview is required." inline copy. Legacy description check only if no structured form.
+      const textContent = ((careerForm.structuredDescription?.overview ?? careerForm.description) || "").replace(/<[^>]*>/g, "").trim();
       if (!textContent) errors.description = true;
       // Validate that there is at least one Job Owner
       const hasJobOwner = teamMembers.some(
@@ -1116,7 +1119,10 @@ export default function SegmentedCareerForm({
 
     if (currentStepName === "CV Review & Pre-screening") {
       // Remove HTML tags and check if there's actual content
-      const textContent = (careerForm.structuredDescription?.overview || careerForm.description || "").replace(/<[^>]*>/g, "").trim();
+      // Overview itself is required when the structured form is in use (?? keeps an empty
+      // Overview from falling through to the derived legacy description) — matches the
+      // "Overview is required." inline copy. Legacy description check only if no structured form.
+      const textContent = ((careerForm.structuredDescription?.overview ?? careerForm.description) || "").replace(/<[^>]*>/g, "").trim();
       if (!textContent) errors.description = true;
     }
 

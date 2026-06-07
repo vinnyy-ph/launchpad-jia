@@ -146,6 +146,33 @@ function getSetupPageStep(profile: any, hasPersistedCvProfile: boolean): number 
   return hasPersistedCvProfile ? 2 : 1;
 }
 
+// Fetch profile + applicant CV and derive the review-data view of them.
+// Shared by mount init and the manual-wizard onSubmitted refresh; pure
+// (no state writes) so each caller keeps its own cancellation semantics.
+async function fetchReviewState() {
+  const [profileResponse, applicantCvResponse] = await Promise.all([
+    api.post("/api/talent-vault/profiles"),
+    api.post("/api/whitecloak/fetch-cv").catch(() => null),
+  ]);
+
+  const profileData = profileResponse?.data?.data || null;
+  const profileReviewData = getReviewDataFromProfile(profileData);
+  const fallbackReviewData = !profileReviewData
+    ? getReviewDataFromApplicantCv(
+        applicantCvResponse?.data,
+        profileReviewData?.education || []
+      )
+    : null;
+
+  const nextSavedReviewData = profileReviewData || fallbackReviewData;
+  return {
+    profileData,
+    nextSavedReviewData,
+    hasReviewData: Boolean(nextSavedReviewData?.digitalCV?.length),
+    hasPersistedCvProfile: Boolean(profileReviewData?.digitalCV?.length),
+  };
+}
+
 export default function TalentVaulSetupPage() {
   const { user, setModalType } = useAppContext();
   const router = useRouter();
@@ -192,27 +219,12 @@ export default function TalentVaulSetupPage() {
       setIsInitializing(true);
 
       try {
-        const [profileResponse, applicantCvResponse] = await Promise.all([
-          api.post("/api/talent-vault/profiles"),
-          api.post("/api/whitecloak/fetch-cv").catch(() => null),
-        ]);
+        const { profileData, nextSavedReviewData, hasReviewData, hasPersistedCvProfile } =
+          await fetchReviewState();
 
         if (cancelled) return;
 
-        const profileData = profileResponse?.data?.data || null;
         setProfile(profileData);
-
-        const profileReviewData = getReviewDataFromProfile(profileData);
-        const fallbackReviewData = !profileReviewData
-          ? getReviewDataFromApplicantCv(
-              applicantCvResponse?.data,
-              profileReviewData?.education || []
-            )
-          : null;
-
-        const nextSavedReviewData = profileReviewData || fallbackReviewData;
-        const hasReviewData = Boolean(nextSavedReviewData?.digitalCV?.length);
-        const hasPersistedCvProfile = Boolean(profileReviewData?.digitalCV?.length);
         setSavedReviewData(nextSavedReviewData);
         setHasCV(hasReviewData);
 
@@ -768,6 +780,19 @@ try {
           <ManualProfileWizard
             userEmail={user?.email || ""}
             onExit={() => setIsCreatingManually(false)}
+            onSubmitted={async () => {
+              // Mirror the job-portal mount: exit the wizard, then refresh CV
+              // state so SubmitCVStep reflects the newly saved profile instead
+              // of the mount-time hasCV.
+              setIsCreatingManually(false);
+              try {
+                const { nextSavedReviewData, hasReviewData } = await fetchReviewState();
+                setSavedReviewData(nextSavedReviewData);
+                setHasCV(hasReviewData);
+              } catch (error) {
+                console.error("Failed to refresh CV state after manual submit:", error);
+              }
+            }}
           />
         )}
 

@@ -33,6 +33,11 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
   if (!cvData) {
     return NextResponse.json({ error: "You have not uploaded a CV for this application." });
   }
+  // A malformed applicant-cv doc (no digitalCV array) used to throw -> 500. Fail explicitly
+  // instead of silently screening against an empty CV text.
+  if (!Array.isArray(cvData.digitalCV)) {
+    return NextResponse.json({ error: "CV data is missing or unreadable for this applicant." });
+  }
 
   // Same flatten the V1 screen-cv route uses: digitalCV sections -> plain text for the prompt.
   let parsedCV = "";

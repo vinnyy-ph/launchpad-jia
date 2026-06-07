@@ -1,5 +1,6 @@
 import {
   hasStructuredQualifications,
+  normalizeStructuredDescription,
   deriveLegacyDescription,
   summarizeBuckets,
   filterQualificationsByTab,
@@ -37,17 +38,53 @@ describe("hasStructuredQualifications", () => {
   it("is true when at least one qualification exists", () => {
     expect(hasStructuredQualifications({ structuredDescription: structured })).toBe(true);
   });
-  it("counts empty-string entries as qualifications (current behavior — see refactor notes)", () => {
-    // Pins the quirk: a saved-but-blank qualification row still routes the career to V2 screening.
+  it("ignores blank qualification rows (R5 fix: blanks no longer route a career to V2)", () => {
     expect(
       hasStructuredQualifications({
         structuredDescription: { overview: "", rolesAndResponsibilities: "", requiredQualifications: [""], preferredQualifications: [] },
+      })
+    ).toBe(false);
+    expect(
+      hasStructuredQualifications({
+        structuredDescription: { overview: "", rolesAndResponsibilities: "", requiredQualifications: ["  ", ""], preferredQualifications: [] },
+      })
+    ).toBe(false);
+    expect(
+      hasStructuredQualifications({
+        structuredDescription: { overview: "", rolesAndResponsibilities: "", requiredQualifications: [""], preferredQualifications: ["real"] },
       })
     ).toBe(true);
   });
   it("is false for null/undefined career", () => {
     expect(hasStructuredQualifications(null)).toBe(false);
     expect(hasStructuredQualifications(undefined)).toBe(false);
+  });
+});
+
+describe("normalizeStructuredDescription", () => {
+  it("drops blank qualification rows from both lists", () => {
+    const messy: StructuredCareerDescription = {
+      overview: "<p>o</p>",
+      rolesAndResponsibilities: "",
+      requiredQualifications: ["real", "", "  "],
+      preferredQualifications: ["", "kept"],
+    };
+    expect(normalizeStructuredDescription(messy)).toEqual({
+      overview: "<p>o</p>",
+      rolesAndResponsibilities: "",
+      requiredQualifications: ["real"],
+      preferredQualifications: ["kept"],
+    });
+  });
+  it("returns a new object and does not mutate its input", () => {
+    const input: StructuredCareerDescription = { overview: "", rolesAndResponsibilities: "", requiredQualifications: [""], preferredQualifications: [] };
+    const out = normalizeStructuredDescription(input);
+    expect(out).not.toBe(input);
+    expect(input.requiredQualifications).toEqual([""]);
+  });
+  it("keeps non-blank rows byte-identical (no trimming)", () => {
+    const input: StructuredCareerDescription = { overview: "", rolesAndResponsibilities: "", requiredQualifications: [" padded "], preferredQualifications: [] };
+    expect(normalizeStructuredDescription(input).requiredQualifications).toEqual([" padded "]);
   });
 });
 

@@ -9,7 +9,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import philippineCitiesAndProvinces from "../../../../public/philippines-locations.json";
 import RichTextEditor from "./RichTextEditor";
 import StructuredDescriptionFields, { EMPTY_STRUCTURED_DESCRIPTION } from "./StructuredDescriptionFields";
-import { deriveLegacyDescription } from "@/lib/utils/cvFitnessV2";
+import { deriveLegacyDescription, normalizeStructuredDescription } from "@/lib/utils/cvFitnessV2";
 import InterviewQuestionGeneratorV2 from "./InterviewQuestionGeneratorV2";
 import PipelineStageBuilder from "./PipelineStageBuilder";
 import { candidateActionToast, errorToast, guid, normalizePipeline } from "@/lib/Utils";
@@ -1347,7 +1347,10 @@ export default function SegmentedCareerForm({
           ? null
           : Number(careerForm.headcount),
         description: careerForm.description,
-        structuredDescription: careerForm.structuredDescription || null,
+        // Blank qualification rows are UI scaffolding (phantom row / extra Adds) — drop them from the stored doc.
+        structuredDescription: careerForm.structuredDescription
+          ? normalizeStructuredDescription(careerForm.structuredDescription)
+          : null,
         workSetup: careerForm.workSetup,
         questions: careerForm.questions,
         preScreeningQuestions: careerForm.preScreeningQuestions,

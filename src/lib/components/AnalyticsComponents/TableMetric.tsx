@@ -168,6 +168,9 @@ export default function TableMetric({
                                             : styles.tableHeaderCellPinned
                                         : styles.tableHeaderCell
                             }
+                            // Only set for the actively sorted column of a sortable instance —
+                            // consumers that don't pass sortableColumns render byte-identically.
+                            aria-sort={sortableColumns?.includes(column) && sortColumn === column && sortDir ? (sortDir === "asc" ? "ascending" : "descending") : undefined}
                             style={cellStyle}
                             onMouseEnter={() => !hidden && setDisplayMenuButton(column)}
                             onMouseLeave={() => !hidden && setDisplayMenuButton("")}
@@ -221,6 +224,15 @@ export default function TableMetric({
                                 {sortableColumns?.includes(column) ? (
                                     <span
                                         onClick={(e) => { e.stopPropagation(); onSort?.(column); }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                onSort?.(column);
+                                            }
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
                                         style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", userSelect: "none" }}
                                         aria-label={`Sort by ${column}`}
                                     >

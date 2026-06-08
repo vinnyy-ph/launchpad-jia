@@ -40,6 +40,20 @@ describe("WebsitesStep", () => {
     expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ id: "b" })]);
   });
 
+  it("marks the url input invalid and points describedby at the error", () => {
+    render(
+      <WebsitesStep
+        value={[ws({ id: "a" })]}
+        onChange={jest.fn()}
+        errors={{ "a.url": "Enter a valid URL" }}
+      />,
+    );
+    const input = screen.getByPlaceholderText("www.website.com");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input).toHaveAttribute("aria-describedby", "url-a-error");
+    expect(screen.getByText("Enter a valid URL")).toHaveAttribute("id", "url-a-error");
+  });
+
   it("createWebsite returns an empty entry with a unique id", () => {
     const a = createWebsite();
     const b = createWebsite();

@@ -6,6 +6,8 @@ type Props = { score: number; size?: number };
 
 /** SVG ring showing the overall match score. Gradient approximates the Figma donut. */
 export default function MatchScoreDonut({ score, size = 120 }: Props) {
+  // Unique per instance — card + modal donuts can co-mount, and duplicate SVG ids are invalid DOM.
+  const gradientId = React.useId();
   const clamped = Math.max(0, Math.min(100, score));
   const stroke = 12;
   const radius = (size - stroke) / 2;
@@ -17,7 +19,7 @@ export default function MatchScoreDonut({ score, size = 120 }: Props) {
       <svg width={size} height={size}>
         <defs>
           {/* Figma "Gradient/Primary/Blue -> Yellow" — exact stops blue/purple/pink/yellow */}
-          <linearGradient id="matchScoreGradient" x1="100%" y1="0%" x2="0%" y2="100%">
+          <linearGradient id={gradientId} x1="100%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#9FCAED" />
             <stop offset="33%" stopColor="#CEB6DA" />
             <stop offset="66%" stopColor="#EBACC9" />
@@ -30,7 +32,7 @@ export default function MatchScoreDonut({ score, size = 120 }: Props) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="url(#matchScoreGradient)"
+          stroke={`url(#${gradientId})`}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "@/lib/styles/screens/projects.module.scss";
 import { Career } from "@/lib/types/projects";
 import { errorToast } from "@/lib/Utils";
@@ -18,10 +18,24 @@ export default function ArchiveCareerModal({
   onClose,
   onArchived,
 }: ArchiveCareerModalProps) {
-  const [loading, setLoading] = useState(false);
+  // Which action is in flight ("drop" | "keep" | null) — drives the per-button
+  // "Archiving…" label; loading derives from it.
+  const [loadingAction, setLoadingAction] = useState<"drop" | "keep" | null>(null);
+  const loading = loadingAction !== null;
+
+  // Escape-to-close, matching Cancel's semantics (no close mid-flight).
+  // The component only mounts while open, so the listener's lifecycle is
+  // tied to the modal being visible.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && loadingAction === null) onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [loadingAction, onClose]);
 
   const handleArchive = async (dropCandidates: boolean) => {
-    setLoading(true);
+    setLoadingAction(dropCandidates ? "drop" : "keep");
     try {
       const data = await archiveCareerRequest(career._id, dropCandidates);
       if (data?.success) {
@@ -40,7 +54,7 @@ export default function ArchiveCareerModal({
         2500
       );
     } finally {
-      setLoading(false);
+      setLoadingAction(null);
     }
   };
 
@@ -194,7 +208,7 @@ export default function ArchiveCareerModal({
                     opacity: loading ? 0.6 : 1,
                   }}
                 >
-                  Archive without dropping
+                  {loadingAction === "keep" ? "Archiving..." : "Archive without dropping"}
                 </button>
 
                 {/* Archive and drop all — solid dark */}
@@ -213,7 +227,7 @@ export default function ArchiveCareerModal({
                     opacity: loading ? 0.6 : 1,
                   }}
                 >
-                  Archive and drop all
+                  {loadingAction === "drop" ? "Archiving..." : "Archive and drop all"}
                 </button>
               </div>
             </div>

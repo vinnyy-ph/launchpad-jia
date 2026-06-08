@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import TableMetric from "./TableMetric";
 import { useSearchParams } from "next/navigation";
@@ -16,7 +16,12 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import CustomDropdown from "../Dropdown/CustomDropdown";
 import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
 import { usePipelineReportViewPreferences } from "@/lib/hooks/filterSortDefaults/usePipelineReportViewPreferences";
-import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages } from "@/lib/utils/pipelineReport";
+import { getReportStages, getFormattedStages, getStageCounts, getExtraColumnValue, groupByParentChild, combineTimelineStages, buildPipelineReportParams, csvEscape, isoDateOnly, mergeEnabledState, type ColumnVisibility } from "@/lib/utils/pipelineReport";
+
+// Display-only header rename (the underlying stage key stays "Human Interview" so
+// stage matching, exports, and the API contract are unaffected); sortable header set.
+const DISPLAY_LABEL: Record<string, string> = { "Human Interview": "HR Interview" };
+const SORTABLE_COLUMNS = ["Job Title", "Project", "Job Owner", "AI Interview", "Human Interview"];
 
 export default function RecruiterPipelineReport({ projectId }: { projectId?: string }) {
     const searchParams = useSearchParams();
@@ -39,15 +44,16 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         // TODO: Add deal status filter
       });
     const [isCustomizeColumnModalOpen, setIsCustomizeColumnModalOpen] = useState(false);
-    const [columnVisibility, setColumnVisibility] = useState({
+    const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
         type: "Show per stage",
         includeDroppedCandidates: false,
         stages: [],
         offerStages: [],
-        otherColumns: { "Created Date": false, "Headcount": false, "Notes": false } as Record<string, boolean>,
+        otherColumns: { "Created Date": false, "Headcount": false, "Notes": false },
     });
-    const [sortBy, setSortBy] = useState<string>("Position Name (A-Z)");
-    const sortByOptions = ["Position Name (A-Z)", "Position Name (Z-A)", "Project Name (A-Z)", "Project Name (Z-A)"];
+    // Server-side sort default. The "Sort by" dropdown was removed in the Figma fidelity
+    // pass (column-header sorting replaced it), so this is a constant, not state.
+    const sortBy = "Position Name (A-Z)";
     const [isLoadingFullReport, setIsLoadingFullReport] = useState(false);
     const [isFullscreenView, setIsFullscreenView] = useState(false);
     const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -57,9 +63,6 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         else if (sortDir === "asc") setSortDir("desc");
         else { setSortColumn(null); setSortDir(null); }
     };
-    // Display-only header rename (data stage stays "Human Interview"); sortable header set.
-    const DISPLAY_LABEL: Record<string, string> = { "Human Interview": "HR Interview" };
-    const SORTABLE_COLUMNS = ["Job Title", "Project", "Job Owner", "AI Interview", "Human Interview"];
     const [noteModalCareer, setNoteModalCareer] = useState<any>(null);
     const openNoteModal = (career: any) => setNoteModalCareer(career);
     const saveNote = async (career: any, note: string) => {
@@ -102,32 +105,23 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         const fetchPipelineReport = async () => {
             try {
                 setIsLoading(true);
-                const response = await api.get("/api/get-pipeline-report", { 
-                    params: { 
-                        orgID: orgID, 
-                        limit: limit, 
-                        page: page,
-                        status: filterStatus["Published Status"].join(","),
-                        projectIds: projectId ? projectId : filterStatus.projects.map((p) => p._id).join(","),
-                        activityStatus: filterStatus["Activity Status"].join(","),
-                        jobPostType: filterStatus["Subscription Plan"].join(","),
-                        careers: filterStatus.careers.map((c) => c.id).join(","),
-                        sortBy: sortBy,
-                        jobOwners: filterStatus.jobOwners.map((j) => j.email).filter(Boolean).join(","),
-                        contributors: filterStatus.contributors.map((c) => c.email).filter(Boolean).join(","),
-                        hiringManagers: filterStatus.hiringManagers.map((h) => h.email).filter(Boolean).join(","),
-                    } 
+                const response = await api.get("/api/get-pipeline-report", {
+                    // All five ticket filters (project, job title=careers, job owner,
+                    // status, hiring manager) compose server-side via these params.
+                    params: buildPipelineReportParams(filterStatus, { orgID, projectId, page, limit, sortBy }),
                 });
                 setPipelineReport(response.data.careers)
                 setTotalCareers(response.data.totalCareers);
                 const { stages, offerStages } = getReportStages(response.data.careers);
-                setColumnVisibility({
-                    type: "Show per stage",
-                    includeDroppedCandidates: false,
-                    stages: stages,
-                    offerStages: offerStages,
-                    otherColumns: { "Created Date": false, "Headcount": false, "Notes": false },
-                });
+                // Persist the user's Customize Columns selections across page/filter/sort
+                // changes: type/dropped/otherColumns carry over, and stage/substage enabled
+                // flags are label-merged onto the freshly fetched lists (stages new to the
+                // result set default to enabled). Previously every fetch reset everything.
+                setColumnVisibility((prev) => ({
+                    ...prev,
+                    stages: mergeEnabledState(stages, prev.stages),
+                    offerStages: mergeEnabledState(offerStages, prev.offerStages),
+                }));
             } catch (error) {
                 console.error(error);
                 errorToast("Error fetching pipeline report", 1300);
@@ -146,9 +140,14 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         const newHeaders = [...formattedData.columnHeaders];
         const statusIdx = newHeaders.indexOf("Status");
         if (statusIdx !== -1) newHeaders.splice(statusIdx, 1, "Published Status", "Activity Status", "Job Post Type");
-        const csvContent = `${newHeaders.join(",")}` + "\n" + formattedData.rows.map((row: any) => newHeaders.map((header: any) => {
+        // Every cell (headers too — custom stage names may contain commas) goes through
+        // RFC-4180 csvEscape, so values keep their real bytes (titles keep their commas,
+        // notes keep commas/newlines) and columns can never shift.
+        const cellValue = (row: any, header: string) => {
             if (header === "Job Owner") {
-                return row.metadata.jobOwner.name;
+                // Optional-chained: a career with neither a Job Owner member nor createdBy
+                // must not crash the whole export. "-" matches the XLSX export convention.
+                return row.metadata.jobOwner?.name ?? "-";
             }
             if (header === "Published Status") {
                 return row.metadata.publishedStatus;
@@ -160,14 +159,20 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 return row.metadata.jobPostType;
             }
             if (header === "Job Title") {
-                const t = typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
-                return t.replace(/,/g, "");
+                return typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
             }
             if (header === "Notes") {
-                return String(row.metadata?.notes ?? "-").replace(/,/g, " ");
+                return row.metadata?.notes ?? "-";
+            }
+            if (header === "Created Date") {
+                // Exports get an absolute ISO date; the table keeps the relative string.
+                return isoDateOnly(row.metadata?.createdAt);
             }
             return row[header];
-        }).join(",")).join("\n");
+        };
+        const csvContent = newHeaders.map(csvEscape).join(",") + "\n" + formattedData.rows.map((row: any) =>
+            newHeaders.map((header: string) => csvEscape(cellValue(row, header))).join(",")
+        ).join("\n");
         const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -192,6 +197,8 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 if (header === "Job Post Type") return row.metadata.jobPostType;
                 if (header === "Job Title") return typeof row[header] === "string" ? row[header] : (row.metadata?.jobTitle ?? "-");
                 if (header === "Notes") return row.metadata?.notes ?? "-";
+                // Exports get an absolute ISO date; the table keeps the relative string.
+                if (header === "Created Date") return isoDateOnly(row.metadata?.createdAt);
                 return row[header];
             })),
         ];
@@ -205,53 +212,19 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         // Fetch the full pipeline report from the API
         try {
             setIsLoadingFullReport(true);
-            const response = await api.get("/api/get-pipeline-report", { 
-                params: { 
-                    orgID: orgID, 
-                    limit: limit, 
-                    page: page,
-                    status: filterStatus["Published Status"].join(","),
-                    jobOwners: filterStatus.jobOwners.map((j) => j.email).join(","),
-                    projectIds: projectId ? projectId : filterStatus.projects.map((p) => p._id).join(","),
-                    contributors: filterStatus.contributors.map((c) => c.email).join(","),
-                    activityStatus: filterStatus["Activity Status"].join(","),
-                    jobPostType: filterStatus["Subscription Plan"].join(","),
-                    careers: filterStatus.careers.map((c) => c.id).join(","),
-                    sortBy: sortBy,
-                    fullReport: true,
-                    hiringManagers: filterStatus.hiringManagers.map((h) => h.email).join(","),
-                } 
+            const response = await api.get("/api/get-pipeline-report", {
+                // Same tested builder as the table fetch, so the export query can never
+                // diverge from the visible rows (the inline copy it replaces skipped
+                // .filter(Boolean) on the email lists — a selected filter member without
+                // an email produced "a@x.com," here vs "a@x.com" in the table query).
+                params: buildPipelineReportParams(filterStatus, { orgID, projectId, page, limit, sortBy, fullReport: true }),
             });
             const { stages, offerStages } = getReportStages(response.data.careers);
-            // Match enabled state with the stages and offerStages
-            const updatedStages = stages.map((stage: any) => {
-                const existingStage = columnVisibility.stages.find((s: any) => s.label === stage.label);
-                return {
-                    ...stage,
-                    enabled: existingStage ? existingStage.enabled : stage.enabled,
-                    substages: stage.substages.map((substage: any) => {
-                        const existingSubstage = existingStage?.substages.find((s: any) => s.label === substage.label);
-                        return {
-                            ...substage,
-                            enabled: existingSubstage ? existingSubstage.enabled : substage.enabled,
-                        }
-                    }),
-                }
-            });
-            const updatedOfferStages = offerStages.map((stage: any) => {
-                const existingStage = columnVisibility.offerStages.find((s: any) => s.label === stage.label);
-                return {
-                    ...stage,
-                    enabled: existingStage ? existingStage.enabled : stage.enabled,
-                    substages: stage.substages.map((substage: any) => {
-                        const existingSubstage = existingStage?.substages.find((s: any) => s.label === substage.label);
-                        return {
-                            ...substage,
-                            enabled: existingSubstage ? existingSubstage.enabled : substage.enabled,
-                        }
-                    }),
-                }
-            })
+            // Re-apply the user's Customize Columns selections (label-matched) onto the
+            // freshly fetched stage list so the export honors what the table shows.
+            // Stages absent from the current view keep their fetched default (enabled).
+            const updatedStages = mergeEnabledState(stages, columnVisibility.stages);
+            const updatedOfferStages = mergeEnabledState(offerStages, columnVisibility.offerStages);
             const formattedData = getTableData({
                 ...columnVisibility,
                 stages: updatedStages,
@@ -266,10 +239,10 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         }
     }
 
-    const getTableData = (columnVisibility: any, pipelineReport: any[], opts?: { allRows?: boolean }) => {
+    const getTableData = (columnVisibility: ColumnVisibility, pipelineReport: any[], opts?: { allRows?: boolean }) => {
         const formattedStages = getFormattedStages(columnVisibility);
-        const enabledOthers = (Object.keys(columnVisibility.otherColumns || {}) as string[])
-            .filter((k) => columnVisibility.otherColumns[k]);
+        const enabledOthers = Object.keys(columnVisibility.otherColumns || {})
+            .filter((k) => columnVisibility.otherColumns?.[k]);
         const headers = ["#", "Job Title", "Project", "Job Owner", "Status",
             ...formattedStages.map((stage) => stage.label), ...enabledOthers];
         const grouped = groupByParentChild(pipelineReport);
@@ -322,17 +295,27 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 const countsCareer = isParent
                     ? { ...item, timelineStages: combineTimelineStages([item, ...(r.childCareers || [])]) }
                     : item;
+                // The title cell is wrapped in an <a> (row navigates to the career); the
+                // chevron alone must toggle expansion without navigating — hence the
+                // preventDefault/stopPropagation on both the click and key handlers.
+                const toggleExpand = (e: React.SyntheticEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setExpandedParents((p) => ({ ...p, [String(item.id)]: !p[String(item.id)] }));
+                };
                 const titleCell = (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 8, paddingLeft: r.depth === 1 ? 24 : 0 }}>
                         {r.depth === 1 && <span style={{ color: "#717680", fontSize: 14 }} aria-hidden>↳</span>}
                         {isParent && (
                             <img
                                 src="/iconsV3/chevron-down.svg"
-                                alt=""
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setExpandedParents((p) => ({ ...p, [String(item.id)]: !p[String(item.id)] }));
+                                alt={expandedParents[String(item.id)] ? "Collapse child posts" : "Expand child posts"}
+                                role="button"
+                                tabIndex={0}
+                                aria-expanded={!!expandedParents[String(item.id)]}
+                                onClick={toggleExpand}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") toggleExpand(e);
                                 }}
                                 style={{
                                     width: 12,
@@ -370,9 +353,14 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     cellTooltips[i] = tips;
                 }
                 const hasNote = item.notes && String(item.notes).trim();
+                const openNote = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); openNoteModal(item); };
                 const notesCell = (
                     <span
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openNoteModal(item); }}
+                        onClick={openNote}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") openNote(e); }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={hasNote ? `Edit note for ${item.jobTitle || "career"}` : `Add note for ${item.jobTitle || "career"}`}
                         style={{ cursor: "pointer", color: hasNote ? "#181D27" : "#6941C6", fontWeight: hasNote ? 400 : 500 }}
                     >
                         {hasNote ? (String(item.notes).length > 40 ? String(item.notes).slice(0, 40) + "…" : String(item.notes)) : "Add note"}
@@ -391,6 +379,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     metadata: {
                         _id: item._id,
                         jobTitle: item.jobTitle || "-",
+                        createdAt: item.createdAt,
                         notes: hasNote ? String(item.notes) : "-",
                         jobOwner: item.teamMembers?.find((member: any) => member.role === "Job Owner") || item.createdBy,
                         publishedStatus: item.status === "active" ? "Published" : "Unpublished",
@@ -403,15 +392,27 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
         };
     }
 
-    const tableData = pipelineReport ? getTableData(columnVisibility, pipelineReport) : { columnHeaders: [], rows: [], cellTooltips: {} };
-    const orderedHeaders = columnOrder.length
-        ? [...tableData.columnHeaders].sort((a, b) => {
-            const ia = columnOrder.indexOf(a);
-            const ib = columnOrder.indexOf(b);
-            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-        })
-        : tableData.columnHeaders;
-    const orderedData = { ...tableData, columnHeaders: orderedHeaders };
+    // Memoized: getTableData builds row JSX + per-cell tooltips for every visible row, so
+    // unrelated state changes (modals, fullscreen flag, export spinner) must not recompute it.
+    // Deps = everything getTableData closes over that can change between renders.
+    const tableData = useMemo(
+        () => pipelineReport ? getTableData(columnVisibility, pipelineReport) : { columnHeaders: [] as string[], rows: [] as any[], cellTooltips: {} as Record<number, Record<string, React.ReactNode>> },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- getTableData is render-scoped; its mutable inputs are listed
+        [pipelineReport, columnVisibility, sortColumn, sortDir, expandedParents]
+    );
+    const orderedData = useMemo(() => {
+        // Apply the persisted drag-reorder. Columns not yet in the saved order (e.g. a stage
+        // or "Others" column enabled after saving) sort to the END via the 999 sentinel,
+        // keeping their relative order (Array.sort is stable).
+        const orderedHeaders = columnOrder.length
+            ? [...tableData.columnHeaders].sort((a, b) => {
+                const ia = columnOrder.indexOf(a);
+                const ib = columnOrder.indexOf(b);
+                return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+            })
+            : tableData.columnHeaders;
+        return { ...tableData, columnHeaders: orderedHeaders };
+    }, [tableData, columnOrder]);
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%" }}>
@@ -486,7 +487,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                     enableColumnReorder
                     onColumnReorder={(o) => setColumnOrder(o)}
                     fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
-                    getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
+                    getCellTooltip={(col: string, ri: number) => orderedData.cellTooltips?.[ri]?.[col]}
                     columnLabels={DISPLAY_LABEL}
                     sortableColumns={SORTABLE_COLUMNS}
                     sortColumn={sortColumn}
@@ -505,7 +506,7 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
                 enableColumnReorder
                 onColumnReorder={(o) => setColumnOrder(o)}
                 fixedColumns={["#", "Project", "Job Title", "Job Owner", "Status"]}
-                getCellTooltip={(col: string, ri: number) => (orderedData as any).cellTooltips?.[ri]?.[col]}
+                getCellTooltip={(col: string, ri: number) => orderedData.cellTooltips?.[ri]?.[col]}
                 columnLabels={DISPLAY_LABEL}
                 sortableColumns={SORTABLE_COLUMNS}
                 sortColumn={sortColumn}
@@ -520,16 +521,32 @@ export default function RecruiterPipelineReport({ projectId }: { projectId?: str
 // JIA-431: "Add a note" modal — recruiter-only note on a career, shown in the Notes column.
 function AddNoteModal({ career, onClose, onSave }: { career: any; onClose: () => void; onSave: (note: string) => void }) {
     const [note, setNote] = useState<string>(career?.notes || "");
+    // Escape-to-close. The component only mounts while open, so the listener's
+    // lifecycle is tied to the modal being visible (same pattern as ViewAnalysisModal).
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+    }, [onClose]);
     return (
         <div className="modal-background fade-in-bottom">
             <div className="modal-container">
-                <div className="modal-content" style={{ width: "100%", maxWidth: 640, background: "#fff", border: "1.5px solid #E9EAEB", borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: 24, position: "relative" }}>
+                <div className="modal-content" role="dialog" aria-modal="true" aria-label="Add a note" style={{ width: "100%", maxWidth: 640, background: "#fff", border: "1.5px solid #E9EAEB", borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: 24, position: "relative" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                         <span style={{ fontSize: 16, fontWeight: 500, color: "#181D27" }}>Add a note</span>
                         <span style={{ fontSize: 14, fontWeight: 400, color: "#717680" }}>{career?.jobTitle || ""}</span>
                     </div>
-                    <div style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }} onClick={onClose}>
-                        <img src="/icons/close.svg" alt="Close" style={{ width: 28, height: 28 }} />
+                    <div
+                        style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }}
+                        onClick={onClose}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Close"
+                    >
+                        <img src="/icons/close.svg" alt="" style={{ width: 28, height: 28 }} />
                     </div>
                     <textarea
                         value={note}
@@ -562,10 +579,19 @@ function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCust
             setCareerPipelineStages(allStages);
         }
     }, [columnVisibility])
+    // Escape-to-close. The component only mounts while open, so the listener's
+    // lifecycle is tied to the modal being visible (same pattern as ViewAnalysisModal).
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setIsCustomizeColumnModalOpen(false);
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+    }, [setIsCustomizeColumnModalOpen]);
     return (
         <div className="modal-background fade-in-bottom">
             <div className="modal-container">
-                <div className="modal-content" style={{ overflowY: "auto", height: "100%", maxHeight: "90vh", width: "100%", maxWidth: "400px", background: "#fff", border: `1.5px solid #E9EAEB`, borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: "24px" }}>
+                <div className="modal-content" role="dialog" aria-modal="true" aria-label="Customize Columns" style={{ overflowY: "auto", height: "100%", maxHeight: "90vh", width: "100%", maxWidth: "400px", background: "#fff", border: `1.5px solid #E9EAEB`, borderRadius: 14, boxShadow: "0 8px 32px rgba(30,32,60,0.18)", padding: "24px" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, textAlign: "center" }}>
                     <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 16, width: "100%" }}>
                         <div style={{ width: 48, height: 48, borderRadius: "10px", border: "1px solid #D5D7DA", backgroundColor: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -577,8 +603,15 @@ function CustomizeColumnModal({ columnVisibility, setColumnVisibility, setIsCust
                         </div>
                     </div>
 
-                    <div style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }} onClick={() => setIsCustomizeColumnModalOpen(false)}>
-                        <img src="/icons/close.svg" alt="Close" style={{ width: 32, height: 32 }} />
+                    <div
+                        style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }}
+                        onClick={() => setIsCustomizeColumnModalOpen(false)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsCustomizeColumnModalOpen(false); } }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Close"
+                    >
+                        <img src="/icons/close.svg" alt="" style={{ width: 32, height: 32 }} />
                     </div>
 
                     <div style={{ display: "flex", alignItems: "center", flexDirection: "row", height: "44px", maxWidth: "460px", width: "100%", backgroundColor: "#EAECF5", borderRadius: "10px", border: "1px solid #D5D7DA"}}>

@@ -3,7 +3,7 @@ import connectMongoDB from "../../../lib/mongoDB/mongoDB";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { ObjectId } from "mongodb";
 import { fetchBadgeDataForCareers, attachBadgesToCareers, getCareerViewStatusMap } from "@/lib/utils/badgeComputations";
-import { EXCLUDE_ARCHIVED } from "@/lib/utils/careerArchive";
+import { EXCLUDE_ARCHIVED, archivedConstraint } from "@/lib/utils/careerArchive";
 
 
 export const GET = withAuth(async (request: AuthenticatedRequest) => {
@@ -102,17 +102,16 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
         }
 
         const tokens = status && status !== "All Statuses" ? status.split(",") : [];
-        const showArchived = tokens.includes("archived") || tokens.includes("Archived");
-        if (showArchived) {
-            filter.archived = true;
-        } else {
-            filter.archived = { $ne: true };
-            const statusTokens = tokens.filter((s) => s !== "archived" && s !== "Archived");
-            if (statusTokens.length) {
-                filter.status = { $in: statusTokens.map((s) =>
-                    s === "Published" ? "active" : s === "Unpublished" ? "inactive" : s
-                ) };
-            }
+        // CAREER_STATUS_OPTIONS sends lowercase "archived"; tolerate the capitalized form too.
+        const normalizedTokens = tokens.map((s) => (s === "Archived" ? "archived" : s));
+        // "Archived" is an exclusive view toggle (see archivedConstraint): when selected,
+        // show ONLY archived careers and ignore the other status tokens; otherwise hide
+        // archived by default and apply the remaining status tokens as usual.
+        Object.assign(filter, archivedConstraint(normalizedTokens));
+        if (!normalizedTokens.includes("archived") && normalizedTokens.length) {
+            filter.status = { $in: normalizedTokens.map((s) =>
+                s === "Published" ? "active" : s === "Unpublished" ? "inactive" : s
+            ) };
         }
 
         if (activityStatus) {

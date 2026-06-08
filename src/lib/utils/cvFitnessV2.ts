@@ -35,15 +35,31 @@ export interface BucketSummary {
   missingCount: number;
 }
 
-const stripHtml = (html: string): string => (html || "").replace(/<[^>]*>/g, "").trim();
+/** Tag-strip + trim, used for "does this rich-text field have real content?" checks and prompt text. */
+export const stripHtml = (html: string): string => (html || "").replace(/<[^>]*>/g, "").trim();
 
-/** A career can run V2 screening only if it has a structured description with at least one qualification. */
-export function hasStructuredQualifications(career: any): boolean {
-  const s = career?.structuredDescription;
+/** Non-blank string entries in a (possibly malformed) qualification list. */
+const countRealQualifications = (list: unknown): number =>
+  Array.isArray(list) ? list.filter((q) => typeof q === "string" && q.trim()).length : 0;
+
+/** A career can run V2 screening only if it has a structured description with at least one real (non-blank) qualification. */
+export function hasStructuredQualifications(career: unknown): boolean {
+  // DB documents are untyped — narrow defensively rather than trusting the shape.
+  const s = (career as { structuredDescription?: Partial<StructuredCareerDescription> } | null | undefined)
+    ?.structuredDescription;
   if (!s) return false;
-  const required = Array.isArray(s.requiredQualifications) ? s.requiredQualifications : [];
-  const preferred = Array.isArray(s.preferredQualifications) ? s.preferredQualifications : [];
-  return required.length > 0 || preferred.length > 0;
+  // Blank rows can exist in stored docs (Add -> save with an empty input); they are not qualifications.
+  return countRealQualifications(s.requiredQualifications) + countRealQualifications(s.preferredQualifications) > 0;
+}
+
+/** Drop blank qualification rows before persisting — mirrors the filtering display/derive/prompt already do. */
+export function normalizeStructuredDescription(s: StructuredCareerDescription): StructuredCareerDescription {
+  const dropBlanks = (list: string[]) => (list || []).filter((q) => q && q.trim());
+  return {
+    ...s,
+    requiredQualifications: dropBlanks(s.requiredQualifications),
+    preferredQualifications: dropBlanks(s.preferredQualifications),
+  };
 }
 
 /** Re-derive the legacy `description` HTML from the four structured sections so existing readers keep working. */
@@ -76,15 +92,17 @@ export function filterQualificationsByTab(qualifications: QualificationResult[],
   return qualifications.filter((q) => q.status === tab);
 }
 
-function coerceStatus(raw: any): QualificationStatus {
+function coerceStatus(raw: unknown): QualificationStatus {
   const v = String(raw ?? "").toLowerCase();
+  // Order matters: "partially matched" contains both "partial" and "match",
+  // so the partial check must run first. Unknown vocab fails safe to "missing".
   if (v.includes("partial")) return "partial";
   if (v.includes("match")) return "matched";
   if (v.includes("missing")) return "missing";
   return "missing";
 }
 
-function coerceType(raw: any): QualificationType {
+function coerceType(raw: unknown): QualificationType {
   return String(raw ?? "").toLowerCase().includes("preferred") ? "preferred" : "required";
 }
 

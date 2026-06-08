@@ -448,6 +448,12 @@ function normalizeAwardItem(value: unknown, index: number): AwardSectionItem {
   };
 }
 
+// Unlike the other section normalizers this returns null (drops the entry) when
+// name, company, email AND phone are all empty — references have no single key
+// field, so an all-blank row carries no information. NOTE: the id fallback is
+// random (not index-based like the other normalizers), so normalizing the same
+// id-less input twice yields different ids; entries created by the wizard always
+// carry ids, so this only affects hand-written/legacy data.
 function normalizeReferenceItem(input: unknown): ReferenceSectionItem | null {
   if (!input || typeof input !== "object") return null;
   const o = input as Record<string, unknown>;

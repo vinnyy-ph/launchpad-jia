@@ -47,6 +47,10 @@ interface RichTextFieldProps {
   placeholder?: string;
   value: string;
   onChange: (html: string) => void;
+  /** a11y: marks the editor invalid (e.g. required Introduction left empty). */
+  invalid?: boolean;
+  /** a11y: id of the external error/help text describing the editor. */
+  describedBy?: string;
 }
 
 // Lightweight rich-text Description editor (Figma toolbar: B / I / U / S /
@@ -58,6 +62,8 @@ export default function RichTextField({
   placeholder,
   value,
   onChange,
+  invalid,
+  describedBy,
 }: RichTextFieldProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -95,6 +101,8 @@ export default function RichTextField({
           role="textbox"
           aria-multiline="true"
           aria-label={label}
+          aria-invalid={invalid || undefined}
+          aria-describedby={describedBy}
           data-placeholder={placeholder}
           suppressContentEditableWarning
           onInput={emitChange}

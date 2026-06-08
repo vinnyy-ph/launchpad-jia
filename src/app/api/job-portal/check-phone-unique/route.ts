@@ -10,7 +10,11 @@ import { isPhoneTaken, type ExistingPhoneRecord } from "@/lib/utils/phoneValidat
  * our own `applicant-cv` collection per the ticket brief.
  */
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
-  const { phone, email } = await request.json();
+  // Malformed JSON → 400 (matches the generate-introduction sibling), not an
+  // unhandled 500; the existing phone check rejects the null body.
+  const body = await request.json().catch(() => null);
+  const phone = body?.phone;
+  const email = body?.email;
 
   if (typeof phone !== "string" || !phone.trim()) {
     return NextResponse.json({ error: "Phone is required" }, { status: 400 });
@@ -18,16 +22,22 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
 
   const { db } = await connectMongoDB();
 
+  // Shape produced by the projection below — only the two fields we compare.
+  interface PhoneProjection {
+    email?: string;
+    structuredCV?: { contactInfo?: { phone?: string } };
+  }
+
   // Pull only docs that carry a phone; project just the two fields we compare.
   const docs = await db
     .collection("applicant-cv")
-    .find(
+    .find<PhoneProjection>(
       { "structuredCV.contactInfo.phone": { $exists: true, $ne: "" } },
       { projection: { email: 1, "structuredCV.contactInfo.phone": 1 } },
     )
     .toArray();
 
-  const existing: ExistingPhoneRecord[] = docs.map((d: any) => ({
+  const existing: ExistingPhoneRecord[] = docs.map((d) => ({
     email: d.email ?? "",
     phone: d?.structuredCV?.contactInfo?.phone ?? "",
   }));

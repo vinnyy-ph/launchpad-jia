@@ -1,7 +1,8 @@
 import {
   getReportStages, getFormattedStages, getStageCounts,
   groupByParentChild, buildPipelineReportParams, getExtraColumnValue,
-  combineTimelineStages, relativeTimeShort,
+  combineTimelineStages, relativeTimeShort, csvEscape, isoDateOnly,
+  mergeEnabledState,
 } from "../pipelineReport";
 
 const career = (over: any = {}) => ({
@@ -45,6 +46,25 @@ describe("getReportStages", () => {
       "CV Screening - For Review",
       "CV Screening - Final Screen",
     ]);
+  });
+
+  // Was a pinned gap (see refactors/t3/recommendations.md R1), fixed in the deferred-
+  // cleanup session: a NEW Job Offer substage introduced by a later career now merges
+  // into the existing offerStages entry, so its column appears and its candidates count.
+  it("merges new offer-stage substages from later careers into the existing entry", () => {
+    const c2 = career({ timelineStages: [
+      { id: "4", name: "Job Offer", substages: [
+        { id: "9", name: "Negotiation", candidates: [{}], droppedCandidates: [] },
+      ] },
+    ] });
+    const { offerStages } = getReportStages([career(), c2]);
+    expect(offerStages).toHaveLength(1);
+    expect(offerStages[0].substages.map((s: any) => s.label)).toEqual([
+      "Job Offer - For Final Review", "Job Offer - Negotiation",
+    ]);
+    // and it does not duplicate substages both careers share
+    const { offerStages: again } = getReportStages([career(), career()]);
+    expect(again[0].substages.map((s: any) => s.label)).toEqual(["Job Offer - For Final Review"]);
   });
 });
 
@@ -101,6 +121,16 @@ describe("groupByParentChild", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].depth).toBe(0);
   });
+  it("matches the parent by _id as well as id, preserving child order", () => {
+    const parent = career({ id: "p1", _id: "PID", jobTitle: "Parent" });
+    const a = career({ id: "a", _id: "aid", jobTitle: "A", parentCareerID: "PID" });
+    const b = career({ id: "b", _id: "bid", jobTitle: "B", parentCareerID: "p1" });
+    const rows = groupByParentChild([parent, a, b]);
+    expect(rows.map((r) => [r.career.jobTitle, r.depth])).toEqual([
+      ["Parent", 0], ["A", 1], ["B", 1],
+    ]);
+    expect(rows[0].childCount).toBe(2);
+  });
 });
 
 describe("buildPipelineReportParams", () => {
@@ -122,6 +152,13 @@ describe("buildPipelineReportParams", () => {
     expect(p.projectIds).toBe("SCOPED");
     expect(p.fullReport).toBe(true);
   });
+  it("drops member entries with a missing email instead of emitting empty segments", () => {
+    const p = buildPipelineReportParams(
+      { ...fs, jobOwners: [{ email: "a@x.com" }, { name: "No Email" }] },
+      { orgID: "O", page: 1, limit: 20, sortBy: "x" }
+    );
+    expect(p.jobOwners).toBe("a@x.com");
+  });
 });
 
 describe("getExtraColumnValue", () => {
@@ -131,6 +168,62 @@ describe("getExtraColumnValue", () => {
     expect(getExtraColumnValue(career({ headcount: "5" }), "Headcount")).toBe("5");
     expect(getExtraColumnValue(career({ notes: undefined }), "Notes")).toBe("-");
     expect(getExtraColumnValue(career({ notes: "urgent req" }), "Notes")).toBe("urgent req");
+  });
+});
+
+describe("mergeEnabledState (Customize Columns persistence)", () => {
+  it("carries existing enabled flags onto fresh stages/substages by label", () => {
+    const { stages: fresh } = getReportStages([career()]);
+    const existing = [{
+      ...fresh[0],
+      enabled: false,
+      substages: fresh[0].substages.map((s, i) => ({ ...s, enabled: i !== 0 })),
+    }];
+    const merged = mergeEnabledState(fresh, existing);
+    expect(merged[0].enabled).toBe(false);
+    expect(merged[0].substages.map((s) => s.enabled)).toEqual([false, true]);
+  });
+  it("keeps fetched defaults for stages/substages without an existing match", () => {
+    const { stages: fresh } = getReportStages([career()]);
+    expect(mergeEnabledState(fresh, [])[0].enabled).toBe(true);
+    const renamed = [{ ...fresh[0], label: "Different Stage", enabled: false }];
+    expect(mergeEnabledState(fresh, renamed)[0].enabled).toBe(true);
+  });
+  it("is driven by the fresh list: existing-only stages do not reappear", () => {
+    const { stages: fresh } = getReportStages([career()]);
+    const ghost = { ...fresh[0], label: "Gone Stage" };
+    const merged = mergeEnabledState(fresh, [ghost, ...fresh]);
+    expect(merged.map((s) => s.label)).toEqual(fresh.map((s) => s.label));
+  });
+});
+
+describe("isoDateOnly (export Created Date format)", () => {
+  it("formats any parseable input as YYYY-MM-DD", () => {
+    expect(isoDateOnly("2026-01-10T08:30:00.000Z")).toBe("2026-01-10");
+    expect(isoDateOnly(new Date("2025-12-31T23:59:59Z"))).toBe("2025-12-31");
+  });
+  it("falls back to '-' for missing or unparseable input", () => {
+    expect(isoDateOnly(null)).toBe("-");
+    expect(isoDateOnly(undefined)).toBe("-");
+    expect(isoDateOnly("not-a-date")).toBe("-");
+  });
+});
+
+describe("csvEscape (RFC-4180)", () => {
+  it("passes plain fields through unquoted", () => {
+    expect(csvEscape("Engineer")).toBe("Engineer");
+    expect(csvEscape(42)).toBe("42");
+    expect(csvEscape("-")).toBe("-");
+  });
+  it("quote-wraps fields containing commas, quotes, or line breaks", () => {
+    expect(csvEscape("Senior, Staff Engineer")).toBe('"Senior, Staff Engineer"');
+    expect(csvEscape('the "best" role')).toBe('"the ""best"" role"');
+    expect(csvEscape("line1\nline2")).toBe('"line1\nline2"');
+    expect(csvEscape("line1\r\nline2")).toBe('"line1\r\nline2"');
+  });
+  it("renders null/undefined as an empty string", () => {
+    expect(csvEscape(null)).toBe("");
+    expect(csvEscape(undefined)).toBe("");
   });
 });
 
@@ -144,6 +237,9 @@ describe("relativeTimeShort (JIA-431 Created Date format)", () => {
     expect(relativeTimeShort(new Date(Date.now() - 60 * 864e5))).toBe("2mo ago");
     expect(relativeTimeShort(null)).toBe("-");
     expect(relativeTimeShort("not-a-date")).toBe("-");
+  });
+  it("clamps future dates to 'just now' (clock-skewed createdAt must not render negative)", () => {
+    expect(relativeTimeShort(new Date(Date.now() + 60 * 1000))).toBe("just now");
   });
 });
 

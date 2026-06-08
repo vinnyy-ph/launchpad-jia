@@ -84,23 +84,6 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       .toArray();
 
     console.log("[fetch-careers] Found careers:", careers.length, "for user:", userEmail);
-    
-    // ALWAYS log what we're returning for debugging
-    console.log("[fetch-careers] Returning career IDs:", careers.map((c: any) => c._id?.toString()));
-    console.log("[fetch-careers] Returning career titles:", careers.map((c: any) => c.jobTitle));
-    
-    // Debug: Log all careers in org to compare
-    const allCareersInOrg = await db.collection("careers").find({ orgID, ...EXCLUDE_ARCHIVED }).toArray();
-    console.log("[fetch-careers] TOTAL careers in org (unfiltered):", allCareersInOrg.length);
-    console.log("[fetch-careers] FILTERED careers for user:", careers.length);
-    
-    if (hasFullAccess) {
-      console.log("[fetch-careers] Admin/Recruiter - showing ALL careers");
-    } else if (allCareersInOrg.length !== careers.length) {
-      console.log("[fetch-careers] FILTERING IS WORKING - showing", careers.length, "of", allCareersInOrg.length, "careers");
-    } else if (allCareersInOrg.length > 0) {
-      console.log("[fetch-careers] User sees ALL careers - may be admin or all careers have this user as team member");
-    }
 
     return NextResponse.json(careers);
   } catch (error) {

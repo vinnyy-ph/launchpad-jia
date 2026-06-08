@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "@/app/(talent-vault)/styles/modules/profile-setup.module.scss";
+import CreateProfileCard from "@/lib/components/ManualProfile/CreateProfileCard";
 import { useRef } from "react";
 
 interface SubmitCVStepProps {
@@ -47,14 +48,7 @@ export function SubmitCVStep({
 
   return (
     <div className={styles.cvManageContainer}>
-      <div className={styles.cvContainer}>
-        <img alt="" src="/iconsV3/create-profile.svg" />
-        <button onClick={onCreateManually}>Create a Profile Manually</button>
-        <span>
-          Quickstart your job application by creating your own CV from
-          scratch.
-        </span>
-      </div>
+      <CreateProfileCard className={styles.cvContainer} onClick={onCreateManually} />
 
       <div
         className={styles.cvContainer}

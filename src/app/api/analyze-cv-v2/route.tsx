@@ -6,6 +6,7 @@ import {
   hasStructuredQualifications,
   buildStructuredScreeningPrompt,
   parseStructuredAnalysis,
+  type CvAnalysisV2,
 } from "@/lib/utils/cvFitnessV2";
 
 /**
@@ -15,7 +16,10 @@ import {
  * careers keep using the V1 display.
  */
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
-  const { interviewID, userEmail } = await request.json();
+  // SECURITY: the request body's userEmail is deliberately ignored — the applicant email is
+  // derived from the interview doc so an authenticated caller cannot run analysis against an
+  // arbitrary applicant's CV. (V1 screen-cv/analyze-cv still accept it; base modules, untouched.)
+  const { interviewID } = await request.json();
   const { db } = await connectMongoDB();
 
   const interviewData = await db.collection("interviews").findOne({ interviewID });
@@ -28,13 +32,19 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     return NextResponse.json({ fallback: true });
   }
 
-  const cvData = await db.collection("applicant-cv").findOne({ email: userEmail });
+  const cvData = await db.collection("applicant-cv").findOne({ email: interviewData.email });
   if (!cvData) {
     return NextResponse.json({ error: "You have not uploaded a CV for this application." });
   }
+  // A malformed applicant-cv doc (no digitalCV array) used to throw -> 500. Fail explicitly
+  // instead of silently screening against an empty CV text.
+  if (!Array.isArray(cvData.digitalCV)) {
+    return NextResponse.json({ error: "CV data is missing or unreadable for this applicant." });
+  }
 
+  // Same flatten the V1 screen-cv route uses: digitalCV sections -> plain text for the prompt.
   let parsedCV = "";
-  cvData.digitalCV.forEach((section: any) => {
+  cvData.digitalCV.forEach((section: { name?: string; content?: string }) => {
     parsedCV += `${section.name}\n${section.content}\n`;
   });
 
@@ -54,7 +64,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  let cvAnalysisV2;
+  let cvAnalysisV2: CvAnalysisV2;
   try {
     const completion = await openai.responses.create({
       model: "o4-mini",

@@ -43,43 +43,55 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
     };
     type ApplicantDoc = { email?: string | null; status?: string | null };
 
-    const interviews = (await db
+    const interviews = await db
       .collection("interviews")
-      .find({ id: careerID })
-      .toArray()) as unknown as InterviewDoc[];
+      .find<InterviewDoc>({ id: careerID })
+      .toArray();
 
     const interviewUIDs = interviews.map((iv) => String(iv._id));
     const interviewIDs = interviews.map((iv) => iv.interviewID);
     const { emails, hasEmpty } = collectApplicantEmailKeys(interviews);
+    // hasEmpty branch preserves a quirk of the old $toLower join: an interview
+    // with a null/missing email compared as "" and could therefore match an
+    // applicant doc whose email is ""/null/missing. The $or fetches those docs
+    // so decorateApplicantAccounts can reproduce that matching exactly.
     const accountFilter = hasEmpty
       ? { $or: [{ email: { $in: [...emails, ""] } }, { email: null }, { email: { $exists: false } }] }
       : { email: { $in: emails } };
 
     const [evaluations, commentCounts, latestHistory, latestRecruiterHistory, applicantDocs] =
       await Promise.all([
-        db.collection("recruiter-evaluations").aggregate(buildEvaluationsBatchPipeline(interviewUIDs)).toArray(),
-        db.collection("comments").aggregate(buildCommentCountsPipeline(interviewIDs, userEmail)).toArray(),
-        db.collection("interview-history").aggregate(buildLatestByUidPipeline(interviewUIDs)).toArray(),
-        db.collection("recruiter-history").aggregate(buildLatestByUidPipeline(interviewUIDs)).toArray(),
+        db.collection("recruiter-evaluations")
+          .aggregate<InterviewBatchResults["evaluations"][number]>(buildEvaluationsBatchPipeline(interviewUIDs))
+          .toArray(),
+        db.collection("comments")
+          .aggregate<InterviewBatchResults["commentCounts"][number]>(buildCommentCountsPipeline(interviewIDs, userEmail))
+          .toArray(),
+        db.collection("interview-history")
+          .aggregate<InterviewBatchResults["latestHistory"][number]>(buildLatestByUidPipeline(interviewUIDs))
+          .toArray(),
+        db.collection("recruiter-history")
+          .aggregate<InterviewBatchResults["latestRecruiterHistory"][number]>(buildLatestByUidPipeline(interviewUIDs))
+          .toArray(),
         emails.length || hasEmpty
           ? db
               .collection("applicants")
-              .find(accountFilter, { projection: { email: 1, status: 1 } })
+              .find<ApplicantDoc>(accountFilter, { projection: { email: 1, status: 1 } })
               .collation({ locale: "en", strength: 2 })
               .toArray()
-          : Promise.resolve([]),
+          : Promise.resolve<ApplicantDoc[]>([]),
       ]);
 
     const batches: InterviewBatchResults = {
-      evaluations: evaluations as InterviewBatchResults["evaluations"],
-      commentCounts: commentCounts as InterviewBatchResults["commentCounts"],
-      latestHistory: latestHistory as InterviewBatchResults["latestHistory"],
-      latestRecruiterHistory: latestRecruiterHistory as InterviewBatchResults["latestRecruiterHistory"],
+      evaluations,
+      commentCounts,
+      latestHistory,
+      latestRecruiterHistory,
     };
 
     const joined = joinInterviewBatches(interviews, batches);
 
-    return NextResponse.json(decorateApplicantAccounts(joined, applicantDocs as ApplicantDoc[]));
+    return NextResponse.json(decorateApplicantAccounts(joined, applicantDocs));
   } catch (error) {
     console.error(error);
     return NextResponse.json(

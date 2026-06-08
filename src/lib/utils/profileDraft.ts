@@ -5,6 +5,13 @@
 export interface ProfileDraft<T> {
   data: T;
   stepIndex: number;
+  /**
+   * Per-section Skip/Submit intent. Optional: drafts saved before this field
+   * existed lack it. Kept opaque here — consumers must sanitize (the wizard
+   * runs it through sanitizeSectionStatus) so a legacy or hand-edited draft
+   * can never restore an invalid status map.
+   */
+  sectionStatus?: unknown;
   savedAt: number;
 }
 
@@ -13,8 +20,15 @@ export function draftKey(email?: string): string {
   return `manual-profile-draft:v1:${id}`;
 }
 
-export function serializeDraft<T>(data: T, stepIndex: number, now: number = Date.now()): string {
-  const draft: ProfileDraft<T> = { data, stepIndex, savedAt: now };
+export function serializeDraft<T>(
+  data: T,
+  stepIndex: number,
+  sectionStatus?: unknown,
+  now: number = Date.now(),
+): string {
+  // JSON.stringify drops the key entirely when sectionStatus is undefined, so
+  // payloads stay byte-identical to the pre-sectionStatus shape in that case.
+  const draft: ProfileDraft<T> = { data, stepIndex, sectionStatus, savedAt: now };
   return JSON.stringify(draft);
 }
 

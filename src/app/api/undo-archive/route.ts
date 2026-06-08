@@ -2,8 +2,16 @@ import { NextResponse } from "next/server";
 import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { withAuth, AuthenticatedRequest } from "@/lib/utils/authMiddleware";
 import { logActivity } from "@/lib/utils/activityLogger";
-import { undoCareerUpdate } from "@/lib/utils/careerArchive";
+import { undoCareerUpdate, isCareerJobOwner } from "@/lib/utils/careerArchive";
 
+/**
+ * Undo an archive by batch id (the toast "Undo" action). Reverts everything the
+ * matching archive-career call did: un-archives the whole cascade, restores each
+ * career's pre-archive publish/activity status (including re-publish), and
+ * un-drops the candidates dropped in the same batch. Candidates are reset to
+ * applicationStatus "Ongoing" by design — the pre-drop per-candidate status is
+ * not captured, so undo is a fresh "back in play", not a field-level restore.
+ */
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const { batchId } = await request.json();
@@ -15,8 +23,14 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
 
     const userEmail = request.user?.email;
     const orgID = careers[0].orgID;
+    // A batch is written by one archive-career call and is single-org by
+    // construction — a mix means a forged/colliding batch id. Refuse rather
+    // than bulk-write across org boundaries.
+    if (careers.some((c: any) => c.orgID !== orgID)) {
+      return NextResponse.json({ error: "Invalid archive batch" }, { status: 400 });
+    }
     // Job-Owner gate: user must own at least one career in the batch.
-    const isJobOwner = careers.some((c: any) => c.teamMembers?.some((m: any) => m.email === userEmail && m.role === "Job Owner"));
+    const isJobOwner = careers.some((c: any) => isCareerJobOwner(c, userEmail));
     if (!isJobOwner) return NextResponse.json({ error: "Only Job Owners can undo this" }, { status: 403 });
 
     await db.collection("careers").bulkWrite(
@@ -31,7 +45,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
 
     try {
       const parent = careers.find((c: any) => !c.parentCareerID) || careers[0];
-      await logActivity({ db, kind: "recruiter_restored_career", career: { _id: parent._id, jobTitle: parent.jobTitle, id: parent.id }, orgID, careerId: parent._id?.toString(), actor: { type: "recruiter", id: request.user?.uid, email: userEmail, name: request.user?.name || userEmail || "Recruiter", image: (request.user as any)?.picture } });
+      await logActivity({ db, kind: "recruiter_restored_career", career: { _id: parent._id, jobTitle: parent.jobTitle, id: parent.id }, orgID, careerId: parent._id?.toString(), actor: { type: "recruiter", id: request.user?.uid, email: userEmail, name: request.user?.name || userEmail || "Recruiter", image: request.user?.picture } });
     } catch (e) { console.error("[undo-archive] activity log failed:", e); }
 
     return NextResponse.json({ success: true, restoredCount: careers.length, undroppedCount: undrop.modifiedCount ?? 0 });

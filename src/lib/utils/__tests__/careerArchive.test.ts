@@ -7,6 +7,8 @@ import {
   planArchiveTargets,
   archiveCareerPatch,
   undoCareerUpdate,
+  restoreCareerUpdate,
+  isCareerJobOwner,
 } from "@/lib/utils/careerArchive";
 
 describe("careerArchive query helpers", () => {
@@ -73,6 +75,31 @@ describe("planArchiveTargets", () => {
   });
 });
 
+describe("isCareerJobOwner", () => {
+  const career = {
+    teamMembers: [
+      { email: "owner@x.com", role: "Job Owner" },
+      { email: "hm@x.com", role: "Hiring Manager" },
+    ],
+  };
+
+  it("accepts a Job Owner on the career", () => {
+    expect(isCareerJobOwner(career, "owner@x.com")).toBe(true);
+  });
+
+  it("rejects members with other roles", () => {
+    expect(isCareerJobOwner(career, "hm@x.com")).toBe(false);
+  });
+
+  it("rejects emails not on the career", () => {
+    expect(isCareerJobOwner(career, "stranger@x.com")).toBe(false);
+  });
+
+  it("rejects when teamMembers is missing", () => {
+    expect(isCareerJobOwner({}, "owner@x.com")).toBe(false);
+  });
+});
+
 describe("archiveCareerPatch", () => {
   it("captures prior status + stamps batch", () => {
     const p = archiveCareerPatch({ status: "active", activityStatus: "Active" }, { batchId: "b1", by: "me@x.com", at: new Date(0) });
@@ -90,5 +117,18 @@ describe("undoCareerUpdate", () => {
   it("falls back to current status when no prior captured", () => {
     const u = undoCareerUpdate({ status: "inactive", activityStatus: "Inactive" });
     expect(u.$set.status).toBe("inactive");
+  });
+});
+
+describe("restoreCareerUpdate", () => {
+  it("un-archives without touching publish/activity status", () => {
+    const r = restoreCareerUpdate();
+    expect(r.$set).toMatchObject({ archived: false });
+    expect(r.$set).not.toHaveProperty("status");
+    expect(r.$set).not.toHaveProperty("activityStatus");
+  });
+
+  it("clears the same bookkeeping fields undo does (no batch-id residue)", () => {
+    expect(restoreCareerUpdate().$unset).toEqual(undoCareerUpdate({}).$unset);
   });
 });

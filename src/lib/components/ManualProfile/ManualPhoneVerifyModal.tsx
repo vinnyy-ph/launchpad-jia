@@ -7,13 +7,14 @@ import OtpInput from "./OtpInput";
 import { usePasscodeValue } from "@/lib/hooks/usePasscodeValue";
 import { assetConstants } from "@/lib/utils/constantsV2";
 import {
-  PHONE_COUNTRY_OPTIONS,
   type SupportedPhoneCountry,
   applyCountryDialCode,
+  buildPhoneFromNationalInput,
+  extractNationalNumber,
   formatNationalNumber,
+  getDialCode,
   inferPhoneCountry,
   isStrictInternationalPhone,
-  maxNationalDigits,
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
 import { Phone01 } from "@untitledui/icons";
@@ -134,13 +135,8 @@ export default function ManualPhoneVerifyModal({
 
   // Dial code is a fixed bold prefix; the editable input holds only the national
   // number (auto-spaced + capped per country). Full E.164 stays in `phone`.
-  const dialCode =
-    PHONE_COUNTRY_OPTIONS.find((option) => option.code === country)?.dialCode ?? "+63";
-  const dialDigits = dialCode.replace(/^\+/, "");
-  const phoneDigits = phone.replace(/\D/g, "");
-  const nationalNumber = phoneDigits.startsWith(dialDigits)
-    ? phoneDigits.slice(dialDigits.length)
-    : phoneDigits;
+  const dialCode = getDialCode(country);
+  const nationalNumber = extractNationalNumber(phone, country);
 
   function handleCountryChange(next: SupportedPhoneCountry) {
     setCountry(next);
@@ -199,12 +195,7 @@ export default function ManualPhoneVerifyModal({
                 sectionDivider
                 sectionPointerEvents="auto"
                 onChange={(event) => {
-                  const nationalDigits = event.target.value
-                    .replace(/\D/g, "")
-                    .slice(0, maxNationalDigits(country));
-                  setPhone(
-                    sanitizeInternationalPhoneInput(`${dialCode}${nationalDigits}`, country),
-                  );
+                  setPhone(buildPhoneFromNationalInput(event.target.value, country));
                   if (phoneError) setPhoneError("");
                 }}
               />
@@ -282,7 +273,9 @@ export default function ManualPhoneVerifyModal({
                 variant="primary"
                 pill
                 onClick={handleVerify}
-                disabled={step === "verifying"}
+                // Also gated until all 6 digits are typed — handleVerify's
+                // early return made an incomplete code a silent no-op.
+                disabled={step === "verifying" || !isOtpComplete}
                 iconJsx={step === "verifying" ? <span className={styles.spinner} /> : undefined}
                 style={{ width: "100%", height: 52 }}
               />

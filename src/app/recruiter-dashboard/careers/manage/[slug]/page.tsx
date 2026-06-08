@@ -153,6 +153,8 @@ export default function ManageCareerPage() {
   const [invitedCandidates, setInvitedCandidates] = useState<any[]>([]);
   const [showCareerStatusModal, setShowCareerStatusModal] = useState(false);
 
+  // Full reload after restore so every tab refetches un-archived data; the 2s
+  // delay keeps the restore toast visible before the reload (see commit a9dc891).
   const { openRestore, modals: archiveModals } = useCareerArchiveModal(() => setTimeout(() => window.location.reload(), 2000));
 
   // Linked career expansion state
@@ -2294,7 +2296,8 @@ export default function ManageCareerPage() {
                   {career && (
                     <>
                       <CareerStatusBadges career={formData} />
-                      {activeTab === "career-settings" && (
+                      {/* Archived careers must be restored before their status can change (kept in sync with the update-career guard). */}
+                      {activeTab === "career-settings" && !formData.archived && (
                         <button
                           onClick={() => setShowCareerStatusModal(true)}
                           style={{
@@ -2796,14 +2799,6 @@ export default function ManageCareerPage() {
           <CareerDescriptionView
             formData={formData}
             setFormData={setFormData}
-            deletePreview={
-              career
-                ? {
-                    childCareers: career.childCareers ?? [],
-                    parentCareer: career.parentCareer ?? null,
-                  }
-                : undefined
-            }
             onEdit={(section) => {
               // Map section names to step indices and section IDs
               const sectionMapping: {

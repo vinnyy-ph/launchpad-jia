@@ -1,3 +1,4 @@
+/** Client-side wrappers for the T4 archive endpoints (used by the modals/toasts). */
 import { api } from "@/lib/utils/apiClient";
 
 export async function archiveCareerRequest(id: string, dropCandidates: boolean) {

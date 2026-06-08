@@ -3,6 +3,8 @@
  * Pure query fragments + planners — no DB access here, so they unit-test cleanly.
  */
 
+import type { ObjectId } from "mongodb"; // type-only: keeps this module runtime-pure
+
 /** Default gate: every careers read excludes archived unless explicitly overridden. */
 export const EXCLUDE_ARCHIVED = { archived: { $ne: true } } as const;
 
@@ -33,24 +35,47 @@ export function archivedConstraint(selectedStatuses: string[] = []) {
  */
 export const NON_DROPPABLE_STATUSES = ["Hired", "Dropped"] as const;
 
-interface InterviewLike { _id?: any; applicationStatus?: string | null }
+/** Mongo _id as the driver hands it back (ObjectId at runtime, string in tests). */
+type DocId = ObjectId | string;
+
+interface InterviewLike<TId = DocId> { _id?: TId; applicationStatus?: string | null }
 
 /**
  * Ids of candidate "interview" docs to drop on "archive and drop all":
  * everyone NOT in the Hired stage and not already Dropped. Ongoing / null /
  * any other in-progress status becomes Dropped.
+ * Generic over the id type so driver docs yield ObjectId[] and tests string[].
  */
-export function selectInterviewIdsToDrop(interviews: InterviewLike[]): any[] {
+export function selectInterviewIdsToDrop<TId = DocId>(interviews: InterviewLike<TId>[]): TId[] {
   return (interviews || [])
-    .filter((iv) => !NON_DROPPABLE_STATUSES.includes(iv?.applicationStatus as any))
-    .map((iv) => iv._id);
+    .filter((iv) => !(NON_DROPPABLE_STATUSES as readonly string[]).includes(iv?.applicationStatus ?? ""))
+    .map((iv) => iv._id as TId);
 }
 
-interface CareerLike { _id?: any; id?: string }
+interface CareerLike { _id?: DocId; id?: string }
 
 /** Ids (parent first, then children) that an archive should mark. */
-export function planArchiveTargets(parent: CareerLike, children: CareerLike[]): any[] {
+export function planArchiveTargets(parent: CareerLike, children: CareerLike[]): Array<DocId | undefined> {
   return [parent._id, ...(children || []).map((c) => c._id)];
+}
+
+interface TeamMemberLike { email?: string | null; role?: string | null }
+
+/**
+ * Job-Owner gate shared by archive / restore / undo routes: the acting user
+ * must be listed on the career's teamMembers with the "Job Owner" role.
+ * Mirrors the check the legacy delete-career route used.
+ * Accepts raw driver docs (Record arm) — the cast is compile-only.
+ */
+export function isCareerJobOwner(
+  career: { teamMembers?: TeamMemberLike[] | null } | Record<string, unknown>,
+  userEmail: string | null | undefined
+): boolean {
+  return (
+    (career.teamMembers as TeamMemberLike[] | null | undefined)?.some(
+      (m) => m.email === userEmail && m.role === "Job Owner"
+    ) ?? false
+  );
 }
 
 interface ArchiveOpts { batchId: string; by?: string | null; at?: Date }
@@ -80,6 +105,22 @@ export function undoCareerUpdate(career: { status?: string | null; activityStatu
       activityStatus: career.activityStatusBeforeArchive ?? career.activityStatus ?? "Inactive",
       updatedAt: new Date(),
     },
+    $unset: { archivedAt: "", archivedBy: "", archiveBatchId: "", statusBeforeArchive: "", activityStatusBeforeArchive: "" },
+  };
+}
+
+/**
+ * The { $set, $unset } update for an explicit Restore (the modal/banner action,
+ * not the undo toast): un-archive only — publish state stays unpublished +
+ * inactive per spec/Figma, so no status keys here. $unsets the same
+ * bookkeeping fields undoCareerUpdate clears: a restored career must not keep
+ * a stale archiveBatchId (a late undo-archive of its old batch would re-run
+ * the un-drop against it), and the doc shape stays consistent (fields absent,
+ * not archivedAt: null residue).
+ */
+export function restoreCareerUpdate() {
+  return {
+    $set: { archived: false, updatedAt: new Date() },
     $unset: { archivedAt: "", archivedBy: "", archiveBatchId: "", statusBeforeArchive: "", activityStatusBeforeArchive: "" },
   };
 }

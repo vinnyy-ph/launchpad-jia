@@ -40,7 +40,16 @@ export default function LabeledField({
         </label>
       )}
       {children}
-      {error != null && <p className={styles.labeledFieldError}>{error}</p>}
+      {error != null && (
+        // Mirrors DS Field's own error wiring (`${inputId}-error`): consumers
+        // point their control's aria-describedby at this id.
+        <p
+          id={htmlFor ? `${htmlFor}-error` : undefined}
+          className={styles.labeledFieldError}
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }

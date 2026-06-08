@@ -67,7 +67,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
       }), totalPages, totalApplicants
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json({ error: "Failed to fetch applicants" }, { status: 500 });
   }
 });

@@ -9,7 +9,7 @@ import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
 import philippineCitiesAndProvinces from "../../../../public/philippines-locations.json";
 import RichTextEditor from "./RichTextEditor";
 import StructuredDescriptionFields, { EMPTY_STRUCTURED_DESCRIPTION } from "./StructuredDescriptionFields";
-import { deriveLegacyDescription, StructuredCareerDescription } from "@/lib/utils/cvFitnessV2";
+import { deriveLegacyDescription, normalizeStructuredDescription } from "@/lib/utils/cvFitnessV2";
 import InterviewQuestionGeneratorV2 from "./InterviewQuestionGeneratorV2";
 import PipelineStageBuilder from "./PipelineStageBuilder";
 import { candidateActionToast, errorToast, guid, normalizePipeline } from "@/lib/Utils";
@@ -352,7 +352,7 @@ export default function SegmentedCareerForm({
     project: preselectedProject?.name || "",
     projectId: preselectedProject?.id || "",
     description: "",
-    structuredDescription: EMPTY_STRUCTURED_DESCRIPTION as StructuredCareerDescription,
+    structuredDescription: EMPTY_STRUCTURED_DESCRIPTION,
     employmentType: "",
     workSetup: "",
     country: "Philippines",
@@ -692,6 +692,9 @@ export default function SegmentedCareerForm({
         project: career?.project || "",
         projectId: career?.projectId || "",
         description: career.description,
+        // Back-compat migration path: a legacy career only has `description`, so seed it
+        // as the Overview. On save, `deriveLegacyDescription` rebuilds `description` from
+        // the structured sections, upgrading the career to the V2 shape additively.
         structuredDescription: career.structuredDescription || {
           ...EMPTY_STRUCTURED_DESCRIPTION,
           overview: career.description || "",
@@ -1095,7 +1098,10 @@ export default function SegmentedCareerForm({
       )
         errors.maximumSalary = true;
       // Also validate Job Description in Career Details & Team Access step
-      const textContent = (careerForm.structuredDescription?.overview || careerForm.description || "").replace(/<[^>]*>/g, "").trim();
+      // Overview itself is required when the structured form is in use (?? keeps an empty
+      // Overview from falling through to the derived legacy description) — matches the
+      // "Overview is required." inline copy. Legacy description check only if no structured form.
+      const textContent = ((careerForm.structuredDescription?.overview ?? careerForm.description) || "").replace(/<[^>]*>/g, "").trim();
       if (!textContent) errors.description = true;
       // Validate that there is at least one Job Owner
       const hasJobOwner = teamMembers.some(
@@ -1113,7 +1119,10 @@ export default function SegmentedCareerForm({
 
     if (currentStepName === "CV Review & Pre-screening") {
       // Remove HTML tags and check if there's actual content
-      const textContent = (careerForm.structuredDescription?.overview || careerForm.description || "").replace(/<[^>]*>/g, "").trim();
+      // Overview itself is required when the structured form is in use (?? keeps an empty
+      // Overview from falling through to the derived legacy description) — matches the
+      // "Overview is required." inline copy. Legacy description check only if no structured form.
+      const textContent = ((careerForm.structuredDescription?.overview ?? careerForm.description) || "").replace(/<[^>]*>/g, "").trim();
       if (!textContent) errors.description = true;
     }
 
@@ -1344,7 +1353,10 @@ export default function SegmentedCareerForm({
           ? null
           : Number(careerForm.headcount),
         description: careerForm.description,
-        structuredDescription: careerForm.structuredDescription || null,
+        // Blank qualification rows are UI scaffolding (phantom row / extra Adds) — drop them from the stored doc.
+        structuredDescription: careerForm.structuredDescription
+          ? normalizeStructuredDescription(careerForm.structuredDescription)
+          : null,
         workSetup: careerForm.workSetup,
         questions: careerForm.questions,
         preScreeningQuestions: careerForm.preScreeningQuestions,

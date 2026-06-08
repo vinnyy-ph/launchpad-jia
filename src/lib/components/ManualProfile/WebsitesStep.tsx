@@ -88,6 +88,12 @@ export default function WebsitesStep({
                         className={styles.urlComboTextInput}
                         placeholder="www.website.com"
                         value={website.url}
+                        aria-invalid={errors?.[`${website.id}.url`] ? true : undefined}
+                        aria-describedby={
+                          errors?.[`${website.id}.url`]
+                            ? `url-${website.id}-error`
+                            : undefined
+                        }
                         onBlur={() => onFieldBlur?.(`${website.id}.url`)}
                         onChange={(event) => update(website.id, { url: event.target.value })}
                       />

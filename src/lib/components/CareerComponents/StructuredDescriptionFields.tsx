@@ -5,6 +5,11 @@ import RichTextEditor from "./RichTextEditor";
 import QualificationListInput from "./QualificationListInput";
 import { StructuredCareerDescription } from "@/lib/utils/cvFitnessV2";
 
+/**
+ * Shared empty shape used to seed new-career form state. Treat as immutable —
+ * consumers must replace (spread) rather than mutate it, since the nested arrays
+ * are shared by reference across every form instance.
+ */
 export const EMPTY_STRUCTURED_DESCRIPTION: StructuredCareerDescription = {
   overview: "",
   rolesAndResponsibilities: "",

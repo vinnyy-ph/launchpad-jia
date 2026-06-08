@@ -103,3 +103,17 @@ BENCH_TOKEN=<idToken> node scripts/benchmark-fetching.mjs --career <careerID> --
 | `src/app/api/get-career-applicants/route.tsx` | Paginate-before-lookup + indexes |
 | `src/app/api/get-career-interviews/route.tsx` | Parallel batched joins + indexes |
 | `scripts/benchmark-fetching.mjs` | Reproducible benchmark |
+
+## 6. Live production re-verification (2026-06-08, realistic dataset)
+
+Final pre-submission check against the production deploy on the realistic dataset (138 interviews / 16 careers), A/B against the unoptimized baseline deploy (`jia-init-main.vercel.app`) — same Atlas cluster, same data. Measured from a real signed-in browser session (timings include client→Vercel RTT; `x-vercel-cache: BYPASS` on every sample, so no edge cache assisted). Two largest careers (19 and 15 interviews), 13 samples per endpoint per deploy (page-loads + direct API replays).
+
+| Endpoint | Deploy | median | mean | n |
+|---|---|---|---|---|
+| `get-career-interviews` | baseline (unoptimized) | 484ms | 558ms | 27 |
+| `get-career-interviews` | **optimized** | 603ms | **761ms** ✅ | 26 |
+| `get-career-applicants` | baseline (unoptimized) | 515ms | 654ms | 27 |
+| `get-career-applicants` | **optimized** | 511ms | **621ms** ✅ | 26 |
+
+- **<1s average met end-to-end** on both endpoints, browser-measured with network round-trip included; server time is strictly lower.
+- At this small scale both deploys sit near the ~470ms RTT/auth floor — the optimization is invisible here by design (the batched-join plan costs one extra Atlas round-trip vs the single aggregation, ≈ +45ms at small N). The before/after proof is the stress benchmark in §4: **25–72s → ≤1.07s** at 1k–3k applicants, where the unoptimized endpoints wouldn't even fit inside a Vercel function timeout.

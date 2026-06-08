@@ -1,7 +1,10 @@
 "use client";
 
+import { Award04 } from "@untitledui/icons";
 import { Field, Group, Select } from "@/lib/components/ui";
 import type { CertificationSectionItem } from "@/lib/utils/structuredCV";
+import AutocompleteField from "./autocomplete/AutocompleteField";
+import { searchBrands } from "./autocomplete/fetchers";
 import LabeledField from "./LabeledField";
 import styles from "./manual-profile.module.scss";
 
@@ -70,15 +73,35 @@ export default function CertificationEntryForm({
         onChange={(event) => set("name", event.target.value)}
       />
 
-      <Field
+      <AutocompleteField
         label="Issuing Organization"
         withAsterisk
-        size="sm"
         placeholder="E.g. Microsoft"
         value={value.issuingOrganization}
+        domain={value.issuingOrganizationDomain}
+        logoUrl={value.issuingOrganizationLogoUrl}
         error={errors?.issuingOrganization}
-        onBlur={() => onFieldBlur?.("issuingOrganization")}
-        onChange={(event) => set("issuingOrganization", event.target.value)}
+        onFieldBlur={() => onFieldBlur?.("issuingOrganization")}
+        onTextChange={(name) =>
+          onChange({
+            ...value,
+            issuingOrganization: name,
+            issuingOrganizationDomain: "",
+            issuingOrganizationLogoUrl: "",
+          })
+        }
+        onSelect={(selection) =>
+          onChange({
+            ...value,
+            issuingOrganization: selection.name,
+            issuingOrganizationDomain: selection.domain,
+            issuingOrganizationLogoUrl: selection.logoUrl,
+          })
+        }
+        fetcher={searchBrands}
+        fallbackIcon={Award04}
+        loadingLabel="Searching organizations..."
+        emptyLabel="No organization found."
       />
 
       <LabeledField label="Issue Date">

@@ -1,7 +1,10 @@
 "use client";
 
+import { GraduationHat01 } from "@untitledui/icons";
 import { Field, Group, Select } from "@/lib/components/ui";
 import type { EducationSectionItem } from "@/lib/utils/structuredCV";
+import AutocompleteField from "./autocomplete/AutocompleteField";
+import { searchSchools } from "./autocomplete/fetchers";
 import LabeledField from "./LabeledField";
 import RichTextField from "./RichTextField";
 import styles from "./manual-profile.module.scss";
@@ -61,15 +64,31 @@ export default function EducationEntryForm({
 
   return (
     <div className={styles.eduForm}>
-      <Field
+      <AutocompleteField
         label="School"
         withAsterisk
-        size="sm"
         placeholder="E.g. Ateneo De Manila University"
         value={value.school}
+        domain={value.schoolDomain}
+        logoUrl={value.schoolLogoUrl}
         error={errors?.school}
-        onBlur={() => onFieldBlur?.("school")}
-        onChange={(event) => set("school", event.target.value)}
+        onFieldBlur={() => onFieldBlur?.("school")}
+        onTextChange={(name) =>
+          onChange({ ...value, school: name, schoolDomain: "", schoolLogoUrl: "" })
+        }
+        onSelect={(selection) =>
+          onChange({
+            ...value,
+            school: selection.name,
+            schoolDomain: selection.domain,
+            schoolLogoUrl: selection.logoUrl,
+          })
+        }
+        fetcher={searchSchools}
+        fallbackIcon={GraduationHat01}
+        showMeta
+        loadingLabel="Searching schools..."
+        emptyLabel="No schools found."
       />
 
       <Group grow gap={16} align="flex-start">

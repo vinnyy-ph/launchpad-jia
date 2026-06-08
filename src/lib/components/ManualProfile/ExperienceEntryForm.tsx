@@ -1,7 +1,10 @@
 "use client";
 
+import { Building05 } from "@untitledui/icons";
 import { Checkbox, Field, Group, Select } from "@/lib/components/ui";
 import type { ExperienceSectionItem } from "@/lib/utils/structuredCV";
+import AutocompleteField from "./autocomplete/AutocompleteField";
+import { searchBrands } from "./autocomplete/fetchers";
 import LabeledField from "./LabeledField";
 import RichTextField from "./RichTextField";
 import styles from "./manual-profile.module.scss";
@@ -83,15 +86,30 @@ export default function ExperienceEntryForm({
       />
 
       <Group grow gap={16} align="flex-start">
-        <Field
+        <AutocompleteField
           label="Company or Organization"
           withAsterisk
-          size="sm"
           placeholder="E.g. Google, Inc."
           value={value.company}
+          domain={value.companyDomain}
+          logoUrl={value.companyLogoUrl}
           error={errors?.company}
-          onBlur={() => onFieldBlur?.("company")}
-          onChange={(event) => set("company", event.target.value)}
+          onFieldBlur={() => onFieldBlur?.("company")}
+          onTextChange={(name) =>
+            onChange({ ...value, company: name, companyDomain: "", companyLogoUrl: "" })
+          }
+          onSelect={(selection) =>
+            onChange({
+              ...value,
+              company: selection.name,
+              companyDomain: selection.domain,
+              companyLogoUrl: selection.logoUrl,
+            })
+          }
+          fetcher={searchBrands}
+          fallbackIcon={Building05}
+          loadingLabel="Searching organizations..."
+          emptyLabel="No organization found."
         />
         <Select
           label="Employment Type"

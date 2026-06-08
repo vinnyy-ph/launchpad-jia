@@ -43,7 +43,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
             return NextResponse.json({ error: "You are not authorized to access this organization's analytics" }, { status: 403 });
         }
 
-        const hasFullAccess = authUserRole?.role === "admin" || authUserRole?.role === "recruiter" || !!adminAccount;
+        const hasFullAccess = authUserRole?.role === "admin" || authUserRole?.role === "super_admin" || authUserRole?.role === "recruiter" || !!adminAccount;
         let careerIds: string[] = careerFilter;
 
         // Archived careers stay out of analytics (T4). The careers-collection reads
@@ -168,7 +168,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
                 timeToHire: timeToHire,
             });
         } else if (metricType === "drop-off-rate") {
-            const dropOffData = await getDropOffRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter);
+            const dropOffData = await getDropOffRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds);
             return NextResponse.json({
                 dropOffRate: dropOffData
             });
@@ -190,7 +190,7 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
                 endorsementEfficiency: endorsementEfficiency,
             });
         } else if (metricType === "stage-pass-rate") {
-            const stagePassRate = await getStagePassRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter);
+            const stagePassRate = await getStagePassRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds);
             return NextResponse.json({
                 stagePassRate: stagePassRate,
             });
@@ -201,12 +201,12 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
             getNewApplicants(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds),
             getHires(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds),
             getApplicationVolume(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds),
-            getDropOffRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter),
+            getDropOffRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds),
             getStageAging(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c._id.toString()) : [], dateFilter),
             getOfferAcceptanceRate(db, orgID, activeCareersData.selectedCareers.map((c) => c._id), dateFilter),
             getEndorsementEfficiency(db, orgID, activeCareersData.selectedCareers.map((c) => c._id), dateFilter),
             getTimeToHire(db, orgID, activeCareersData.selectedCareers.map((c) => c._id), dateFilter),
-            getStagePassRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter),
+            getStagePassRate(db, orgID, hasCareerFilters ? activeCareersData.selectedCareers.map((c) => c.id) : [], dateFilter, archivedCareerIds),
         ]);
         return NextResponse.json({
             activeCareers: {
@@ -976,7 +976,7 @@ const getApplicationVolume = async (db: any, orgID: string, careerIds: string[],
         };
 }
 
-const getDropOffRate = async (db: any, orgID: string, activeCareers: string[], dateFilter: DateFilter) => {
+const getDropOffRate = async (db: any, orgID: string, activeCareers: string[], dateFilter: DateFilter, archivedCareerIds: string[] = []) => {
     let matchTime = {};
     let startDate;
     let endDate;
@@ -1025,7 +1025,7 @@ const getDropOffRate = async (db: any, orgID: string, activeCareers: string[], d
             $match: {
                 orgID: orgID, 
                 ...matchTime,
-                ...(activeCareers.length > 0 ? { id: { $in: activeCareers } } : {}),
+                ...(activeCareers.length > 0 ? { id: { $in: activeCareers } } : (archivedCareerIds.length > 0 ? { id: { $nin: archivedCareerIds } } : {})),
             }
         },
         {
@@ -2443,7 +2443,7 @@ const getTimeToHire = async (db: any, orgID: string, careerFilter: ObjectId[], d
     return timeToHire;
 }
 
-const getStagePassRate = async (db: any, orgID: string, careerFilter: string[], dateFilter: DateFilter) => {
+const getStagePassRate = async (db: any, orgID: string, careerFilter: string[], dateFilter: DateFilter, archivedCareerIds: string[] = []) => {
     let matchTime = {};
     let startDate;
     let endDate;
@@ -2492,7 +2492,7 @@ const getStagePassRate = async (db: any, orgID: string, careerFilter: string[], 
         {
             $match: {
                 orgID: orgID,
-                ...(careerFilter.length > 0 ? { id: { $in: careerFilter } } : {}),
+                ...(careerFilter.length > 0 ? { id: { $in: careerFilter } } : (archivedCareerIds.length > 0 ? { id: { $nin: archivedCareerIds } } : {})),
             }
         },
         {

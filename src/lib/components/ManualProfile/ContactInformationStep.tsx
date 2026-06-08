@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Field, Group, Tooltip } from "@/lib/components/ui";
-import { MarkerPin01 } from "@untitledui/icons";
 import { assetConstants } from "@/lib/utils/constantsV2";
 import {
   type AddressParts,
@@ -19,6 +18,7 @@ import {
   inferPhoneCountry,
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
+import AddressAutocompleteField from "./autocomplete/AddressAutocompleteField";
 import CountrySelect from "./CountrySelect";
 import ManualPhoneVerifyModal from "./ManualPhoneVerifyModal";
 import styles from "./manual-profile.module.scss";
@@ -242,17 +242,15 @@ export default function ContactInformationStep({
 
         <div className={styles.addressBlock}>
           {!manualMode ? (
-            <Field
+            <AddressAutocompleteField
               label="Address"
               withAsterisk
-              size="sm"
               placeholder="Search address"
               value={value.address}
-              sectionLeft={<MarkerPin01 width={20} height={20} color="#717680" />}
-              sectionWidth={40}
               error={errors?.address}
-              onBlur={() => onFieldBlur?.("address")}
-              onChange={(event) => patch({ address: event.target.value })}
+              onFieldBlur={() => onFieldBlur?.("address")}
+              onTextChange={(address) => patch({ address })}
+              onSelect={(address) => patch({ address })}
             />
           ) : (
             <div className={styles.addressManualFields}>

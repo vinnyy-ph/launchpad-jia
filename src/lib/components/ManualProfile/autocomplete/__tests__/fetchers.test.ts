@@ -1,4 +1,4 @@
-import { searchBrands, searchSchools } from "../fetchers";
+import { searchAddresses, searchBrands, searchSchools } from "../fetchers";
 import { api } from "@/lib/utils/apiClient";
 
 jest.mock("@/lib/utils/apiClient", () => ({
@@ -79,6 +79,49 @@ describe("searchSchools", () => {
     await searchSchools("ate", signal());
     expect(mockGet).toHaveBeenCalledWith(
       expect.stringContaining("/api/talent-vault/university-search?q=ate"),
+      expect.objectContaining({ signal: expect.anything() }),
+    );
+  });
+});
+
+describe("searchAddresses", () => {
+  const realFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  it("maps Photon features to a joined displayName and drops empties", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      json: async () => ({
+        features: [
+          {
+            properties: { name: "Rizal Park", city: "Manila", country: "Philippines" },
+            geometry: { coordinates: [121, 14] },
+          },
+          { properties: {} },
+        ],
+      }),
+    }) as unknown as typeof fetch;
+
+    const out = await searchAddresses("rizal", signal());
+    expect(out).toHaveLength(1);
+    expect(out[0].displayName).toBe("Rizal Park, Manila, Philippines");
+    expect(out[0].id).toContain("0-");
+  });
+
+  it("returns an empty list when features are missing", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue({ json: async () => ({}) }) as unknown as typeof fetch;
+    expect(await searchAddresses("x", signal())).toEqual([]);
+  });
+
+  it("hits the Photon endpoint with the query and abort signal", async () => {
+    const mock = jest.fn().mockResolvedValue({ json: async () => ({ features: [] }) });
+    global.fetch = mock as unknown as typeof fetch;
+    await searchAddresses("manila", signal());
+    expect(mock).toHaveBeenCalledWith(
+      expect.stringContaining("photon.komoot.io/api/?q=manila"),
       expect.objectContaining({ signal: expect.anything() }),
     );
   });

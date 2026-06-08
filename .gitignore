@@ -16,3 +16,6 @@ tsconfig.tsbuildinfo
 .claude
 .remember
 CLAUDE.md
+
+# Brainstorming / spec artifacts (not product code)
+docs/superpowers/

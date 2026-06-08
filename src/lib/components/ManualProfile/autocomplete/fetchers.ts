@@ -56,3 +56,43 @@ export async function searchSchools(query: string, signal: AbortSignal): Promise
     .filter((item: Suggestion) => item.name)
     .slice(0, 12);
 }
+
+export interface AddressSuggestion {
+  id: string;
+  displayName: string;
+}
+
+interface PhotonFeature {
+  properties?: {
+    name?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  geometry?: { coordinates?: number[] };
+}
+
+// Address suggestions from Photon (Komoot) — https + public, called directly
+// (no auth, no proxy). Mirrors the edit-CV contact modal.
+export async function searchAddresses(
+  query: string,
+  signal: AbortSignal,
+): Promise<AddressSuggestion[]> {
+  const response = await fetch(
+    `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`,
+    { signal },
+  );
+  const data = (await response.json()) as { features?: PhotonFeature[] };
+
+  return (data.features || [])
+    .map((feature, index) => {
+      const props = feature.properties || {};
+      const coords = feature.geometry?.coordinates;
+      const parts = [props.name, props.city, props.state, props.country].filter(Boolean);
+      return {
+        id: `${index}-${coords?.[0] ?? 0}-${coords?.[1] ?? 0}`,
+        displayName: parts.length > 0 ? parts.join(", ") : props.name || "",
+      };
+    })
+    .filter((item) => item.displayName);
+}

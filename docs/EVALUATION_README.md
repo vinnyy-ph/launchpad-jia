@@ -10,13 +10,15 @@ Both portals run on this one domain (routed in `middleware.tsx`); reach each by 
 
 ### Signing in
 
-Authentication is **Google / Microsoft SSO only** (there is no email + password form). Two ways to review:
+Authentication is **Google SSO** — click **Continue with Google** (there is no email + password form; the Microsoft button on the deployment is not active). Two ways to review:
 
 **A. Applicant side (T5) — no shared credentials needed.**
-Open the **Applicant** URL and sign in with **any Google account**. A first-time account with no organization is treated as an applicant and lands on the candidate dashboard. From there: **Submit CV → "Create a Profile Manually"** to review the T5 wizard end-to-end.
+Open the **Applicant** URL and sign in with **any Google account** (click **Continue with Google** on `/login`). A first-time account with no organization is treated as an applicant and lands on the candidate dashboard. From there: **Submit CV → "Create a Profile Manually"** to review the T5 wizard end-to-end.
 
-**B. Recruiter side (T1–T4) — use the provided test recruiter account.**
-The recruiter dashboard requires membership in a seeded organization, so please sign in with the dedicated test account below (a real Google account; use the Google SSO button):
+**B. Recruiter side (T1–T4) — sign in with your White Cloak email.**
+The evaluator emails from the access request have been added as **admins** of the seeded org (**Launch Round Test Org**). Sign in with **Continue with Google** using your `@whitecloak.com` account and you'll land on the recruiter dashboard. First login activates the invite automatically — there is no separate accept step.
+
+**Shared test recruiter account (fallback)** — if your email isn't a Google account:
 
 | Field | Value |
 |---|---|
@@ -25,6 +27,8 @@ The recruiter dashboard requires membership in a seeded organization, so please 
 | Organization | Launch Round Test Org |
 
 **Applicant test account** (or use any Google account): `jia.applicant@gmail.com` / `jiaapplicant123`
+
+> **Note:** The same email can use both portals — a recruiter account can also open the **Applicant** URL to review T5 (its candidate profile starts empty until you run the Submit CV flow).
 
 
 

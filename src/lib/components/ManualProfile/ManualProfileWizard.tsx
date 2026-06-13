@@ -265,6 +265,10 @@ export default function ManualProfileWizard({
     setStepIndex(0);
     setTouched(new Set());
     setShowAllErrors(false);
+    // Remount the Contact step so it re-snapshots phone country / address mode from
+    // the new data (mirrors the draft-resume path); otherwise the dial code stays the
+    // stale mount-time default.
+    setResumeGen((n) => n + 1);
     setAutofilled(true);
     setAutofillBannerDismissed(false);
     setPendingCvData(null);

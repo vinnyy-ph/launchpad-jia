@@ -163,4 +163,39 @@ describe("ManualProfileWizard CV autofill", () => {
       expect(screen.getByPlaceholderText("First name")).toHaveValue("Maria"),
     );
   });
+
+  it("re-infers the phone country after autofill (remounts the Contact step)", async () => {
+    const onParseCv = jest.fn().mockResolvedValue({
+      name: "John Doe",
+      structuredCV: {
+        introduction: "",
+        contactInfo: {
+          email: "",
+          phone: "+14155551234",
+          countryCode: "",
+          address: "",
+          linkedin: "",
+          websites: [],
+        },
+        experience: [],
+        skills: [],
+        education: [],
+        projects: [],
+        certifications: [],
+        awards: [],
+      },
+    } as unknown as ParsedCv);
+    render(<ManualProfileWizard onExit={jest.fn()} userEmail="a@b.com" onParseCv={onParseCv} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /upload cv/i }));
+    await screen.findByText("Upload your CV");
+    fireEvent.change(cvFileInput(), { target: { files: [new File(["x"], "cv.pdf")] } });
+
+    await waitFor(() => expect(screen.getByPlaceholderText("First name")).toHaveValue("John"));
+    // The Contact step snapshots its phone country from props at mount only, so
+    // applyAutofill must remount it; otherwise the dial code stays the stale +63
+    // default for a parsed US (+1) number.
+    expect(screen.getByText("+1")).toBeInTheDocument();
+    expect(screen.queryByText("+63")).not.toBeInTheDocument();
+  });
 });

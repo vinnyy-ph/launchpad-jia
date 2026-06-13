@@ -15,10 +15,9 @@ import {
   sanitizeInternationalPhoneInput,
 } from "@/lib/utils/phoneInput";
 
-import { CORE_API_URL } from "@/lib/Utils";
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/utils/apiClient";
+import { parseCvFile } from "@/lib/utils/parseCvFile";
 import ErrorBoundary from "@/lib/components/ErrorBoundary";
 import { customLog } from "@/lib/CustomLogs";
 import { decodeHtmlEntities } from "@/lib/utils/sanitizeInput";
@@ -1395,37 +1394,7 @@ export default function () {
       setHasChanges(true);
       setError(null);
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("fName", file.name);
-      formData.append("userEmail", user.email);
-
-      const uploadResponse = await axios({
-        method: "POST",
-        url: `${CORE_API_URL}/upload-cv`,
-        data: formData,
-      });
-
-      if (!uploadResponse.data?.cvChunks) {
-        throw new Error("Invalid response from upload service");
-      }
-
-      const digitalizeResponse = await api.post(
-        `/api/whitecloak/autofill-cv`,
-        {
-          chunks: uploadResponse.data.cvChunks,
-        }
-      );
-
-      const result = digitalizeResponse.data.result;
-      if (!result) {
-        throw new Error("No result from digitalization service");
-      }
-
-      const parsedUserCV = safeJsonParse(result);
-      if (!parsedUserCV || !parsedUserCV.digitalCV) {
-        throw new Error("Invalid digitalization result structure");
-      }
+      const parsedUserCV: any = await parseCvFile(file, user.email);
 
       const verifiedFallback = getVerifiedPhoneFallback();
       if (
@@ -1451,7 +1420,7 @@ export default function () {
       const formattedCV = buildFormattedCVFromParsed(parsedUserCV);
       const extractedSkills = extractSkillsFromParsedCV(parsedUserCV);
 
-      setDigitalCV(result);
+      setDigitalCV(JSON.stringify(parsedUserCV));
       setUserCV(formattedCV);
       await loadCandidateSkillsFromMetadata(extractedSkills);
     } catch (error) {
@@ -1627,10 +1596,7 @@ export default function () {
               <ManualProfileWizard
                 userEmail={lockedEmail}
                 onExit={() => setShowManualWizard(false)}
-                onUploadCv={() => {
-                  setShowManualWizard(false);
-                  handleUploadCV();
-                }}
+                onParseCv={(file) => parseCvFile(file, user?.email ?? "")}
                 onSubmitted={async () => {
                   setShowManualWizard(false);
                   // Refresh the candidate's CV so "Review Current CV" reflects

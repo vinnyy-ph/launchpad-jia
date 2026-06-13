@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/lib/components/ui";
-import { ChevronLeft, ChevronRight, PlusCircle, Stars02 } from "@untitledui/icons";
+import { ChevronLeft, ChevronRight, PlusCircle, Stars02, XClose } from "@untitledui/icons";
 import ContactInformationStep, {
   type ContactStepValue,
   createEmptyContact,
@@ -17,6 +17,11 @@ import ReferenceEntryForm, { createEmptyReference } from "./ReferenceEntryForm";
 import DiscardProfileModal from "./DiscardProfileModal";
 import ResumeDraftModal from "./ResumeDraftModal";
 import CvUploadBanner from "./CvUploadBanner";
+import CvUploadModal from "./CvUploadModal";
+import ReplaceWithCvModal from "./ReplaceWithCvModal";
+import { cvToWizardData } from "@/lib/utils/cvToWizardData";
+import type { ParsedCv } from "@/lib/utils/parseCvFile";
+import { toast } from "react-toastify";
 import WebsitesStep, { createWebsite } from "./WebsitesStep";
 import SkillsStep from "./SkillsStep";
 import IntroductionStep from "./IntroductionStep";
@@ -120,8 +125,9 @@ interface ManualProfileWizardProps {
   onExit: () => void;
   userEmail?: string;
   onSubmitted?: () => void;
-  /** When provided, shows the "Already have a CV?" banner that bails to upload. */
-  onUploadCv?: () => void;
+  /** When provided, shows the "Already have a CV?" banner and enables in-wizard
+   * CV upload → autofill. Parsing is delegated to the parent. */
+  onParseCv?: (file: File) => Promise<ParsedCv>;
 }
 
 function fullName(c: ContactStepValue): string {
@@ -177,10 +183,16 @@ export default function ManualProfileWizard({
   onExit,
   userEmail = "",
   onSubmitted,
-  onUploadCv,
+  onParseCv,
 }: ManualProfileWizardProps) {
   const [stepIndex, setStepIndex] = useState(0); // 0-based
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [autofillBannerDismissed, setAutofillBannerDismissed] = useState(false);
+  const [showCvModal, setShowCvModal] = useState(false);
+  const [parsingCv, setParsingCv] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [autofilled, setAutofilled] = useState(false);
+  const [pendingCvData, setPendingCvData] = useState<WizardData | null>(null);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [showAllErrors, setShowAllErrors] = useState(false);
   const [sectionStatus, setSectionStatus] = useState<ProfileSectionStatus>(INITIAL_SECTION_STATUS);
@@ -241,6 +253,51 @@ export default function ManualProfileWizard({
 
   function patch(p: Partial<WizardData>) {
     setData((d) => ({ ...d, ...p }));
+  }
+
+  function applyAutofill(mapped: WizardData) {
+    // Keep the locked email — never overwrite the authenticated user's address.
+    const next = userEmail
+      ? { ...mapped, contact: { ...mapped.contact, email: userEmail } }
+      : mapped;
+    setData(next);
+    setSectionStatus(INITIAL_SECTION_STATUS);
+    setStepIndex(0);
+    setTouched(new Set());
+    setShowAllErrors(false);
+    // Remount the Contact step so it re-snapshots phone country / address mode from
+    // the new data (mirrors the draft-resume path); otherwise the dial code stays the
+    // stale mount-time default.
+    setResumeGen((n) => n + 1);
+    setAutofilled(true);
+    setAutofillBannerDismissed(false);
+    setPendingCvData(null);
+    setShowCvModal(false);
+    setParseError(null);
+    toast.info(
+      "We auto-filled your profile from your CV — please review each step before submitting.",
+    );
+  }
+
+  async function handleCvFile(file: File) {
+    if (!onParseCv) return;
+    setParsingCv(true);
+    setParseError(null);
+    try {
+      const parsed = await onParseCv(file);
+      const mapped = cvToWizardData(parsed);
+      if (isDirty) {
+        // Defer behind the confirm modal; hide the upload modal meanwhile.
+        setPendingCvData(mapped);
+        setShowCvModal(false);
+      } else {
+        applyAutofill(mapped);
+      }
+    } catch {
+      setParseError("We couldn't read that CV. Please try a different file.");
+    } finally {
+      setParsingCv(false);
+    }
   }
 
   async function handleSubmit() {
@@ -724,12 +781,54 @@ export default function ManualProfileWizard({
         onCancel={() => setShowReplaceIntro(false)}
       />
 
-      {onUploadCv && !bannerDismissed && (
+      {onParseCv && !autofilled && !bannerDismissed && (
         <CvUploadBanner
-          onUploadCv={onUploadCv}
+          onUploadCv={() => setShowCvModal(true)}
           onDismiss={() => setBannerDismissed(true)}
         />
       )}
+
+      {onParseCv && autofilled && !autofillBannerDismissed && (
+        <div className={styles.cvBanner}>
+          <p className={styles.cvBannerText}>
+            <span className={styles.cvBannerTitle}>Profile auto-filled from your CV</span>
+            <span className={styles.cvBannerBody}>
+              Please review each step and fix anything before submitting.
+            </span>
+          </p>
+          <div className={styles.cvBannerActions}>
+            <button
+              type="button"
+              className={styles.cvBannerClose}
+              onClick={() => setAutofillBannerDismissed(true)}
+              aria-label="Dismiss"
+            >
+              <XClose aria-hidden />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {onParseCv && (
+        <CvUploadModal
+          opened={showCvModal}
+          onClose={() => {
+            setShowCvModal(false);
+            setParseError(null);
+          }}
+          onFile={handleCvFile}
+          parsing={parsingCv}
+          error={parseError}
+        />
+      )}
+
+      <ReplaceWithCvModal
+        opened={pendingCvData !== null}
+        onConfirm={() => {
+          if (pendingCvData) applyAutofill(pendingCvData);
+        }}
+        onCancel={() => setPendingCvData(null)}
+      />
 
       <div className={styles.header}>
         <button

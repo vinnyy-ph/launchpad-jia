@@ -1390,3 +1390,33 @@ $verified: #1570ef;
   line-height: 20px;
   text-align: left;
 }
+
+.cvDropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px;
+  border: 2px dashed var(--color-border-secondary, #d0d5dd);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--color-text-tertiary, #475467);
+}
+
+.cvDropzone[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.cvDropzoneActive {
+  border-color: var(--color-brand, #6938ef);
+  background: rgba(105, 56, 239, 0.04);
+}
+
+.cvDropzoneError {
+  margin-top: 12px;
+  color: var(--color-text-error, #d92d20);
+  font-size: 14px;
+}

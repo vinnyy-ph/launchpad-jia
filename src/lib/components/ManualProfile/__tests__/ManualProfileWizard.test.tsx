@@ -1,3 +1,4 @@
+jest.mock("react-toastify", () => ({ toast: { info: jest.fn(), dismiss: jest.fn() } }));
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ManualProfileWizard from "../ManualProfileWizard";
 
@@ -70,5 +71,96 @@ describe("ManualProfileWizard dirty-guard history entry", () => {
     expect(backSpy).not.toHaveBeenCalled();
 
     backSpy.mockRestore();
+  });
+});
+
+import { toast } from "react-toastify";
+import type { ParsedCv } from "@/lib/utils/parseCvFile";
+
+function parsedFixture(): ParsedCv {
+  return {
+    name: "Maria Santos",
+    email: "ignored@parsed.com",
+    structuredCV: {
+      introduction: "Engineer.",
+      contactInfo: {
+        email: "ignored@parsed.com",
+        phone: "+639170000000",
+        countryCode: "",
+        address: "Cebu",
+        linkedin: "",
+        websites: [],
+      },
+      experience: [],
+      skills: ["React"],
+      education: [],
+      projects: [],
+      certifications: [],
+      awards: [],
+    },
+  } as unknown as ParsedCv;
+}
+
+function cvFileInput(): HTMLInputElement {
+  return document.querySelector('input[type="file"]') as HTMLInputElement;
+}
+
+describe("ManualProfileWizard CV autofill", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    (toast.info as jest.Mock).mockClear();
+  });
+
+  it("shows the upload banner only when onParseCv is provided", () => {
+    const { rerender } = render(<ManualProfileWizard onExit={jest.fn()} userEmail="a@b.com" />);
+    expect(screen.queryByText("Already have a CV?")).not.toBeInTheDocument();
+
+    rerender(
+      <ManualProfileWizard onExit={jest.fn()} userEmail="a@b.com" onParseCv={jest.fn()} />,
+    );
+    expect(screen.getByText("Already have a CV?")).toBeInTheDocument();
+  });
+
+  it("opens the upload modal from the banner", async () => {
+    render(<ManualProfileWizard onExit={jest.fn()} userEmail="a@b.com" onParseCv={jest.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: /upload cv/i }));
+    expect(await screen.findByText("Upload your CV")).toBeInTheDocument();
+  });
+
+  it("autofills, keeps the locked email, lands on Contact, and shows the banner + toast", async () => {
+    const onParseCv = jest.fn().mockResolvedValue(parsedFixture());
+    render(<ManualProfileWizard onExit={jest.fn()} userEmail="a@b.com" onParseCv={onParseCv} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /upload cv/i }));
+    await screen.findByText("Upload your CV");
+    const file = new File(["x"], "cv.pdf", { type: "application/pdf" });
+    fireEvent.change(cvFileInput(), { target: { files: [file] } });
+
+    await waitFor(() => expect(onParseCv).toHaveBeenCalledWith(file));
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText("First name")).toHaveValue("Maria"),
+    );
+    expect(screen.getByDisplayValue("a@b.com")).toBeInTheDocument(); // locked email kept
+    expect(screen.getByText(/auto-filled from your cv/i)).toBeInTheDocument();
+    expect(toast.info).toHaveBeenCalledTimes(1);
+  });
+
+  it("confirms before overwriting when the wizard is already dirty", async () => {
+    const onParseCv = jest.fn().mockResolvedValue(parsedFixture());
+    render(<ManualProfileWizard onExit={jest.fn()} userEmail="a@b.com" onParseCv={onParseCv} />);
+
+    fireEvent.change(screen.getByPlaceholderText("First name"), { target: { value: "K" } });
+    fireEvent.click(screen.getByRole("button", { name: /upload cv/i }));
+    await screen.findByText("Upload your CV");
+    fireEvent.change(cvFileInput(), { target: { files: [new File(["x"], "cv.pdf")] } });
+
+    await waitFor(() => expect(onParseCv).toHaveBeenCalled());
+    expect(await screen.findByText("Replace your entries?")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("First name")).toHaveValue("K"); // not yet applied
+
+    fireEvent.click(await screen.findByRole("button", { name: /replace with cv/i }));
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText("First name")).toHaveValue("Maria"),
+    );
   });
 });
